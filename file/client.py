@@ -36,7 +36,7 @@ def send(msg):
     sendlen += b' ' * (header - len(sendlen))
     client.send(sendlen)
     client.send(sendmsg)
-    print(client.recv(header))
+    print(client.recv(header).decode(format))
 
 while True:
     msgs = input("Send Someting: ")
