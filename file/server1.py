@@ -23,7 +23,7 @@ addr = (localip, port) ## use this if the server are the same ip
 
 
 
-header = 2048
+header = 1024
 format = 'utf-8'
 disconnected = "!disconnected"
 
