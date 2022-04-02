@@ -1,0 +1,54 @@
+body {
+	margin: none;
+	padding: none;
+	height: 100vh;
+	width: auto;
+	background-position: center;
+	background-attachment: fixed;
+	background-image: linear-gradient(rgba(0, 0, 0, 0.30),rgba(0, 0, 0, 0.30)),url(./src/backgrounds/background1.jpg)
+
+
+}
+
+.body-container {
+	margin: 10% 15% 10% 15%;
+	padding: 2px;
+	height: 100%;
+	width: auto;
+	position: center;
+	border-radius: 24px;
+	background-color: white;
+
+}
+
+.profile {
+	margin: none;
+	padding: none;
+	text-align: center;
+}
+
+.avatar {
+	margin: none;
+	padding: 100px;
+	align-content: center;
+
+}
+
+.avatar-image {
+	margin: none;
+	padding: none;
+	height: 210px;
+	width: 210px;
+	
+
+}
+
+.profile-username {
+	font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+
+}
+
+.profile-name {
+	font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+
+}
