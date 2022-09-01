@@ -49,7 +49,7 @@ BLYNK_WRITE(V1)
 
 BLYNK_WRITE(V2)
 {
-  int servov2 = param.asInt();
+  int servov2 = map(param.asInt(),1000,2000,2000,1000);
   servo2.write(servov2);
   //Serial.println(servov2);
 }
