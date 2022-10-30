@@ -1,0 +1,8 @@
+APM 2.8 -------->  ESP8266
+Input 1 -------->  GPIO15
+Input 2 -------->  GPIO13
+Input 3 -------->  GPIO12
+Input 4 -------->  GPIO14
+Input 5 -------->  GPIO2
+5V      -------->  Vin
+GND     -------->  GND
