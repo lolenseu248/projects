@@ -1,7 +1,7 @@
 from machine import Pin, ADC, PWM
 from utime import sleep
 
-100bits = {
+b100 = {
 	"\r":"3",
 	"\t":"8",
 	"\n":"13",
@@ -113,7 +113,7 @@ counter = 0
 while counter < countdata:
 	procces = data[counter]
 	try:
-		strap = 100bits[procces]
+		strap = b100[procces]
 		pwm.duty_u16(strap)
 		print(strap)
 		counter += 1
