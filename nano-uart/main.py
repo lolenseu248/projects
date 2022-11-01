@@ -107,21 +107,17 @@ adc = ADC(Pin(0))
 pwm = PWM(Pin(1))
 pwm.freq(60)
 
-while True:
-	pwm.duty_u16(1000)
-	adc.read()
-	sleep(1)
 
-	countdata = len(data)
-    counter = 0
-    while counter < countdata:
-        procces = data[counter]
-        try:
-            strap = 100bits[procces]
-            a.write(strap)
-            counter += 1
-            result = 'ok!'
-            if spiner_counter == 4:
-                spiner_counter = 0
-            animation(spiner_counter, starttime, strap, result)
-            spiner_counter += 1
+countdata = len(data)
+counter = 0
+while counter < countdata:
+	procces = data[counter]
+	try:
+		strap = 100bits[procces]
+		pwm.duty_u16(strap)
+		print(strap)
+		counter += 1
+	except:
+		pass
+	
+	adc.read()
