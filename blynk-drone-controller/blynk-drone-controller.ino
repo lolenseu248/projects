@@ -7,10 +7,12 @@
 
 #include <ESP8266WiFi.h>
 #include <BlynkSimpleEsp8266.h>
+#include <ArduinoTimer.h>
 #include <Servo.h>
 
-#define BUZZER 5
-#define LED1 16
+
+ArduinoTimer Timer1;
+ArduinoTimer Timer2;
 
 Servo servo1;
 Servo servo2;
@@ -18,6 +20,11 @@ Servo servo3;
 Servo servo4;
 Servo servo5;
 Servo servo6;
+
+int counter = 0;
+
+int BUZZER = 5;
+int LED1 = 16;
 
 char auth[] = BLYNK_AUTH_TOKEN; 
 char ssid[] = WIFI_SSID;                    
@@ -52,31 +59,28 @@ BLYNK_WRITE(V1) {
   prcValue1 = map(rcValue1,1000,2000,1000,2000);
   if (rcValue9 == 1) nrcValue1 = map(prcValue1,1000,2000,1400,1800);
   else if (rcValue1 == 1000) tone(BUZZER,5000);
-  else {
-    nrcValue1 = map(rcValue1,1000,2000,1000,2000);
-    noTone(BUZZER);
-  }
+  else nrcValue1 = prcValue1;
 }
 
 BLYNK_WRITE(V2) {
   rcValue2 = param.asInt();
   prcValue2 = map(rcValue2,1000,2000,2000,1000);
   if (rcValue9 == 1) nrcValue2 = map(prcValue2,2000,1000,1700,1300);
-  else nrcValue2 = map(rcValue2,1000,2000,2000,1000);
+  else nrcValue2 = prcValue2;
 }
 
 BLYNK_WRITE(V3) {
   rcValue3 = param.asInt();
   prcValue3 = map(rcValue3,1000,2000,2000,1000);
   if (rcValue10 == 1) nrcValue3 = map(prcValue3,2000,1000,1700,1300);
-  else nrcValue3 = map(rcValue3,1000,2000,2000,1000);
+  else nrcValue3 = prcValue3;
 }
 
 BLYNK_WRITE(V4) {
   rcValue4 = param.asInt();
   prcValue4 = map(rcValue4,1000,2000,2000,1000);
   if (rcValue10 == 1) nrcValue4 = map(prcValue4,2000,1000,1700,1300);
-  else nrcValue4 = map(rcValue4,1000,2000,2000,1000);
+  else nrcValue4 = prcValue4;
 }
 
 BLYNK_WRITE(V5) {
@@ -119,14 +123,56 @@ void setup() {
   servo3.attach(13);
   servo4.attach(15);
   servo5.attach(2);
-  servo6.attach(0); 
+  servo6.attach(0);
+  
+  //DJI Tone Start Up
+  delay(8000);
+  tone(BUZZER,800,550);
+  delay(300);
+  tone(BUZZER,1200,550);
+  delay(200);
+  tone(BUZZER,1050,550);
+  delay(1000);
+  
+  //5sec. Delay.
+  delay(5000);
 }
 
 
 void loop() {
   if (Blynk.connected()) {
     Blynk.run();
+
+    //Buzzer and Led.
+    if (Timer1.TimePassed_Milliseconds(3000)) {
+      digitalWrite(LED1, HIGH);
+      tone(BUZZER,3500,250);
+    }
+    else if (Timer2.TimePassed_Milliseconds(3500)) {
+      digitalWrite(LED1, LOW);
+      Timer1.Reset();
+      Timer2.Reset();
+    }
+
+    //Saver Functions.
+    //Auto Loiter if Untouch.
+    if (counter == 250) {
+      if (nrcValue5 == 1580) nrcValue5 = 1580, counter = 0;
+      else if (nrcValue5 == 1740) nrcValue5 = 1740, counter = 0;
+      else if (nrcValue5 == 1900) nrcValue5 = 1900, counter = 0;
+      else if (rcValue3 == 1500 and rcValue4 == 1500) nrcValue5 = 1420, counter = 300;
+      else counter = 0;
+    }
     
+    //Auto Landing if Loiter Mode Untouch.
+    else if (counter == 1000) {
+      if (nrcValue5 == 1420) nrcValue5 = 1899, counter = 0;
+      else counter = 0;
+    }
+    
+    counter += 1;
+    
+    //Sending PWM Signal to ArduPilot.
     servo1.write(nrcValue1);
     servo2.write(nrcValue2);
     servo3.write(nrcValue3);
@@ -135,7 +181,8 @@ void loop() {
   
     if (rcValue6 == 1) servo6.write(nrcValue1);
     else servo6.write(2000);
-    
+
+    //Debugging.
     Serial.print("Trottle: ");
     Serial.print(rcValue1);
     Serial.print(" / ");
@@ -159,8 +206,11 @@ void loop() {
     Serial.print("Mode: ");
     Serial.print(rcValue5);
     Serial.print(" / ");
-    Serial.println(nrcValue5);
-    //delay(100); //(Delay) Enable this for Debugging.
+    Serial.print(nrcValue5);
+    Serial.print("\t");
+    Serial.print("Counter: ");
+    Serial.println(counter);
+    //delay(100); //Enable this for Debugging.
   }
   //Auto Landing if Disconnected to the Internet.
   else {
@@ -169,8 +219,10 @@ void loop() {
     servo3.write(1500);
     servo4.write(1500);
     servo5.write(1899);
+    digitalWrite(LED1, LOW);
     tone(BUZZER,5000,250);
-    delay(1000);
+    delay(2500);
+    digitalWrite(LED1, HIGH);
     Blynk.run();
   }
 }
