@@ -111,6 +111,7 @@ BLYNK_WRITE(V10) {
 
 void setup() {
   Serial.begin(115200);
+  Blynk.begin(auth, ssid, pass);
   pinMode(BUZZER, OUTPUT);
   pinMode(LED1, OUTPUT);
   servo1.attach(12);
@@ -118,49 +119,48 @@ void setup() {
   servo3.attach(13);
   servo4.attach(15);
   servo5.attach(2);
-  servo6.attach(0);
-  Blynk.begin(auth, ssid, pass);
+  servo6.attach(0); 
 }
 
 
 void loop() {
   if (Blynk.connected()) {
-  Blynk.run();
+    Blynk.run();
+    
+    servo1.write(nrcValue1);
+    servo2.write(nrcValue2);
+    servo3.write(nrcValue3);
+    servo4.write(nrcValue4);
+    servo5.write(nrcValue5);
   
-  servo1.write(nrcValue1);
-  servo2.write(nrcValue2);
-  servo3.write(nrcValue3);
-  servo4.write(nrcValue4);
-  servo5.write(nrcValue5);
-
-  if (rcValue6 == 1) servo6.write(nrcValue1);
-  else servo6.write(2000);
-  
-  Serial.print("Trottle: ");
-  Serial.print(rcValue1);
-  Serial.print(" / ");
-  Serial.print(nrcValue1);
-  Serial.print("\t");
-  Serial.print("Yaw: ");
-  Serial.print(rcValue2);
-  Serial.print(" / ");
-  Serial.print(nrcValue2);
-  Serial.print("\t");
-  Serial.print("Pitch: ");
-  Serial.print(rcValue3);
-  Serial.print(" / ");
-  Serial.print(nrcValue3);
-  Serial.print("\t");
-  Serial.print("Roll: ");
-  Serial.print(rcValue4);
-  Serial.print(" / ");
-  Serial.print(nrcValue4);
-  Serial.print("\t");
-  Serial.print("Mode: ");
-  Serial.print(rcValue5);
-  Serial.print(" / ");
-  Serial.println(nrcValue5);
-  //delay(2); //(Delay) Enable this for Debugging.
+    if (rcValue6 == 1) servo6.write(nrcValue1);
+    else servo6.write(2000);
+    
+    Serial.print("Trottle: ");
+    Serial.print(rcValue1);
+    Serial.print(" / ");
+    Serial.print(nrcValue1);
+    Serial.print("\t");
+    Serial.print("Yaw: ");
+    Serial.print(rcValue2);
+    Serial.print(" / ");
+    Serial.print(nrcValue2);
+    Serial.print("\t");
+    Serial.print("Pitch: ");
+    Serial.print(rcValue3);
+    Serial.print(" / ");
+    Serial.print(nrcValue3);
+    Serial.print("\t");
+    Serial.print("Roll: ");
+    Serial.print(rcValue4);
+    Serial.print(" / ");
+    Serial.print(nrcValue4);
+    Serial.print("\t");
+    Serial.print("Mode: ");
+    Serial.print(rcValue5);
+    Serial.print(" / ");
+    Serial.println(nrcValue5);
+    //delay(100); //(Delay) Enable this for Debugging.
   }
   //Auto Landing if Disconnected to the Internet.
   else {
