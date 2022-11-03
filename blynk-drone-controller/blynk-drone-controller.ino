@@ -47,11 +47,11 @@ int prcValue3;
 int prcValue4;
 int prcValue5;
 
-int nrcValue1;
-int nrcValue2;
-int nrcValue3;
-int nrcValue4;
-int nrcValue5;
+int nrcValue1 = 1500;
+int nrcValue2 = 1500;
+int nrcValue3 = 1500;
+int nrcValue4 = 1500;
+int nrcValue5 = 1100;
 
 
 BLYNK_WRITE(V1) {
@@ -125,8 +125,14 @@ void setup() {
   servo5.attach(2);
   servo6.attach(0);
   
+  servo1.write(nrcValue1);
+  servo2.write(nrcValue2);
+  servo3.write(nrcValue3);
+  servo4.write(nrcValue4);
+  servo5.write(nrcValue5);
+  
   //DJI Tone Start Up
-  delay(8000);
+  delay(3000);
   tone(BUZZER,800,550);
   delay(300);
   tone(BUZZER,1200,550);
