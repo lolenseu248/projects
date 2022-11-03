@@ -181,6 +181,8 @@ void loop() {
   
     if (rcValue6 == 1) servo6.write(nrcValue1);
     else servo6.write(2000);
+    
+    Blynk.virtualWrite(V12, map(nrcValue5,1100,1900,1,6));
 
     //Debugging.
     Serial.print("Trottle: ");
