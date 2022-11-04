@@ -47,7 +47,7 @@ int prcValue3;
 int prcValue4;
 int prcValue5;
 
-int nrcValue1 = 1500;
+int nrcValue1 = 1600;
 int nrcValue2 = 1500;
 int nrcValue3 = 1500;
 int nrcValue4 = 1500;
