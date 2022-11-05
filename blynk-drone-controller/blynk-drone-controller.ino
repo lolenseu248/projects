@@ -139,7 +139,11 @@ void loop() {
     //Tuning Throttle.
     if (rcValue9 == 1) {
       if (prcValue1 > 1600) rcValue1 += 1;
+      if (prcValue1 > 1800) rcValue1 += 3;
+      if (prcValue1 > 1950) rcValue1 += 5;
       if (prcValue1 < 1400) rcValue1 -= 1;
+      if (prcValue1 < 1200) rcValue1 -= 3;
+      if (prcValue1 > 1050) rcValue1 -= 5;
       if (rcValue1 >= 1800) prcValue1 = 1600,rcValue1 = 1600;
       if (rcValue1 <= 1400) prcValue1 = 1600,rcValue1 = 1600;
     }
