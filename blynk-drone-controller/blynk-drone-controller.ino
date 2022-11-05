@@ -65,7 +65,7 @@ BLYNK_WRITE(V3) {
 
 BLYNK_WRITE(V4) {
   if (param.asInt()) {
-    if (rcValue9 == 1) rcValue4 = map(param.asInt(),1000,2000,1700,1300);
+    if (rcValue10 == 1) rcValue4 = map(param.asInt(),1000,2000,1700,1300);
     else rcValue4 = map(param.asInt(),1000,2000,2000,1000);
     //servo4.write(rcValue4);
   }
