@@ -1,26 +1,20 @@
 #include <SPI.h>
 #include <Wire.h>
-#include <RF24.h>
-#include <nRF24L01.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-
-//Pinouts
-RF24 radio(1,3);
-
 //Joystic Pinouts
-int joyX1=15;
-int joyY1=2;
-int joySW1=17;
+int joyX1=19;
+int joyY1=18;
+int joySW1=5;
 
-int joyX2=0;
-int joyY2=4;
-int joySW2=16;
+int joyX2=17;
+int joyY2=16;
+int joySW2=4;
 
 //Potentiometer Pinouts
-int potenMeter1=12;
-int potenMeter2=14;
+int potenMeter1=0;
+int potenMeter2=2;
 
 //Toggle Switchs
 int togSW1=35;
@@ -53,16 +47,10 @@ int potenM2Pos;
 
 char msg[32];
 
-const byte address[6]="00001";
-
 
 void setup() {
   Serial.begin(115200);
-  radio.setChannel(2);
-  radio.openWritingPipe(address);
-  radio.setDataRate(RF24_250KBPS);
-  radio.stopListening();
-
+  
   pinMode(joyX1,INPUT);
   pinMode(joyY1,INPUT);
   pinMode(joySW1,INPUT_PULLUP);
@@ -101,7 +89,4 @@ void loop() {
   potenM2Pos=analogRead(potenMeter1);
 
 
-
-  //Sending to rNF24L01 data
-  radio.write(&msg,sizeof(msg));
 }
