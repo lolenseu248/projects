@@ -11,11 +11,11 @@
 //Joystic Pinouts
 int joyX1=32;
 int joyY1=33;
-int joySW1=36;
+int joySW1=34;
 
 int joyX2=25;
 int joyY2=26;
-int joySW2=39;
+int joySW2=35;
 
 //Potentiometer Pinouts
 int potenMeter1=14;
