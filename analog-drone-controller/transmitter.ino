@@ -9,17 +9,17 @@
 #define OLED_RESET -1 // Reset pin # (or -1 if sharing Arduino resetpin)
 
 //Joystic Pinouts
-int joyX1=19;
-int joyY1=18;
-int joySW1=5;
+int joyX1=32;
+int joyY1=33;
+int joySW1=36;
 
-int joyX2=17;
-int joyY2=16;
-int joySW2=4;
+int joyX2=25;
+int joyY2=26;
+int joySW2=39;
 
 //Potentiometer Pinouts
-int potenMeter1=0;
-int potenMeter2=2;
+int potenMeter1=14;
+int potenMeter2=12;
 
 //Toggle Switchs
 int togSW1=35;
