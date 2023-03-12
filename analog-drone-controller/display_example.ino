@@ -13,8 +13,6 @@
 // Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
-int a = 1;
-
 void setup() {
   Serial.begin(115200);
 
