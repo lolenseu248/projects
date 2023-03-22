@@ -48,6 +48,11 @@ int joySW2State;
 int potenM1Pos;
 int potenM2Pos;
 
+//toggle
+int togSW1State;
+int togSW2State;
+int togSW3State;
+int togSW4State;
 
 //mapped data
 //joystic maps
@@ -85,9 +90,16 @@ void setup() {
     Serial.println(F("SSD1306 allocation failed"));
     for (;;); // Don't proceed, loop forever
   }
-  
+
+  //joystick switch
   pinMode(joySW1, INPUT);
   pinMode(joySW2, INPUT);
+
+  //toggle switch
+  pinMode(togSW1, INPUT_PULLUP);
+  pinMode(togSW2, INPUT_PULLUP);
+  pinMode(togSW3, INPUT_PULLUP);
+  pinMode(togSW4, INPUT_PULLUP);
 
 }
 
@@ -115,6 +127,12 @@ void loop() {
   potenM1Pos = analogRead(potenMeter1);
   potenM2Pos = analogRead(potenMeter1);
 
+  //read toglle input value
+  togSW1State = digitalRead(togSW1);
+  togSW2State = digitalRead(togSW2);
+  togSW3State = digitalRead(togSW3);
+  togSW4State = digitalRead(togSW4);
+
 
   //mapped data
   //mapped joystic values of joystic no.1
@@ -133,16 +151,24 @@ void loop() {
 
   //debug
   Serial.printf("Raw Data");
-  Serial.printf("JoyStick no.1 X= %d, Y= %d, Sw= %d \n",joyX1Pos,joyY1Pos,joySW2State);
+  Serial.printf("JoyStick no.1 X= %d, Y= %d, Sw= %d \n",joyX1Pos,joyY1Pos,joySW1State);
   Serial.printf("JoyStick no.2 X= %d, Y= %d, Sw= %d \n",joyX2Pos,joyY2Pos,joySW2State);
   Serial.printf("PotentioMeter no.1 = %f \n",potenM2Pos);
   Serial.printf("PotentioMeter no.2 = %f \n",potenM2Pos);
   Serial.printf("\n");
   Serial.printf("Mapped Data");
-  Serial.printf("JoyStick no.1 X= %d, Y= %d, Sw= %d \n",joyX1Poss,joyY1Poss,joySW2State);
+  Serial.printf("JoyStick no.1 X= %d, Y= %d, Sw= %d \n",joyX1Poss,joyY1Poss,joySW1State);
   Serial.printf("JoyStick no.2 X= %d, Y= %d, Sw= %d \n",joyX2Poss,joyY2Poss,joySW2State);
   Serial.printf("PotentioMeter no.1 = %f \n",potenM2Poss);
   Serial.printf("PotentioMeter no.2 = %f \n",potenM2Poss);
+  Serial.printf("\n");
+  Serial.printf("Switch");
+  Serial.printf("JoyStick no.1 = %d \n",joySW1State);
+  Serial.printf("JoyStick no.2 = %d \n",joySW2State);
+  Serial.printf("Toggle no.1 = %d \n",togSW1State);
+  Serial.printf("Toggle no.2 = %d \n",togSW2State);
+  Serial.printf("Toggle no.3 = %d \n",togSW3State);
+  Serial.printf("Toggle no.4 = %d \n",togSW4State);
   Serial.printf("\n");
   Serial.printf("Counter= %d \n",counter);
 
@@ -152,6 +178,7 @@ void loop() {
   display.setTextColor(WHITE);
   display.setCursor(0, 28);
   display.println("Test");
+  display.println("Test1");
   display.display();
   display.clearDisplay();
 
