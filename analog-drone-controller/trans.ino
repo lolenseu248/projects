@@ -101,6 +101,10 @@ void setup() {
   pinMode(togSW3, INPUT_PULLUP);
   pinMode(togSW4, INPUT_PULLUP);
 
+
+  //display
+  display.clearDisplay();
+  display.display();
 }
 
 void loop() {
@@ -125,7 +129,7 @@ void loop() {
 
   //read potentiometer analog values
   potenM1Pos = analogRead(potenMeter1);
-  potenM2Pos = analogRead(potenMeter1);
+  potenM2Pos = analogRead(potenMeter2);
 
   //read toglle input value
   togSW1State = digitalRead(togSW1);
@@ -136,51 +140,80 @@ void loop() {
 
   //mapped data
   //mapped joystic values of joystic no.1
-  joyX1Poss = map(joyX1Pos,0,4095,1000,2000);
-  joyY1Poss = map(joyY1Pos,0,4095,1000,2000);
+  joyX1Poss = map(joyX1Pos, 1000, 2000, 0, 255);
+  joyY1Poss = map(joyY1Pos, 1000, 2000, 0, 255);
 
   //mapped joystic values of joystic no.1
-  joyX2Poss = map(joyX2Pos,0,4095,1000,2000);
-  joyY2Poss = map(joyY2Pos,0,4095,1000,2000);
+  joyX2Poss = map(joyX2Pos, 1000, 2000, 0, 255);
+  joyY2Poss = map(joyY2Pos, 1000, 2000, 0, 255);
 
   //mapped potentiometer
-  potenM1Poss = floatMap(potenM1Pos, 0, 4095, 1000, 2000);
-  potenM2Poss = floatMap(potenM2Pos, 0, 4095, 1000, 2000);
+  potenM1Poss = map(potenM1Pos, 1000, 2000, 0, 255);
+  potenM2Poss = map(potenM2Pos, 1000, 2000, 0, 255);
   
 
 
   //debug
-  Serial.printf("Raw Data");
+  Serial.printf("Raw Data \n");
   Serial.printf("JoyStick no.1 X= %d, Y= %d, Sw= %d \n",joyX1Pos,joyY1Pos,joySW1State);
   Serial.printf("JoyStick no.2 X= %d, Y= %d, Sw= %d \n",joyX2Pos,joyY2Pos,joySW2State);
-  Serial.printf("PotentioMeter no.1 = %f \n",potenM2Pos);
-  Serial.printf("PotentioMeter no.2 = %f \n",potenM2Pos);
+  Serial.printf("PotentioMeter no.1= %f \n",potenM2Pos);
+  Serial.printf("PotentioMeter no.2= %f \n",potenM2Pos);
   Serial.printf("\n");
-  Serial.printf("Mapped Data");
+  
+  Serial.printf("Mapped Data \n");
   Serial.printf("JoyStick no.1 X= %d, Y= %d, Sw= %d \n",joyX1Poss,joyY1Poss,joySW1State);
   Serial.printf("JoyStick no.2 X= %d, Y= %d, Sw= %d \n",joyX2Poss,joyY2Poss,joySW2State);
-  Serial.printf("PotentioMeter no.1 = %f \n",potenM2Poss);
-  Serial.printf("PotentioMeter no.2 = %f \n",potenM2Poss);
+  Serial.printf("PotentioMeter no.1= %f \n",potenM2Poss);
+  Serial.printf("PotentioMeter no.2= %f \n",potenM2Poss);
   Serial.printf("\n");
-  Serial.printf("Switch");
-  Serial.printf("JoyStick no.1 = %d \n",joySW1State);
-  Serial.printf("JoyStick no.2 = %d \n",joySW2State);
-  Serial.printf("Toggle no.1 = %d \n",togSW1State);
-  Serial.printf("Toggle no.2 = %d \n",togSW2State);
-  Serial.printf("Toggle no.3 = %d \n",togSW3State);
-  Serial.printf("Toggle no.4 = %d \n",togSW4State);
+  
+  Serial.printf("Switch \n");
+  Serial.printf("JoyStick no.1= %d \n",joySW1State);
+  Serial.printf("JoyStick no.2= %d \n",joySW2State);
+  Serial.printf("Toggle no.1= %d \n",togSW1State);
+  Serial.printf("Toggle no.2= %d \n",togSW2State);
+  Serial.printf("Toggle no.3= %d \n",togSW3State);
+  Serial.printf("Toggle no.4= %d \n",togSW4State);
   Serial.printf("\n");
+  
   Serial.printf("Counter= %d \n",counter);
 
 
   //oled screen debug
+  display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
-  display.setCursor(0, 28);
-  display.println("Test");
-  display.println("Test1");
+  
+  display.setCursor(0, 0);
+  display.print("JSNo.1: ");
+  display.print("\t=");
+  display.print(joyX1Poss);
+  display.print("\tY=");
+  display.print(joyY1Poss);
+  
+  display.setCursor(0, 10);
+  display.print("JSNo.2: ");
+  display.print("\tX=");
+  display.print(joyX2Poss);
+  display.print("\tY=");
+  display.print(joyY2Poss);
+
+  display.setCursor(0, 20);
+  display.print("PMNo.1: =");
+  display.print(potenM1Poss);
+
+  display.setCursor(0, 30);
+  display.print("PMNo.2: =");
+  display.print(potenM2Poss);
+  
+  display.setCursor(0, 100);
+  display.print("Counter: ");
+  display.print(counter);
+  
   display.display();
-  display.clearDisplay();
+
+
 
   //delay
   delay(100);
