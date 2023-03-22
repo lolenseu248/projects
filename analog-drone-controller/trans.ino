@@ -1,5 +1,8 @@
 #include <SPI.h>
+#include <WiFi.h>
 #include <Wire.h>
+
+#include <esp_now.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
@@ -12,6 +15,10 @@
 
 //screen initiation
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+//mac address of receiver 
+uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+
 
 //joystic pinoutss
 #define joyX1 26
@@ -62,16 +69,64 @@ int joyY1Poss;
 int joyX2Poss;
 int joyY2Poss;
 
-
 //potentiometer maps
 int potenM1Poss;
 int potenM2Poss;
 
 
-
 //potentiometer map voltage
 float floatMap(float x, float in_min, float in_max, float out_min, float out_max) {
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+
+//variable to store if sending data was successful
+String success;
+
+//storage message
+typedef struct struct_message {
+    int joyx1;
+    int joyy1;
+    int joyx2;
+    int joyy2;
+    int joys1;
+    int joys2;
+    int potm1;
+    int potm2;
+    int togs1;
+    int togs2;
+    int togs3;
+    int togs4;
+} struct_message;
+
+// Create a struct_message to hold send message
+struct_message sendMessage;
+
+//create a struct_message to hold incoming message
+struct_message incomingMessage;
+
+
+esp_now_peer_info_t peerInfo;
+
+
+//callback when data is sent
+void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
+  Serial.print("\r\nLast Packet Send Status:\t");
+  Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
+  if (status ==0){
+    success = "Delivery Success :)";
+  }
+  else{
+    success = "Delivery Fail :(";
+  }
+}
+
+//callback when data is received
+void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
+  memcpy(&incomingMessage, incomingData, sizeof(incomingMessage));
+  Serial.print("Bytes received: ");
+  Serial.println(len);
+  
 }
 
 
@@ -85,11 +140,41 @@ void setup() {
 
   //initiation 
   Serial.begin(9600);
-
+  
+  // init oled display
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     Serial.println(F("SSD1306 allocation failed"));
     for (;;); // Don't proceed, loop forever
   }
+
+  //set device as a Wi-fi station
+  WiFi.mode(WIFI_STA);
+
+  //init esp-now
+  if (esp_now_init() != ESP_OK) {
+    Serial.println("Error initializing ESP-NOW");
+    return;
+  }
+
+
+  // Once ESPNow is successfully Init, we will register for Send CB to
+  // get the status of Trasnmitted packet
+  esp_now_register_send_cb(OnDataSent);
+  
+  // Register peer
+  memcpy(peerInfo.peer_addr, broadcastAddress, 6);
+  peerInfo.channel = 0;  
+  peerInfo.encrypt = false;
+  
+  // Add peer        
+  if (esp_now_add_peer(&peerInfo) != ESP_OK){
+    Serial.println("Failed to add peer");
+    return;
+  }
+  // Register for a callback function that will be called when data is received
+  esp_now_register_recv_cb(OnDataRecv);
+
+
 
   //joystick switch
   pinMode(joySW1, INPUT);
@@ -110,11 +195,16 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
 
-  //counter
+  //counter and buzzer
   if (counter == 100) {
     counter = 0;
   }
   counter += 1;
+  
+  
+  //receive message
+  
+  
   
   //raw data
   //read X,Y and SW analog values of joystic no.1
@@ -181,6 +271,7 @@ void loop() {
 
 
   //oled screen debug
+  display.display();
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
@@ -207,12 +298,29 @@ void loop() {
   display.print("PMNo.2: =");
   display.print(potenM2Poss);
   
-  display.setCursor(0, 100);
+  display.setCursor(0, 90);
   display.print("Counter: ");
   display.print(counter);
-  
-  display.display();
 
+
+  //prepare for send message
+  
+
+
+  //send message via esp-now
+  esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &sendMessage, sizeof(sendMessage));
+
+  if (result == ESP_OK) {
+    Serial.println("Sent with success");
+    display.setCursor(0, 100);
+    display.print("Sent with success");
+  }
+  else {
+
+    Serial.println("Error sending the data");
+    display.setCursor(0, 100);
+    display.print("Error sending the data");
+  }
 
 
   //delay
