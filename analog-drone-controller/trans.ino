@@ -117,11 +117,17 @@ void loop() {
 
 
   //mapped data
-  //mapped joystic values
+  //mapped joystic values of joystic no.1
+  joyX1Poss = map(joyX1Pos,0,4095,1000,2000);
+  joyY1Poss = map(joyY1Pos,0,4095,1000,2000);
+
+  //mapped joystic values of joystic no.1
+  joyX2Poss = map(joyX2Pos,0,4095,1000,2000);
+  joyY2Poss = map(joyY2Pos,0,4095,1000,2000);
 
   //mapped potentiometer
-  potenM1Poss = floatMap(potenM1Pos, 0, 4095, 0, 3.3);
-  potenM2Poss = floatMap(potenM2Pos, 0, 4095, 0, 3.3);
+  potenM1Poss = floatMap(potenM1Pos, 0, 4095, 1000, 2000);
+  potenM2Poss = floatMap(potenM2Pos, 0, 4095, 1000, 2000);
   
 
 
@@ -133,7 +139,11 @@ void loop() {
   Serial.printf("PotentioMeter no.2 = %f \n",potenM2Pos);
   Serial.printf("\n");
   Serial.printf("Mapped Data");
-  
+  Serial.printf("JoyStick no.1 X= %d, Y= %d, Sw= %d \n",joyX1Poss,joyY1Poss,joySW2State);
+  Serial.printf("JoyStick no.2 X= %d, Y= %d, Sw= %d \n",joyX2Poss,joyY2Poss,joySW2State);
+  Serial.printf("PotentioMeter no.1 = %f \n",potenM2Poss);
+  Serial.printf("PotentioMeter no.2 = %f \n",potenM2Poss);
+  Serial.printf("\n");
   Serial.printf("Counter= %d \n",counter);
 
 
