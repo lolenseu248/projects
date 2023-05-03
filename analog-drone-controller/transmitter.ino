@@ -1191,6 +1191,10 @@ int joyY2Poss;
 int potenM1Poss;
 int potenM2Poss;
 
+// joystic2 speed ajust
+int calcLow;
+int calcMax;
+
 // sending process data
 int Trottle = 0;
 int Yaw = 1500;
@@ -1423,47 +1427,54 @@ int mapPercent(int toMapPercent) {
 }
 
 // to set official data
-//trottle
+// settrottle
 int setTrottle(int toTrottle) {
-  if (toTrottle <= 1200) Trottle = Trottle -= 10;
-  if (toTrottle >= 1800) Trottle = Trottle += 10;
+  if (toTrottle <= 1200) Trottle = Trottle -= 5;
+  if (toTrottle >= 1800) Trottle = Trottle += 5;
   if (Trottle <= 1000) Trottle = 1000;
   if (Trottle >= 2000) Trottle = 1800;
   return Trottle;
 }
 
-//yaw
+// setyaw
 int setYaw(int toYaw) {
   if (toYaw == 1500,toYaw >= 1450,toYaw <= 1550) Yaw = 1500;
-  if (toYaw <= 1200) Yaw = 1400;
-  if (toYaw >= 1800) Yaw = 1600;
+  if (toYaw <= 1200) Yaw = 1300;
+  if (toYaw >= 1800) Yaw = 1700;
   return Yaw;
 }
 
-//pitch
+// setpitch
 int setPitch(int toPitch) {
   if (toPitch == 1500,toPitch >= 1450,toPitch <= 1550) Pitch = 1500;
-  if (toPitch <= 1200) Pitch = 1400;
-  if (toPitch >= 1800) Pitch = 1600;
+  if (toPitch <= 1200) Pitch = calcLow;
+  if (toPitch >= 1800) Pitch = calcMax;
   return Pitch;
 }
 
-//roll
+// setroll
 int setRoll(int toRoll) {
   if (toRoll == 1500,toRoll >= 1450,toRoll <= 1550) Roll = 1500;
-  if (toRoll <= 1200) Roll = 1400;
-  if (toRoll >= 1800) Roll = 1600;
+  if (toRoll <= 1200) Roll = calcLow;
+  if (toRoll >= 1800) Roll = calcMax;
   return Roll;
 }
 
-//mode
-void setMode(int toMode) {
-  if (toMode == 1180,toMode >= 1130,toMode <= 1220) Mods = "Stab";
-  else if (toMode == 1280,toMode >= 1330,toMode <= 1420) Mods = "At.H";
-  else if (toMode == 1480,toMode >= 1430,toMode <= 1520) Mods = "Loit";
-  else if (toMode == 1580,toMode >= 1530,toMode <= 1620) Mods = "Guid";
-  else if (toMode == 1780,toMode >= 1630,toMode <= 1720) Mods = "ReHo";
-  else if (toMode == 1880,toMode >= 1730,toMode <= 1820) Mods = "Land";
+// mapmode
+void mapMode(int toMode) {
+  int mapMode = map(toMode,1000,2000,1,6);
+  if (mapMode == 1) Mods = "Stab";
+  else if (mapMode == 2) Mods = "At.H";
+  else if (mapMode == 3) Mods = "Loit";
+  else if (mapMode == 4) Mods = "Guid";
+  else if (mapMode == 5) Mods = "ReHo";
+  else if (mapMode == 6) Mods = "Land";
+}
+
+// mapspeed
+void mapSpeed(int toSpeed) {
+  calcLow = 1500 - map(toSpeed,1000,2000,0,500);
+  calcMax = 1500 + map(toSpeed,1000,2000,0,500);
 }
 
 // esp-now
@@ -1499,15 +1510,15 @@ void serialDebug() {
   Serial.println("Raw Data");
   Serial.printf("JoyStick no.1 X= %d, Y= %d, Sw= %d \n",joyX1Pos,joyY1Pos,joySW1State);
   Serial.printf("JoyStick no.2 X= %d, Y= %d, Sw= %d \n",joyX2Pos,joyY2Pos,joySW2State);
-  Serial.printf("PotentioMeter no.1= %f \n",potenM1Pos);
-  Serial.printf("PotentioMeter no.2= %f \n",potenM2Pos);
+  Serial.printf("PotentioMeter no.1= %d \n",potenM1Pos);
+  Serial.printf("PotentioMeter no.2= %d \n",potenM2Pos);
   Serial.println("\n");
   
   Serial.println("Mapped Data");
   Serial.printf("JoyStick no.1 X= %d, Y= %d, Sw= %d \n",joyX1Poss,joyY1Poss,joySW1State);
   Serial.printf("JoyStick no.2 X= %d, Y= %d, Sw= %d \n",joyX2Poss,joyY2Poss,joySW2State);
-  Serial.printf("PotentioMeter no.1= %f \n",potenM1Poss);
-  Serial.printf("PotentioMeter no.2= %f \n",potenM2Poss);
+  Serial.printf("PotentioMeter no.1= %d \n",potenM1Poss);
+  Serial.printf("PotentioMeter no.2= %d \n",potenM2Poss);
   Serial.println("\n");
   
   Serial.println("Switch");
@@ -1517,8 +1528,8 @@ void serialDebug() {
   Serial.printf("Toggle no.2= %d \n",togSW2State);
   Serial.printf("Toggle no.3= %d \n",togSW3State);
   Serial.printf("Toggle no.4= %d \n",togSW4State);
-  Serial.printf("Toggle no.3= %d \n",togSW5State);
-  Serial.printf("Toggle no.4= %d \n",togSW6State);
+  Serial.printf("Toggle no.5= %d \n",togSW5State);
+  Serial.printf("Toggle no.6= %d \n",togSW6State);
   Serial.println("\n");
 
   Serial.println("Official Data");
@@ -1526,7 +1537,7 @@ void serialDebug() {
   Serial.printf("Yaw: %d%\n",Yaw);
   Serial.printf("Pitch %d%\n",Pitch);
   Serial.printf("Roll %d%\n",Roll);
-  Serial.printf("Mode %d%\n",Mode);
+  Serial.printf("Mode %s%\n",Mods);
   Serial.println("\n");
   
   Serial.printf("Count= %d \n",count);
@@ -1707,22 +1718,25 @@ void Task1code( void * pvParameters ){
 
     // prepare for send message
     if (togSW1State == 1) {
+      mapMode(potenM1Poss); 
+      mapSpeed(potenM2Poss);
       Trottle = setTrottle(joyX1Poss);
       Yaw = setYaw(joyY1Poss);
       Pitch = setPitch(joyX2Poss);
       Roll = setRoll(joyY2Poss);
       Mode = potenM1Poss;
-      setMode(potenM1Poss);
     }
 
     if (togSW2State == 1) {
       potenM1Poss = 1000;
+      mapMode(potenM1Poss); 
+      mapSpeed(potenM2Poss);
       Trottle = joyX1Poss;
       Yaw = joyY1Poss;
       Pitch = joyX2Poss;
       Roll = joyY2Poss;
       Mode = potenM1Poss;
-      setMode(potenM1Poss);
+      
     }
     
     // set value to send
@@ -1736,7 +1750,8 @@ void Task1code( void * pvParameters ){
     // ---------- debug data ----------
 
     // srial debug
-    serialDebug();
+    if (count == 1 || count == 26 || count == 51 || count == 76) serialDebug(); // enable this for long debug
+    //serialDebug() // enable this for short debug if delay != 1000 = fast
 
     // oled screen
     // oleddisplay1
