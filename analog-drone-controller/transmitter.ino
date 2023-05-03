@@ -1122,7 +1122,7 @@ int counter = 0;
 
 // wificonfig
 const char* ssid = "lolenseu";
-const char* password = "@lolenseu24!";
+const char* pass = "@lolenseu24!";
 
 // com server
 String serverName = "https://blynk.cloud/external/api/update?token=Z28VmfqlAHMfu1cQrnFKYZ5RFfK0lyXP&v0=";
@@ -1188,8 +1188,35 @@ structMsg;
 
 // ---------- startup ----------
 
+// version
+void initVerInfo() {
+  Serial.print("\n");
+  Serial.println("v1.0");
+  Serial.println("Transmitter");
+  Serial.println("@lolenseu");
+  Serial.println("https://github.com/lolenseu");
+  delay(2000);
+
+}
+
 // initlogo
 void initLogo() {
+  Serial.println("     ⠀⠀⠀⠀⠀⣀⣀⣀⣀⣠⣤⣤⣄⣀⣀⣀⣀⠀⠀⠀⠀⠀     ");
+  Serial.println("     ⢀⣠⣶⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣶⣄⡀     ");
+  Serial.println("     ⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷     ");
+  Serial.println("     ⣿⣿⣿⡿⠛⠉⠉⠙⠿⣿⣿⣿⣿⠿⠋⠉⠉⠛⢿⣿⣿⣿     ");
+  Serial.println("     ⣿⣿⣿⣶⣿⣿⣿⣦⠀⢘⣿⣿⡃⠀⣴⣿⣿⣿⣶⣿⣿⣿     ");
+  Serial.println("     ⣿⣿⣿⣏⠉⠀⠈⣙⣿⣿⣿⣿⣿⣿⣋⠁⠀⠉⣹⣿⣿⣿     ");
+  Serial.println("     ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿     ");
+  Serial.println("     ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿     ");
+  Serial.println("     ⢸⣿⣿⣎⠻⣿⣿⣿⣿⡿⠋⠙⢿⣿⣿⣿⣿⠟⣱⣿⣿⡇     ");
+  Serial.println("     ⠀⢿⣿⣿⣧⠀⠉⠉⠉⠀⢀⡀⠀⠉⠉⠉⠀⣼⣿⣿⡿⠀     ");
+  Serial.println("     ⠀⠈⢻⣿⣿⣷⣶⣶⣶⣶⣿⣿⣶⣶⣶⣶⣾⣿⣿⡟⠁⠀     ");
+  Serial.println("     ⠀⠀⠀⠹⣿⣿⣿⣿⣿⣿⠉⠉⣿⣿⣿⣿⣿⣿⠏⠀⠀⠀     ");
+  Serial.println("     ⠀⠀⠀⠀⠈⠻⣿⣿⣿⣿⠀⠀⣿⣿⣿⣿⠟⠁⠀⠀⠀⠀     ");
+  Serial.println("     ⠀⠀⠀⠀⠀⠀⠀⠙⠻⢿⣦⣴⡿⠟⠋⠀⠀⠀⠀         ");
+  Serial.println("\n");
+
   display.clearDisplay();
   display.drawBitmap(0,0,logo,128,64,WHITE);
   display.display();
@@ -1199,6 +1226,8 @@ void initLogo() {
 // initboot
 void initBoot() {
   int aniDelay = 100;
+  Serial.println("Botting ...");
+
   display.clearDisplay();
   display.drawBitmap(0,0,wave1,128,64,WHITE);
   display.display();
@@ -1302,8 +1331,8 @@ void conAni() {
 // initwifi
 void initWiFi() {
   WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
-  Serial.print("\n\nConnecting to WiFi ..");
+  WiFi.begin(ssid, pass);
+  Serial.print("Connecting to WiFi ..");
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
     conAni();
@@ -1315,7 +1344,8 @@ void initWiFi() {
 void initCom2(String sendData) {
   HTTPClient http;
   String serverPath = serverName + sendData;
-  http.begin(serverPath);                                                   
+  http.begin(serverPath);     
+  http.GET();                                              
 }
 
 
@@ -1382,29 +1412,29 @@ void setMode(int toMode) {
 
 // serial debug
 void serialDebug() {
-  Serial.printf("\n");
-  Serial.printf("-------------------- debug --------------------");
+  Serial.println("\n");
+  Serial.println("-------------------- debug --------------------");
 
-  Serial.print("\nWiFi\n");
+  Serial.println("WiFi");
   Serial.printf("RSSI: ");
   Serial.println(WiFi.RSSI());
-  Serial.printf("\n");
+  Serial.println("\n");
 
-  Serial.printf("Raw Data \n");
+  Serial.println("Raw Data");
   Serial.printf("JoyStick no.1 X= %d, Y= %d, Sw= %d \n",joyX1Pos,joyY1Pos,joySW1State);
   Serial.printf("JoyStick no.2 X= %d, Y= %d, Sw= %d \n",joyX2Pos,joyY2Pos,joySW2State);
   Serial.printf("PotentioMeter no.1= %f \n",potenM1Pos);
   Serial.printf("PotentioMeter no.2= %f \n",potenM2Pos);
-  Serial.printf("\n");
+  Serial.println("\n");
   
-  Serial.printf("Mapped Data \n");
+  Serial.println("Mapped Data");
   Serial.printf("JoyStick no.1 X= %d, Y= %d, Sw= %d \n",joyX1Poss,joyY1Poss,joySW1State);
   Serial.printf("JoyStick no.2 X= %d, Y= %d, Sw= %d \n",joyX2Poss,joyY2Poss,joySW2State);
   Serial.printf("PotentioMeter no.1= %f \n",potenM1Poss);
   Serial.printf("PotentioMeter no.2= %f \n",potenM2Poss);
-  Serial.printf("\n");
+  Serial.println("\n");
   
-  Serial.printf("Switch \n");
+  Serial.println("Switch");
   Serial.printf("JoyStick no.1= %d \n",joySW1State);
   Serial.printf("JoyStick no.2= %d \n",joySW2State);
   Serial.printf("Toggle no.1= %d \n",togSW1State);
@@ -1413,20 +1443,19 @@ void serialDebug() {
   Serial.printf("Toggle no.4= %d \n",togSW4State);
   Serial.printf("Toggle no.3= %d \n",togSW5State);
   Serial.printf("Toggle no.4= %d \n",togSW6State);
-  Serial.printf("\n");
+  Serial.println("\n");
 
-  Serial.printf("Official Data \n");
+  Serial.println("Official Data");
   Serial.printf("Trottle: %d%\n",Trottle);
   Serial.printf("Yaw: %d%\n",Yaw);
   Serial.printf("Pitch %d%\n",Pitch);
   Serial.printf("Roll %d%\n",Roll);
   Serial.printf("Mode %d%\n",Mode);
-  Serial.printf("\n");
+  Serial.println("\n");
   
   Serial.printf("Counter= %d \n",counter);
 
-  Serial.printf("-------------------- debug --------------------");
-  Serial.printf("\n");
+  Serial.println("-------------------- debug --------------------");
 }
 
 
@@ -1526,11 +1555,10 @@ void setup() {
     while (1);
   }
 
-  // logo
-  initLogo();
-
-  // boot animation
-  initBoot();
+  // startup
+  initVerInfo(); // version
+  initLogo(); // logo
+  initBoot(); // boot animation
 
   // initWiFi
   initWiFi();
@@ -1635,7 +1663,7 @@ void loop() {
   
   
   // send msg via request
-  initCom2("\"232323232323\"");
+  initCom2("\"dddddd323\"");
 
 
   // ---------- debug data ----------
