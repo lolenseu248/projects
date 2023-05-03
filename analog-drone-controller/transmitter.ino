@@ -4,6 +4,7 @@
 #include <SPI.h>
 #include <WiFi.h>
 #include <Wire.h>
+#include <esp_now.h>
 #include <HTTPClient.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -1124,6 +1125,10 @@ int counter = 0;
 const char* ssid = "lolenseu";
 const char* pass = "@lolenseu24!";
 
+// com ESP-NOW
+uint8_t myMac[] = {0x40, 0x22, 0xD8, 0x08, 0xBB, 0x48};
+uint8_t targetMac[] = {0x40, 0x22, 0xD8, 0x08, 0xBB, 0x48};
+
 // com server
 String serverName = "https://blynk.cloud/external/api/update?token=Z28VmfqlAHMfu1cQrnFKYZ5RFfK0lyXP&v0=";
 
@@ -1182,6 +1187,8 @@ typedef struct structMsg {
     int mode;
 }
 structMsg;
+
+structMsg sndMsg;
 
 
 // -------------------- fuctions --------------------
@@ -1343,7 +1350,7 @@ void initWiFi() {
 // inticom2
 void initCom2(String sendData) {
   HTTPClient http;
-  String serverPath = serverName + sendData;
+  String serverPath = serverName + "\"0x" + sendData + "\"";
   http.begin(serverPath);     
   http.GET();                                              
 }
@@ -1561,13 +1568,13 @@ void setup() {
   initBoot(); // boot animation
 
   // initWiFi
-  initWiFi();
+  //initWiFi();
 
   // intCom1 ESP-NOW
   //initCom1();
 
   // intCom2 Internet
-  initCom2("\"0x00\"");
+  //initCom2("0x00"); // enable initWifi() for server com and enable send msg via request in loop
 
   // joystick switch
   pinMode(joySW1,INPUT);
@@ -1643,6 +1650,7 @@ void loop() {
     Yaw = setYaw(joyY1Poss);
     Pitch = setPitch(joyX2Poss);
     Roll = setRoll(joyY2Poss);
+    Mode = potenM1Poss;
     setMode(potenM1Poss);
   }
 
@@ -1663,7 +1671,8 @@ void loop() {
   
   
   // send msg via request
-  initCom2("\"dddddd323\"");
+  //String Msg = String(Trottle) + String(Yaw) + String(Pitch) + String(Roll) + String(Mode); 
+  //initCom2(Msg);
 
 
   // ---------- debug data ----------
