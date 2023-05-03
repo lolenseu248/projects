@@ -1404,7 +1404,7 @@ void initCom1() {
 // inticom2
 void initCom2(String sendData) {
   time1 = millis();
-  String serverPath = serverName + "\"0x" + sendData + "\"";
+  String serverPath = serverName + "\"0x" + sendData + "0001" +"\"";
   http.begin(serverPath);     
   http.GET();
   time2 = millis();  
