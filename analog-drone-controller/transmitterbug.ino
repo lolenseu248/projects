@@ -90,20 +90,11 @@ String success;
 
 // storage message
 typedef struct struct_message {
-    int joyx1;
-    int joyy1;
-    int joyx2;
-    int joyy2;
-    int joys1;
-    int joys2;
-    int potm1;
-    int potm2;
-    int togs1;
-    int togs2;
-    int togs3;
-    int togs4;
-    int togs5;
-    int togs6;
+    int trottle;
+    int yaw;
+    int pitch;
+    int roll;
+    int mode;
 } struct_message;
 
 // counter
@@ -116,6 +107,7 @@ int Yaw = 1500;
 int Pitch = 1500;
 int Roll = 1500;
 int Mode = 1000;
+String Mods;
 
 
 // ---------- fuctions ----------
@@ -126,16 +118,31 @@ void initWiFi() {
   WiFi.begin(ssid, password);
   Serial.print("Connecting to WiFi ..");
   while (WiFi.status() != WL_CONNECTED) {
-      Serial.print('.');
-      delay(1000);
+    Serial.print(".");
+    delay(1000);
   }
 
   Serial.println(WiFi.localIP());
 }
 
+// inticom
+int initCom(String sendData) {
+  HTTPClient http;
+  String serverPath = serverName + "0x" + sendData;
+  http.begin(serverPath);
+  int httpCode = http.GET();                                                        
+  if (httpCode > 0) {
+    String payload = http.getString(); 
+    Serial.println(payload);
+  }
+
+  http.end();
+  return 0;
+}
+
 // to map value
 int setMap(int toMap) {
-  int mapValue = map(toMap, 0, 4095, 1000, 2000);
+  int mapValue = map(toMap, -360, 4095, 1000, 2000);
   return mapValue;
 }
 
@@ -148,98 +155,53 @@ int mapPercent(int toMapPercent) {
 // to set official data
 //trottle
 int setTrottle(int toTrottle) {
-  if (toTrottle >= 1800) {
-    Trottle = Trottle += 5;
-  }
-
-  if (toTrottle <= 1200) {
-    Trottle = Trottle -= 5;
-  }
-
-  if (Trottle <= 1000) {
-    Trottle = 1000;
-  }
-
-  if (Trottle >= 2000){
-    Trottle = 1800;
-  }
-
+  if (toTrottle <= 1200) Trottle = Trottle -= 5;
+  if (toTrottle >= 1800) Trottle = Trottle += 5;
+  if (Trottle <= 1000) Trottle = 1000;
+  if (Trottle >= 2000) Trottle = 1800;
   return Trottle;
 }
 
 //yaw
 int setYaw(int toYaw) {
-  if (toYaw <= 1800) {
-    Yaw = 1600;
-  }
-
-  if (toYaw >= 1200) {
-    Yaw = 1400;
-  }
+  if (toYaw == 1500, toYaw >= 1450, toYaw <= 1550) Yaw = 1500;
+  if (toYaw <= 1200) Yaw = 1400;
+  if (toYaw >= 1800) Yaw = 1600;
   return Yaw;
 }
 
 //pitch
 int setPitch(int toPitch) {
-  if (toPitch <= 1800) {
-    Pitch = 1600;
-  }
-
-  if (toPitch >= 1200) {
-    Pitch = 1400;
-  }
+  if (toPitch == 1500, toPitch >= 1450, toPitch <= 1550) Pitch = 1500;
+  if (toPitch <= 1200) Pitch = 1400;
+  if (toPitch >= 1800) Pitch = 1600;
   return Pitch;
 }
 
 //roll
 int setRoll(int toRoll) {
-  if (toRoll <= 1800) {
-    Roll = 1600;
-  }
-
-  if (toRoll >= 1200) {
-    Roll = 1400;
-  }
+  if (toRoll == 1500, toRoll >= 1450, toRoll <= 1550) Roll = 1500;
+  if (toRoll <= 1200) Roll = 1400;
+  if (toRoll >= 1800) Roll = 1600;
   return Roll;
 }
 
 //mode
-int setMode(int toMode) {
-  String mods = "";
-  if (toMode <= 1030); {
-    mods = "Stable";
-  }
-    
-
-  if (toMode <= 1280); {
-    mods = "Hover";
-  }
-
-  if (toMode <= 1430); {
-    mods = "Loiter";
-  }
-    
-
-  if (toMode <= 1680); {
-    mods = "Guid";
-  }
-
-  if (toMode <= 1830); {
-    mods = "ReHome";
-  }
-    
-
-  if (toMode <= 1980); {
-    mods = "Land";
-  }
-    
-  return Mode;
+void setMode(int toMode) {
+  if (toMode == 1180, toMode >= 1130, toMode <= 1220) Mods = "Stable";
+  if (toMode == 1280, toMode >= 1330, toMode <= 1420) Mods = "Alt. H";
+  if (toMode == 1480, toMode >= 1430, toMode <= 1520) Mods = "Loiter";
+  if (toMode == 1580, toMode >= 1530, toMode <= 1620) Mods = "Guide";
+  if (toMode == 1780, toMode >= 1630, toMode <= 1720) Mods = "ReHome";
+  if (toMode == 1880, toMode >= 1730, toMode <= 1820) Mods = "Land";
 }
 
 // serial debug
 void serialDebug() {
   Serial.printf("\n");
-  Serial.print("WiFi\n");
+  Serial.printf("-------------------- debug --------------------");
+
+  Serial.print("\nWiFi\n");
   Serial.printf("RSSI: ");
   Serial.println(WiFi.RSSI());
   Serial.printf("\n");
@@ -278,12 +240,14 @@ void serialDebug() {
   Serial.printf("\n");
   
   Serial.printf("Counter= %d \n",counter);
+
+  Serial.printf("-------------------- debug --------------------");
+  Serial.printf("\n");
 }
 
 
 // oled screen setup1
 void oledScreen1() {
-  display.display();
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
@@ -291,8 +255,10 @@ void oledScreen1() {
   display.setCursor(0, 0);
   display.print("RSSI: ");
   display.print(WiFi.RSSI());
-  display.print(" Mode: ");
-  display.print(Mode);
+
+  display.setCursor(0, 0);
+  display.print("          Mode: ");
+  display.print(Mods);
   
   
   display.setCursor(0, 10);
@@ -301,29 +267,29 @@ void oledScreen1() {
   display.print("%");
 
   display.setCursor(0, 20);
-  display.print("Yaw: ");
-  display.print(Yaw);
+  display.print("Yaw:     ");
+  display.print(mapPercent(Yaw));
   display.print("%");
   
   display.setCursor(0, 30);
-  display.print("Pitch: ");
-  display.print(Pitch);
+  display.print("Pitch:   ");
+  display.print(mapPercent(Pitch));
   display.print("%");
 
   display.setCursor(0, 40);
-  display.print("Roll: ");
-  display.print(Roll);
+  display.print("Roll:    ");
+  display.print(mapPercent(Roll));
   display.print("%");
   
   display.setCursor(0, 50);
   display.print("Counter: ");
   display.print(counter);
+  display.display();  
 }
 
 
 // oled screen setup2
 void oledScreen2() {
-  display.display();
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
@@ -331,8 +297,10 @@ void oledScreen2() {
   display.setCursor(0, 0);
   display.print("RSSI: ");
   display.print(WiFi.RSSI());
-  display.print(" Mode: ");
-  display.print(Mode);
+
+  display.setCursor(0, 0);
+  display.print("          Mode: ");
+  display.print(Mods);
   
   display.setCursor(0, 10);
   display.print("JSNo.1: ");
@@ -359,31 +327,7 @@ void oledScreen2() {
   display.setCursor(0, 50);
   display.print("Counter: ");
   display.print(counter);
-}
-
-
-// inticom
-int initCom(String sendData) {
-  HTTPClient http;    
-  String serverPath = serverName + "0x" + sendData;
-  http.begin(serverPath);
-  Serial.println(http.getString());
-  /*
-  int httpResponseCode = http.GET();
-  if (httpResponseCode>0) {
-    Serial.print("HTTP Response code: ");
-    Serial.println(httpResponseCode);
-    String payload = http.getString();
-    Serial.println(payload);
-  }
-
-  else {
-    Serial.print("Error code: ");
-    Serial.println(httpResponseCode);
-  }
-  return payload;
-  */
-  return 0;
+  display.display();
 }
 
 
@@ -391,17 +335,17 @@ int initCom(String sendData) {
 
 void setup() {
   Serial.begin(115200);
-  // initWiFi
-  //initWiFi();
-
-  // intCom
-  initCom("00");
-
   // initialize OLED display with I2C address 0x3C
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     Serial.println(F("failed to start SSD1306 OLED"));
     while (1);
   }
+
+  // initWiFi
+  initWiFi();
+
+  // intCom
+  initCom("00");
 
   // joystick switch
   pinMode(joySW1, INPUT);
@@ -426,9 +370,7 @@ void loop() {
   // put your main code here, to run repeatedly:
 
   // counter and buzzer
-  if (counter == 100) {
-    counter = 0;
-  }
+  if (counter == 100) counter = 0;
   counter += 1;
   
   
@@ -476,18 +418,19 @@ void loop() {
   if (togSW1State == 1) {
     Trottle = setTrottle(joyX1Poss);
     Yaw = setYaw(joyY1Poss);
-    Pitch = setPitch(joyY1Poss);
+    Pitch = setPitch(joyX2Poss);
     Roll = setRoll(joyY2Poss);
-    Mode = setMode(potenM2Poss);
+    setMode(potenM1Poss);
   }
 
   if (togSW2State == 1) {
-    potenM2Poss = 1000;
+    potenM1Poss = 1000;
     Trottle = joyX1Poss;
     Yaw = joyY1Poss;
     Pitch = joyX2Poss;
     Roll = joyY2Poss;
-    Mode = potenM2Poss;
+    Mode = potenM1Poss;
+    setMode(potenM1Poss);
   }
   
 
@@ -500,20 +443,16 @@ void loop() {
   serialDebug();
 
   // oled screen
-  //togSW5State = 1;// oleddisplay
-  if (togSW5State == 1) {
-    oledScreen1();
-  }
+  // oleddisplay1
+  if (togSW3State == 1) oledScreen1();
 
-  togSW6State = 1; // oleddisplay
-  if (togSW6State == 1) {
-    oledScreen2();
-  }
+  // oleddisplay2
+  if (togSW4State == 1) oledScreen2();
   
 
   // delay
   //delay(10); // run delay
   //delay(100); // test delay
-  delay(1000); // debug delay
+  //delay(1000); // debug delay
   //delay(60000); // stop delay
 }
