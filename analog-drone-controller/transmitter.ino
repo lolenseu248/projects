@@ -1,3 +1,8 @@
+// v1.0
+// Transmitter
+// @lolenseu
+// https:github.com/lolenseu
+
 
 // -------------------- include and define --------------------
 
@@ -1119,17 +1124,29 @@ const unsigned char wave15 [] PROGMEM = {
 };
 
 
-// count
-int count = 0;
-
 
 // task
 TaskHandle_t Task1;
 TaskHandle_t Task2;
 
 
+// count
+int count = 0;
+
+
+// msg config
+int msgMode = 1; // set 1 to msg = 0x00 and 2 if msg = msg.a
+
 // com config
 int com = 2; // set 1 if ESP-NOw and 2 if SERVER (internet)
+
+
+// com ESP-NOW
+uint8_t myMac[] = {0x40, 0x22, 0xD8, 0x08, 0xBB, 0x48};
+uint8_t targetMac[] = {0x40, 0x22, 0xD8, 0x08, 0xBB, 0x48};
+
+// peerinfo
+esp_now_peer_info_t peerInfo;
 
 
 // wificonfig
@@ -1146,14 +1163,6 @@ long int timePing;
 
 // com server
 String serverName = "https://blynk.cloud/external/api/update?token=Z28VmfqlAHMfu1cQrnFKYZ5RFfK0lyXP&v0=";
-
-
-// com ESP-NOW
-uint8_t myMac[] = {0x40, 0x22, 0xD8, 0x08, 0xBB, 0x48};
-uint8_t targetMac[] = {0x40, 0x22, 0xD8, 0x08, 0xBB, 0x48};
-
-// peerinfo
-esp_now_peer_info_t peerInfo;
 
 
 // raw data
@@ -1214,9 +1223,13 @@ typedef struct structMsg {
 structMsg;
 structMsg sndMsg;
 
+// starage xmessage
+String xMsg;
+
 // variable to store if sending data was successful or bad
 String msgStatus1;
 String msgStatus2;
+
 
 // -------------------- fuctions --------------------
 
@@ -1229,8 +1242,24 @@ void initVerInfo() {
   Serial.println("Transmitter");
   Serial.println("@lolenseu");
   Serial.println("https://github.com/lolenseu");
-  delay(2000);
 
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+
+  display.setCursor(0, 0);
+  display.print("v1.0");
+
+  display.setCursor(0, 10);
+  display.print("Transmitter");
+
+  display.setCursor(0, 20);
+  display.print("@lolenseu");
+
+  display.setCursor(0, 30);
+  display.print("https://github.com/lolenseu");
+  display.display();
+  delay(2000);
 }
 
 // initlogo
@@ -1780,7 +1809,11 @@ void Task2code( void * pvParameters ){
 
     // send msg via ESP-NOW
     if (com == 1) {
-      esp_err_t result = esp_now_send(targetMac, (uint8_t *) &sndMsg, sizeof(sndMsg));
+      xMsg = String(Trottle) + String(Yaw) + String(Pitch) + String(Roll) + String(Mode);
+      esp_err_t result;
+
+      if (msgMode == 1) result = esp_now_send(targetMac, (uint8_t *) &sndMsg, sizeof(sndMsg));
+      if (msgMode == 2) result = esp_now_send(targetMac, (uint8_t *) &xMsg, sizeof(xMsg));
       
       if (result == ESP_OK) msgStatus1 = "ok!";
       else msgStatus1 = "bd!";
@@ -1788,8 +1821,8 @@ void Task2code( void * pvParameters ){
 
     // send msg via request
     if (com == 2) {
-      String Msg = String(Trottle) + String(Yaw) + String(Pitch) + String(Roll) + String(Mode);
-      initCom2(Msg);
+      xMsg = String(Trottle) + String(Yaw) + String(Pitch) + String(Roll) + String(Mode);
+      initCom2(xMsg);
     }
   } 
 }
@@ -1799,6 +1832,7 @@ void Task2code( void * pvParameters ){
 // -------------------- setup --------------------
 
 void setup() {
+  // put your setup code here, to run once:
   Serial.begin(115200);
 
   // initialize OLED display with I2C address 0x3C
