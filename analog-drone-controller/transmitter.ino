@@ -1391,6 +1391,8 @@ void conAni() {
   delay(conAniDelay);
 }
 
+// ---------- connection ----------
+
 // initwifi
 void initWiFi() {
   WiFi.mode(WIFI_STA);
@@ -1425,8 +1427,8 @@ void initCom1() {
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
     Serial.println("Failed to add peer");
     return;
-    
   }
+  
   delay(500);
 }
 
@@ -1775,7 +1777,6 @@ void Task1code( void * pvParameters ){
     sndMsg.roll = Roll;
     sndMsg.mode = Mode;
 
-
     // set value to send
     xMsg = String(Trottle) + String(Yaw) + String(Pitch) + String(Roll) + String(Mode);
 
@@ -1835,6 +1836,7 @@ void Task2code( void * pvParameters ){
 
 void setup() {
   // put your setup code here, to run once:
+  // Initialize Serial Monitor
   Serial.begin(115200);
 
   // initialize OLED display with I2C address 0x3C
@@ -1853,7 +1855,6 @@ void setup() {
     // intCom1 ESP-NOW
     initCom1();
   }
-
 
   if (com == 2) {
     // initWiFi
