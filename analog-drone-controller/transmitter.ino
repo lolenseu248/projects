@@ -1192,6 +1192,12 @@ int Roll=1500;
 int Mode=1000;
 String Mods;
 
+// percent data
+int pTrottle;
+int pYaw;
+int pPitch;
+int pRoll;
+
 // storage message
 typedef struct structMsg{
     int trottle;
@@ -1510,35 +1516,35 @@ void serialDebug(){
     Serial.println("");
   }
   Serial.println("Raw Data");
-  Serial.printf("JoyStick no.1 X= %d, Y= %d, Sw= %d \n",joyX1Pos,joyY1Pos,joySW1State);
-  Serial.printf("JoyStick no.2 X= %d, Y= %d, Sw= %d \n",joyX2Pos,joyY2Pos,joySW2State);
-  Serial.printf("PotentioMeter no.1= %d \n",potenM1Pos);
-  Serial.printf("PotentioMeter no.2= %d \n",potenM2Pos);
+  Serial.printf("JoyStick no.1 X= %d, Y= %d, Sw= %d\n",joyX1Pos,joyY1Pos,joySW1State);
+  Serial.printf("JoyStick no.2 X= %d, Y= %d, Sw= %d\n",joyX2Pos,joyY2Pos,joySW2State);
+  Serial.printf("PotentioMeter no.1= %d\n",potenM1Pos);
+  Serial.printf("PotentioMeter no.2= %d\n",potenM2Pos);
   Serial.println("");
   Serial.println("Mapped Data");
-  Serial.printf("JoyStick no.1 X= %d, Y= %d, Sw= %d \n",joyX1Poss,joyY1Poss,joySW1State);
-  Serial.printf("JoyStick no.2 X= %d, Y= %d, Sw= %d \n",joyX2Poss,joyY2Poss,joySW2State);
-  Serial.printf("PotentioMeter no.1= %d \n",potenM1Poss);
-  Serial.printf("PotentioMeter no.2= %d \n",potenM2Poss);
+  Serial.printf("JoyStick no.1 X= %d, Y= %d, Sw= %d\n",joyX1Poss,joyY1Poss,joySW1State);
+  Serial.printf("JoyStick no.2 X= %d, Y= %d, Sw= %d\n",joyX2Poss,joyY2Poss,joySW2State);
+  Serial.printf("PotentioMeter no.1= %d\n",potenM1Poss);
+  Serial.printf("PotentioMeter no.2= %d\n",potenM2Poss);
   Serial.println("");
   Serial.println("Switch");
-  Serial.printf("JoyStick no.1= %d \n",joySW1State);
-  Serial.printf("JoyStick no.2= %d \n",joySW2State);
-  Serial.printf("Toggle no.1= %d \n",togSW1State);
-  Serial.printf("Toggle no.2= %d \n",togSW2State);
-  Serial.printf("Toggle no.3= %d \n",togSW3State);
-  Serial.printf("Toggle no.4= %d \n",togSW4State);
-  Serial.printf("Toggle no.5= %d \n",togSW5State);
-  Serial.printf("Toggle no.6= %d \n",togSW6State);
+  Serial.printf("JoyStick no.1= %d\n",joySW1State);
+  Serial.printf("JoyStick no.2= %d\n",joySW2State);
+  Serial.printf("Toggle no.1= %d\n",togSW1State);
+  Serial.printf("Toggle no.2= %d\n",togSW2State);
+  Serial.printf("Toggle no.3= %d\n",togSW3State);
+  Serial.printf("Toggle no.4= %d\n",togSW4State);
+  Serial.printf("Toggle no.5= %d\n",togSW5State);
+  Serial.printf("Toggle no.6= %d\n",togSW6State);
   Serial.println("");
   Serial.println("Official Data");
-  Serial.printf("Trottle: %d%\n",Trottle);
-  Serial.printf("Yaw: %d%\n",Yaw);
-  Serial.printf("Pitch %d%\n",Pitch);
-  Serial.printf("Roll %d%\n",Roll);
+  Serial.printf("Trottle: %d%\n",pTrottle);
+  Serial.printf("Yaw: %d%\n",pYaw);
+  Serial.printf("Pitch %d%\n",pPitch);
+  Serial.printf("Roll %d%\n",pRoll);
   Serial.printf("Mode %s%\n",Mods);
   Serial.println("");
-  Serial.printf("Count= %d \n",count);
+  Serial.printf("Count: %d\n",count);
   Serial.println("-------------------- debug --------------------");
 }
 
@@ -1703,6 +1709,12 @@ void Task1code(void * pvParameters){
       Roll=joyY2Poss;
       Mode=potenM1Poss;
     }
+
+    // percent data
+    pTrottle=mapPercent(Trottle);
+    pYaw=mapPercent(Yaw);
+    pPitch=mapPercent(Pitch);
+    pRoll=mapPercent(Roll);
     
     // set value to send
     sndMsg.trottle=Trottle;
@@ -1713,6 +1725,7 @@ void Task1code(void * pvParameters){
 
     // set value to send
     xMsg=String(Trottle)+String(Yaw)+String(Pitch)+String(Roll)+String(Mode);
+
 
     // ---------- debug data ----------
 
