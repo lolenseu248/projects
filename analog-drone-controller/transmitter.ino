@@ -1776,6 +1776,10 @@ void Task1code( void * pvParameters ){
     sndMsg.mode = Mode;
 
 
+    // set value to send
+    xMsg = String(Trottle) + String(Yaw) + String(Pitch) + String(Roll) + String(Mode);
+
+
     // ---------- debug data ----------
 
     // srial debug
@@ -1809,7 +1813,6 @@ void Task2code( void * pvParameters ){
 
     // send msg via ESP-NOW
     if (com == 1) {
-      xMsg = String(Trottle) + String(Yaw) + String(Pitch) + String(Roll) + String(Mode);
       esp_err_t result;
 
       if (msgMode == 1) result = esp_now_send(targetMac, (uint8_t *) &sndMsg, sizeof(sndMsg));
@@ -1821,7 +1824,6 @@ void Task2code( void * pvParameters ){
 
     // send msg via request
     if (com == 2) {
-      xMsg = String(Trottle) + String(Yaw) + String(Pitch) + String(Roll) + String(Mode);
       initCom2(xMsg);
     }
   } 
