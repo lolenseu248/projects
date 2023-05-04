@@ -1185,11 +1185,11 @@ int calcLow;
 int calcMax;
 
 // sending process data
-int Trottle=0;
-int Yaw=1500;
-int Pitch=1500;
-int Roll=1500;
-int Mode=1000;
+int Trottle;
+int Yaw;
+int Pitch;
+int Roll;
+int Mode;
 String Mods;
 
 // percent data
@@ -1538,11 +1538,11 @@ void serialDebug(){
   Serial.printf("Toggle no.6= %d\n",togSW6State);
   Serial.println("");
   Serial.println("Official Data");
-  Serial.printf("Trottle: %d%\n",pTrottle);
-  Serial.printf("Yaw: %d%\n",pYaw);
-  Serial.printf("Pitch %d%\n",pPitch);
-  Serial.printf("Roll %d%\n",pRoll);
-  Serial.printf("Mode %s%\n",Mods);
+  Serial.printf("Trottle: %d%%\n",pTrottle);
+  Serial.printf("Yaw: %d%%\n",pYaw);
+  Serial.printf("Pitch %d%%\n",pPitch);
+  Serial.printf("Roll %d%%\n",pRoll);
+  Serial.printf("Mode %s\n",Mods);
   Serial.println("");
   Serial.printf("Count: %d\n",count);
   Serial.println("-------------------- debug --------------------");
@@ -1731,7 +1731,7 @@ void Task1code(void * pvParameters){
 
     // srial debug
     if(count==1||count==26||count==51||count==76)serialDebug(); // enable this for long debug
-    //serialDebug() // enable this for short debug if delay != 1000 = fast
+    //serialDebug(); // enable this for short debug if delay != 1000 = fast
 
     // oled screen
     // oleddisplay1
