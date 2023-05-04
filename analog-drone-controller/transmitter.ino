@@ -1540,10 +1540,11 @@ void serialDebug(){
   Serial.println("Official Data");
   Serial.printf("Trottle: %d%%\n",pTrottle);
   Serial.printf("Yaw: %d%%\n",pYaw);
-  Serial.printf("Pitch %d%%\n",pPitch);
-  Serial.printf("Roll %d%%\n",pRoll);
-  Serial.printf("Mode %s\n",Mods);
+  Serial.printf("Pitch: %d%%\n",pPitch);
+  Serial.printf("Roll: %d%%\n",pRoll);
+  Serial.printf("Mode: %s\n",Mods);
   Serial.println("");
+  Serial.println("Official Counter");
   Serial.printf("Count: %d\n",count);
   Serial.println("-------------------- debug --------------------");
 }
