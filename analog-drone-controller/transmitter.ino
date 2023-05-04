@@ -3,7 +3,6 @@
 // @lolenseu
 // https:github.com/lolenseu
 
-
 // -------------------- include and define --------------------
 
 #include <SPI.h>
@@ -14,16 +13,8 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-
-// oled screen
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 64 // OLED display height, in pixels
-//declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
-#define OLED_RESET -1 // Reset pin # (or -1 if sharing Arduino resetpin)
-
 // screen initiation
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-
+Adafruit_SSD1306 display(128,64,&Wire,-1);
 
 // joystic pinoutss
 #define joyX1 33
@@ -43,7 +34,6 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 #define togSW2 18
 #define togSW3 15
 #define togSW4 2
-
 
 // -------------------- variables --------------------
 
@@ -1123,35 +1113,29 @@ const unsigned char wave15 [] PROGMEM = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-
-
 // task
 TaskHandle_t Task1;
 TaskHandle_t Task2;
 
-
 // count
-int count = 0;
-
+int count=0;
 
 // msg config
-int msgMode = 1; // set 1 to msg = 0x00 and 2 if msg = msg.a
+int msgMode=1; // set 1 to msg = 0x00 and 2 if msg = msg.a
 
 // com config
-int com = 2; // set 1 if ESP-NOw and 2 if SERVER (internet)
-
+int com=2; // set 1 if ESP-NOw and 2 if SERVER (internet)
 
 // com ESP-NOW
-uint8_t myMac[] = {0x40, 0x22, 0xD8, 0x08, 0xBB, 0x48};
-uint8_t targetMac[] = {0x40, 0x22, 0xD8, 0x08, 0xBB, 0x48};
+uint8_t myMac[]={0x40,0x22,0xD8,0x08,0xBB,0x48};
+uint8_t targetMac[]={0x40,0x22,0xD8,0x08,0xBB,0x48};
 
 // peerinfo
 esp_now_peer_info_t peerInfo;
 
-
 // wificonfig
-const char* ssid = "lolenseu";
-const char* pass = "@lolenseu24!";
+const char* ssid="lolenseu";
+const char* pass="@lolenseu24!";
 
 // server connection 
 HTTPClient http;
@@ -1162,15 +1146,13 @@ long int time2;
 long int timePing;
 
 // com server
-String serverName = "https://blynk.cloud/external/api/update?token=Z28VmfqlAHMfu1cQrnFKYZ5RFfK0lyXP&v0=";
-
+String serverName="https://blynk.cloud/external/api/update?token=Z28VmfqlAHMfu1cQrnFKYZ5RFfK0lyXP&v0=";
 
 // raw data
 // joystic inputs
 int joyX1Pos;
 int joyY1Pos;
 int joySW1State;
-
 int joyX2Pos;
 int joyY2Pos;
 int joySW2State;
@@ -1187,12 +1169,10 @@ int togSW4State;
 int togSW5State;
 int togSW6State;
 
-
 // mapped data
 // joystic maps
 int joyX1Poss;
 int joyY1Poss;
-
 int joyX2Poss;
 int joyY2Poss;
 
@@ -1205,15 +1185,15 @@ int calcLow;
 int calcMax;
 
 // sending process data
-int Trottle = 0;
-int Yaw = 1500;
-int Pitch = 1500;
-int Roll = 1500;
-int Mode = 1000;
+int Trottle=0;
+int Yaw=1500;
+int Pitch=1500;
+int Roll=1500;
+int Mode=1000;
 String Mods;
 
 // storage message
-typedef struct structMsg {
+typedef struct structMsg{
     int trottle;
     int yaw;
     int pitch;
@@ -1230,40 +1210,40 @@ String xMsg;
 String msgStatus1;
 String msgStatus2;
 
-
 // -------------------- fuctions --------------------
 
 // ---------- startup ----------
 
 // version
-void initVerInfo() {
+void initVerInfo(){
+
+  // serial print
   Serial.print("\n");
   Serial.println("v1.0");
   Serial.println("Transmitter");
   Serial.println("@lolenseu");
   Serial.println("https://github.com/lolenseu");
 
+  // display print
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
-
-  display.setCursor(0, 0);
+  display.setCursor(0,0);
   display.print("v1.0");
-
-  display.setCursor(0, 10);
+  display.setCursor(0,10);
   display.print("Transmitter");
-
-  display.setCursor(0, 20);
+  display.setCursor(0,20);
   display.print("@lolenseu");
-
-  display.setCursor(0, 30);
+  display.setCursor(0,30);
   display.print("https://github.com/lolenseu");
   display.display();
   delay(2000);
 }
 
 // initlogo
-void initLogo() {
+void initLogo(){
+
+  // serial logo
   Serial.println("     ⠀⠀⠀⠀⠀⣀⣀⣀⣀⣠⣤⣤⣄⣀⣀⣀⣀⠀⠀⠀⠀⠀     ");
   Serial.println("     ⢀⣠⣶⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣶⣄⡀     ");
   Serial.println("     ⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷     ");
@@ -1278,8 +1258,9 @@ void initLogo() {
   Serial.println("     ⠀⠀⠀⠹⣿⣿⣿⣿⣿⣿⠉⠉⣿⣿⣿⣿⣿⣿⠏⠀⠀⠀     ");
   Serial.println("     ⠀⠀⠀⠀⠈⠻⣿⣿⣿⣿⠀⠀⣿⣿⣿⣿⠟⠁⠀⠀⠀⠀     ");
   Serial.println("     ⠀⠀⠀⠀⠀⠀⠀⠙⠻⢿⣦⣴⡿⠟⠋⠀⠀⠀⠀         ");
-  Serial.println("\n");
+  Serial.println("");
 
+  // display logo
   display.clearDisplay();
   display.drawBitmap(0,0,logo,128,64,WHITE);
   display.display();
@@ -1287,80 +1268,65 @@ void initLogo() {
 }
 
 // initboot
-void initBoot() {
-  int aniDelay = 100;
+void initBoot(){
+  int aniDelay=100;
   Serial.println("Botting ...");
-
   display.clearDisplay();
   display.drawBitmap(0,0,wave1,128,64,WHITE);
   display.display();
   delay(aniDelay);
-
   display.clearDisplay();
   display.drawBitmap(0,0,wave2,128,64,WHITE);
   display.display();
   delay(aniDelay);
-
   display.clearDisplay();
   display.drawBitmap(0,0,wave3,128,64,WHITE);
   display.display();
   delay(aniDelay);
-
   display.clearDisplay();
   display.drawBitmap(0,0,wave4,128,64,WHITE);
   display.display();
   delay(aniDelay);
-
   display.clearDisplay();
   display.drawBitmap(0,0,wave5,128,64,WHITE);
   display.display();
   delay(aniDelay);
-
   display.clearDisplay();
   display.drawBitmap(0,0,wave6,128,64,WHITE);
   display.display();
   delay(aniDelay);
-
   display.clearDisplay();
   display.drawBitmap(0,0,wave7,128,64,WHITE);
   display.display();
   delay(aniDelay);
-
   display.clearDisplay();
   display.drawBitmap(0,0,wave8,128,64,WHITE);
   display.display();
   delay(aniDelay);
-
   display.clearDisplay();
   display.drawBitmap(0,0,wave9,128,64,WHITE);
   display.display();
   delay(aniDelay);
-
   display.clearDisplay();
   display.drawBitmap(0,0,wave10,128,64,WHITE);
   display.display();
   delay(aniDelay);
-
   display.clearDisplay();
   display.drawBitmap(0,0,wave11,128,64,WHITE);
   display.display();
   delay(aniDelay);
-
   display.clearDisplay();
   display.drawBitmap(0,0,wave12,128,64,WHITE);
   display.display();
   delay(aniDelay);
-
   display.clearDisplay();
   display.drawBitmap(0,0,wave13,128,64,WHITE);
   display.display();
   delay(aniDelay);
-
   display.clearDisplay();
   display.drawBitmap(0,0,wave14,128,64,WHITE);
   display.display();
   delay(aniDelay);
-
   display.clearDisplay();
   display.drawBitmap(0,0,wave15,128,64,WHITE);
   display.display();
@@ -1368,24 +1334,20 @@ void initBoot() {
 }
 
 // connecting animation
-void conAni() {
-  int conAniDelay = 200;
-
+void conAni(){
+  int conAniDelay=200;
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
-
-  display.setCursor(20, 20);
+  display.setCursor(20,20);
   display.print(" Connecting .");
   display.display();
   delay(conAniDelay);
-
-  display.setCursor(20, 20);
+  display.setCursor(20,20);
   display.print(" Connecting ..");
   display.display();
   delay(conAniDelay);
-
-  display.setCursor(20, 20);
+  display.setCursor(20,20);
   display.print(" Connecting ...");
   display.display();
   delay(conAniDelay);
@@ -1394,11 +1356,11 @@ void conAni() {
 // ---------- connection ----------
 
 // initwifi
-void initWiFi() {
+void initWiFi(){
   WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, pass);
+  WiFi.begin(ssid,pass);
   Serial.print("Connecting to WiFi ..");
-  while (WiFi.status() != WL_CONNECTED) {
+  while(WiFi.status()!=WL_CONNECTED){
     Serial.print(".");
     conAni();
     delay(500);
@@ -1406,11 +1368,12 @@ void initWiFi() {
 }
 
 // initcom1
-void initCom1() {
+void initCom1(){
   WiFi.mode(WIFI_STA);
   Serial.print("Initiating ESP-NOW ..");
+
   // Init ESP-NOW
-  if (esp_now_init() != ESP_OK) {
+  if(esp_now_init()!=ESP_OK){
     Serial.println("Error Initializing ESP-NOW");
     return;
   }
@@ -1418,111 +1381,114 @@ void initCom1() {
   // Once ESPNow is successfully Init, we will register for Send CB to
   // get the status of Trasnmitted packet
   esp_now_register_send_cb(OnDataSent);
-  
-  // Register peer
-  memcpy(peerInfo.peer_addr, targetMac, 6);
-  peerInfo.channel = 0;  
-  peerInfo.encrypt = false;
 
-  if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+  // Register peer
+  memcpy(peerInfo.peer_addr,targetMac,6);
+  peerInfo.channel=0;  
+  peerInfo.encrypt=false;
+  if(esp_now_add_peer(&peerInfo)!=ESP_OK){
     Serial.println("Failed to add peer");
     return;
   }
-  
   delay(500);
 }
 
 // inticom2
-void initCom2(String sendData) {
-  time1 = millis();
+void initCom2(String sendData){
 
-  String serverPath = serverName + "\"0x" + sendData + "0001" +"\"";
+  // time for start ping
+  time1=millis();
+
+  // sendmsg to server
+  String serverPath=serverName+"\"0x"+sendData+"0001"+"\"";
   http.begin(serverPath);     
   http.GET();
-  
-  time2 = millis();  
-  timePing = time2 - time1;                                          
+
+  // time for end ping
+  time2=millis();  
+
+  // ping
+  timePing=time2-time1;                                          
 }
 
 
 // ---------- processing ----------
 
 // to map value
-int setMap(int toMap) {
-  int mapValue = map(toMap,-360,4095,1000,2000);
+int setMap(int toMap){
+  int mapValue=map(toMap,-360,4095,1000,2000);
   return mapValue;
 }
 
 // map to percent
-int mapPercent(int toMapPercent) {
-  int mapValuePercent = map(toMapPercent,1000,2000,0,100);
+int mapPercent(int toMapPercent){
+  int mapValuePercent=map(toMapPercent,1000,2000,0,100);
   return mapValuePercent;
 }
 
 // to set official data
 // settrottle
-int setTrottle(int toTrottle) {
-  if (toTrottle <= 1200) Trottle = Trottle -= 5;
-  if (toTrottle >= 1800) Trottle = Trottle += 5;
-  if (Trottle <= 1000) Trottle = 1000;
-  if (Trottle >= 2000) Trottle = 1800;
+int setTrottle(int toTrottle){
+  if(toTrottle<=1200)Trottle=Trottle-=5;
+  if(toTrottle>=1800)Trottle=Trottle+=5;
+  if(Trottle<=1000)Trottle=1000;
+  if(Trottle>=2000)Trottle=1800;
   return Trottle;
 }
 
 // setyaw
-int setYaw(int toYaw) {
-  if (toYaw == 1500,toYaw >= 1450,toYaw <= 1550) Yaw = 1500;
-  if (toYaw <= 1200) Yaw = 1300;
-  if (toYaw >= 1800) Yaw = 1700;
+int setYaw(int toYaw){
+  if(toYaw==1500,toYaw>=1450,toYaw<=1550)Yaw=1500;
+  if(toYaw<=1200)Yaw=1300;
+  if(toYaw>=1800)Yaw=1700;
   return Yaw;
 }
 
 // setpitch
-int setPitch(int toPitch) {
-  if (toPitch == 1500,toPitch >= 1450,toPitch <= 1550) Pitch = 1500;
-  if (toPitch <= 1200) Pitch = calcLow;
-  if (toPitch >= 1800) Pitch = calcMax;
+int setPitch(int toPitch){
+  if(toPitch==1500,toPitch>=1450,toPitch<=1550)Pitch=1500;
+  if(toPitch<=1200)Pitch=calcLow;
+  if(toPitch>=1800)Pitch=calcMax;
   return Pitch;
 }
 
 // setroll
-int setRoll(int toRoll) {
-  if (toRoll == 1500,toRoll >= 1450,toRoll <= 1550) Roll = 1500;
-  if (toRoll <= 1200) Roll = calcLow;
-  if (toRoll >= 1800) Roll = calcMax;
+int setRoll(int toRoll){
+  if(toRoll==1500,toRoll>=1450,toRoll<=1550)Roll=1500;
+  if(toRoll<=1200)Roll=calcLow;
+  if(toRoll>=1800)Roll=calcMax;
   return Roll;
 }
 
 // mapmode
-void mapMode(int toMode) {
-  int mapMode = map(toMode,1000,2000,1,6);
-  if (mapMode == 1) Mods = "Stab";
-  else if (mapMode == 2) Mods = "At.H";
-  else if (mapMode == 3) Mods = "Loit";
-  else if (mapMode == 4) Mods = "Guid";
-  else if (mapMode == 5) Mods = "ReHo";
-  else if (mapMode == 6) Mods = "Land";
+void mapMode(int toMode){
+  int mapMode=map(toMode,1000,2000,1,6);
+  if(mapMode==1)Mods="Stab";
+  else if(mapMode==2)Mods="At.H";
+  else if(mapMode==3)Mods="Loit";
+  else if(mapMode==4)Mods="Guid";
+  else if(mapMode==5)Mods="ReHo";
+  else if(mapMode==6)Mods="Land";
 }
 
 // mapspeed
-void mapSpeed(int toSpeed) {
-  calcLow = 1500 - map(toSpeed,1000,2000,0,500);
-  calcMax = 1500 + map(toSpeed,1000,2000,0,500);
+void mapSpeed(int toSpeed){
+  calcLow=1500-map(toSpeed,1000,2000,0,500);
+  calcMax=1500+map(toSpeed,1000,2000,0,500);
 }
 
 // esp-now
-void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
-  Serial.println(status == ESP_NOW_SEND_SUCCESS ? msgStatus2 = "ok!" : msgStatus2 = "bd!");
+void OnDataSent(const uint8_t *mac_addr,esp_now_send_status_t status){
+  Serial.println(status==ESP_NOW_SEND_SUCCESS?msgStatus2="ok!":msgStatus2="bd!");
 }
 
 // ---------- printing ----------
 
 // serial debug
-void serialDebug() {
+void serialDebug(){
   Serial.println("\n");
   Serial.println("-------------------- debug --------------------");
-
-  if (com == 1) {
+  if(com==1){
     Serial.println("ESP-NOw");
     Serial.printf("Snd Status: ");
     Serial.println(msgStatus1);
@@ -1530,8 +1496,7 @@ void serialDebug() {
     Serial.println(msgStatus2);
     Serial.println("\n");
   }
-
-  if (com == 2) {
+  if(com==2){
     Serial.println("WiFi");
     Serial.printf("RSSI: ");
     Serial.println(WiFi.RSSI());
@@ -1539,21 +1504,18 @@ void serialDebug() {
     Serial.println(timePing);
     Serial.println("\n");
   }
-
   Serial.println("Raw Data");
   Serial.printf("JoyStick no.1 X= %d, Y= %d, Sw= %d \n",joyX1Pos,joyY1Pos,joySW1State);
   Serial.printf("JoyStick no.2 X= %d, Y= %d, Sw= %d \n",joyX2Pos,joyY2Pos,joySW2State);
   Serial.printf("PotentioMeter no.1= %d \n",potenM1Pos);
   Serial.printf("PotentioMeter no.2= %d \n",potenM2Pos);
-  Serial.println("\n");
-  
+  Serial.println("");
   Serial.println("Mapped Data");
   Serial.printf("JoyStick no.1 X= %d, Y= %d, Sw= %d \n",joyX1Poss,joyY1Poss,joySW1State);
   Serial.printf("JoyStick no.2 X= %d, Y= %d, Sw= %d \n",joyX2Poss,joyY2Poss,joySW2State);
   Serial.printf("PotentioMeter no.1= %d \n",potenM1Poss);
   Serial.printf("PotentioMeter no.2= %d \n",potenM2Poss);
-  Serial.println("\n");
-  
+  Serial.println("");
   Serial.println("Switch");
   Serial.printf("JoyStick no.1= %d \n",joySW1State);
   Serial.printf("JoyStick no.2= %d \n",joySW2State);
@@ -1563,238 +1525,202 @@ void serialDebug() {
   Serial.printf("Toggle no.4= %d \n",togSW4State);
   Serial.printf("Toggle no.5= %d \n",togSW5State);
   Serial.printf("Toggle no.6= %d \n",togSW6State);
-  Serial.println("\n");
-
+  Serial.println("");
   Serial.println("Official Data");
   Serial.printf("Trottle: %d%\n",Trottle);
   Serial.printf("Yaw: %d%\n",Yaw);
   Serial.printf("Pitch %d%\n",Pitch);
   Serial.printf("Roll %d%\n",Roll);
   Serial.printf("Mode %s%\n",Mods);
-  Serial.println("\n");
-  
+  Serial.println("");
   Serial.printf("Count= %d \n",count);
-
   Serial.println("-------------------- debug --------------------");
 }
 
-
 // oled screen setup1
-void oledScreen1() {
+void oledScreen1(){
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
-
-
-  if (com == 1) {
-    display.setCursor(0, 0);
+  if(com==1){
+    display.setCursor(0,0);
     display.printf("SSTA: ");
     display.println(msgStatus1);
-
-    display.setCursor(0, 0);
+    display.setCursor(0,0);
     display.printf("          MSTA: ");
     display.println(msgStatus2);
   }
-
-  if (com == 2) {
-    display.setCursor(0, 0);
+  if(com==2){
+    display.setCursor(0,0);
     display.print("RSSI: ");
     display.print(WiFi.RSSI());
-
-    display.setCursor(0, 0);
+    display.setCursor(0,0);
     display.printf("          Ping: ");
     display.print(timePing);
     display.println("ms");
   }
-
-  display.setCursor(0, 50);
+  display.setCursor(0,50);
   display.print("          Mode: ");
   display.print(Mods);
-  
-  
-  display.setCursor(0, 10);
+  display.setCursor(0,10);
   display.print("Trottle:   ");
   display.print(mapPercent(Trottle));
   display.print("%");
-
-  display.setCursor(0, 20);
+  display.setCursor(0,20);
   display.print("Yaw:       ");
   display.print(mapPercent(Yaw));
   display.print("%");
-  
-  display.setCursor(0, 30);
+  display.setCursor(0,30);
   display.print("Pitch:     ");
   display.print(mapPercent(Pitch));
   display.print("%");
-
-  display.setCursor(0, 40);
+  display.setCursor(0,40);
   display.print("Roll:      ");
   display.print(mapPercent(Roll));
   display.print("%");
-  
-  display.setCursor(0, 50);
+  display.setCursor(0,50);
   display.print("Count: ");
   display.print(count);
   display.display();
 }
 
-
 // oled screen setup2
-void oledScreen2() {
+void oledScreen2(){
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
-
-
-  if (com == 1) {
-    display.setCursor(0, 0);
+  if (com==1){
+    display.setCursor(0,0);
     display.printf("SSTA: ");
     display.println(msgStatus1);
-
-    display.setCursor(0, 0);
+    display.setCursor(0,0);
     display.printf("          MSTA: ");
     display.println(msgStatus2);
   }
-
-  if (com == 2) {
+  if (com==2){
     display.setCursor(0, 0);
     display.print("RSSI: ");
     display.print(WiFi.RSSI());
-
     display.setCursor(0, 0);
     display.printf("          Ping: ");
     display.print(timePing);
     display.println("ms");
   }
-
-  display.setCursor(0, 50);
+  display.setCursor(0,50);
   display.print("          Mode: ");
   display.print(Mods);
-  
-  display.setCursor(0, 10);
+  display.setCursor(0,10);
   display.print("JSNo.1: ");
   display.print("X=");
   display.print(joyX1Poss);
   display.print("\tY=");
   display.print(joyY1Poss);
-  
-  display.setCursor(0, 20);
+  display.setCursor(0,20);
   display.print("JSNo.2: ");
   display.print("X=");
   display.print(joyX2Poss);
   display.print("\tY=");
   display.print(joyY2Poss);
-
-  display.setCursor(0, 30);
+  display.setCursor(0,30);
   display.print("PMNo.1: ");
   display.print(potenM1Poss);
-
-  display.setCursor(0, 40);
+  display.setCursor(0,40);
   display.print("PMNo.2: ");
-  display.print(potenM2Poss);
-  
-  display.setCursor(0, 50);
+  display.print(potenM2Poss);  
+  display.setCursor(0,50);
   display.print("Count: ");
   display.print(count);
   display.display();
 }
 
-
-
 // -------------------- task1 --------------------
 
-void Task1code(void * pvParameters) {
-
+void Task1code(void * pvParameters){
   for(;;){
+
     // counter and buzzer
-    if (count == 100) count = 0;
-    count += 1;
-    
+    if(count==100)count=0;
+    count+=1;
 
     // ---------- prepare data ----------
     
     // raw data
     // read X,Y and SW analog values of joystic no.1
-    joyX1Pos = analogRead(joyX1);
-    joyY1Pos = analogRead(joyY1);
-    joySW1State = digitalRead(joySW1);
+    joyX1Pos=analogRead(joyX1);
+    joyY1Pos=analogRead(joyY1);
+    joySW1State=digitalRead(joySW1);
 
     // read X,Y and SW analog values of joystic no.2
-    joyX2Pos = analogRead(joyX2);
-    joyY2Pos = analogRead(joyY2);
-    joySW2State = digitalRead(joySW2);
+    joyX2Pos=analogRead(joyX2);
+    joyY2Pos=analogRead(joyY2);
+    joySW2State=digitalRead(joySW2);
 
     // read potentiometer analog values
-    potenM1Pos = analogRead(potenMeter1);
-    potenM2Pos = analogRead(potenMeter2);
+    potenM1Pos=analogRead(potenMeter1);
+    potenM2Pos=analogRead(potenMeter2);
 
     // read toglle input value
-    togSW1State = digitalRead(togSW1);
-    togSW2State = digitalRead(togSW2);
-    togSW3State = digitalRead(togSW3);
-    togSW4State = digitalRead(togSW4);
-
+    togSW1State=digitalRead(togSW1);
+    togSW2State=digitalRead(togSW2);
+    togSW3State=digitalRead(togSW3);
+    togSW4State=digitalRead(togSW4);
 
     // mapped data
     // mapped joystic values of joystic no.1
-    joyX1Poss = setMap(joyX1Pos);
-    joyY1Poss = setMap(joyY1Pos);
+    joyX1Poss=setMap(joyX1Pos);
+    joyY1Poss=setMap(joyY1Pos);
 
     // mapped joystic values of joystic no.1
-    joyX2Poss = setMap(joyX2Pos);
-    joyY2Poss = setMap(joyY2Pos);
+    joyX2Poss=setMap(joyX2Pos);
+    joyY2Poss=setMap(joyY2Pos);
 
     // mapped potentiometer
-    potenM1Poss = setMap(potenM1Pos);
-    potenM2Poss = setMap(potenM2Pos);
-    
+    potenM1Poss=setMap(potenM1Pos);
+    potenM2Poss=setMap(potenM2Pos);
 
     // prepare for send message
-    if (togSW1State == 1) {
+    if(togSW1State==1){
       mapMode(potenM1Poss); 
       mapSpeed(potenM2Poss);
-      Trottle = setTrottle(joyX1Poss);
-      Yaw = setYaw(joyY1Poss);
-      Pitch = setPitch(joyX2Poss);
-      Roll = setRoll(joyY2Poss);
-      Mode = potenM1Poss;
+      Trottle=setTrottle(joyX1Poss);
+      Yaw=setYaw(joyY1Poss);
+      Pitch=setPitch(joyX2Poss);
+      Roll=setRoll(joyY2Poss);
+      Mode=potenM1Poss;
     }
-
-    if (togSW2State == 1) {
-      potenM1Poss = 1000;
+    if (togSW2State==1){
+      potenM1Poss=1000;
       mapMode(potenM1Poss); 
       mapSpeed(potenM2Poss);
-      Trottle = joyX1Poss;
-      Yaw = joyY1Poss;
-      Pitch = joyX2Poss;
-      Roll = joyY2Poss;
-      Mode = potenM1Poss;
-      
+      Trottle=joyX1Poss;
+      Yaw=joyY1Poss;
+      Pitch=joyX2Poss;
+      Roll=joyY2Poss;
+      Mode=potenM1Poss;
     }
     
     // set value to send
-    sndMsg.trottle = Trottle;
-    sndMsg.yaw = Yaw;
-    sndMsg.pitch = Pitch;
-    sndMsg.roll = Roll;
-    sndMsg.mode = Mode;
+    sndMsg.trottle=Trottle;
+    sndMsg.yaw=Yaw;
+    sndMsg.pitch=Pitch;
+    sndMsg.roll=Roll;
+    sndMsg.mode=Mode;
 
     // set value to send
-    xMsg = String(Trottle) + String(Yaw) + String(Pitch) + String(Roll) + String(Mode);
-
+    xMsg=String(Trottle)+String(Yaw)+String(Pitch)+String(Roll)+String(Mode);
 
     // ---------- debug data ----------
 
     // srial debug
-    if (count == 1 || count == 26 || count == 51 || count == 76) serialDebug(); // enable this for long debug
+    if(count==1||count==26||count==51||count==76)serialDebug(); // enable this for long debug
     //serialDebug() // enable this for short debug if delay != 1000 = fast
 
     // oled screen
     // oleddisplay1
-    if (togSW3State == 1) oledScreen1();
+    if(togSW3State==1)oledScreen1();
 
     // oleddisplay2
-    if (togSW4State == 1) oledScreen2();
+    if(togSW4State==1)oledScreen2();
     
 
     // delay
@@ -1805,28 +1731,24 @@ void Task1code(void * pvParameters) {
   } 
 }
 
-
-
 // -------------------- task2 --------------------
 
-void Task2code(void * pvParameters) {
-
+void Task2code(void * pvParameters){
   for(;;){
+
     // ---------- send data ----------
 
     // send msg via ESP-NOW
-    if (com == 1) {
+    if(com==1){
       esp_err_t result;
-
-      if (msgMode == 1) result = esp_now_send(targetMac, (uint8_t *) &sndMsg, sizeof(sndMsg));
-      if (msgMode == 2) result = esp_now_send(targetMac, (uint8_t *) &xMsg, sizeof(xMsg));
-      
-      if (result == ESP_OK) msgStatus1 = "ok!";
-      else msgStatus1 = "bd!";
+      if(msgMode==1)result=esp_now_send(targetMac,(uint8_t *)&sndMsg,sizeof(sndMsg));
+      if(msgMode==2)result=esp_now_send(targetMac,(uint8_t *)&xMsg,sizeof(xMsg)); 
+      if(result==ESP_OK)msgStatus1="ok!";
+      else msgStatus1="bd!";
     }
 
     // send msg via request
-    if (com == 2) {
+    if(com==2){
       initCom2(xMsg);
     }
   } 
@@ -1836,29 +1758,25 @@ void Task2code(void * pvParameters) {
 
 // -------------------- setup --------------------
 
-void setup() {
+void setup(){
   // put your setup code here, to run once:
   // Initialize Serial Monitor
   Serial.begin(115200);
 
-  // initialize OLED display with I2C address 0x3C
-  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-    Serial.println(F("failed to start SSD1306 OLED"));
-    while (1);
-  }
-
   // startup
   initVerInfo(); // version
   initLogo(); // logo
-  initBoot(); // boot animation
 
-  
-  if (com == 1) {
+  // initialize OLED display with I2C address 0x3C
+  if(!display.begin(SSD1306_SWITCHCAPVCC,0x3C)){
+    Serial.println(F("failed to start SSD1306 OLED"));
+    while(1);
+  }
+  if(com==1){
     // intCom1 ESP-NOW
     initCom1();
   }
-
-  if (com == 2) {
+  if(com==2){
     // initWiFi
     initWiFi();
 
@@ -1866,7 +1784,6 @@ void setup() {
     initCom2("0x00");
   }
   
-
   // joystick switch
   pinMode(joySW1,INPUT);
   pinMode(joySW2,INPUT);
@@ -1877,15 +1794,14 @@ void setup() {
   pinMode(togSW3,INPUT_PULLUP);
   pinMode(togSW4,INPUT_PULLUP);
 
+  initBoot(); // boot animation
 
   // startup delay
   delay(300);
 
-
   // task handler
   xTaskCreatePinnedToCore(Task1code,"Task1",10000,NULL,2,&Task1,0);
   xTaskCreatePinnedToCore(Task2code,"Task2",10000,NULL,1,&Task2,1);
-
 }
 
 // -------------------- loop --------------------
