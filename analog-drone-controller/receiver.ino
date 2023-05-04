@@ -6,8 +6,8 @@
 // -------------------- include and define --------------------
 
 #include <WiFi.h>
-#include <ESP32Servo.h>
 #include <esp_now.h>
+#include <ESP32Servo.h>
 #include <HTTPClient.h>
 
 // buzzer pinout
@@ -38,6 +38,9 @@ const char* pass="@lolenseu24!";
 
 // server connection 
 HTTPClient http;
+
+// server response
+int server;
 
 //time for ping
 long int time1;
@@ -76,9 +79,10 @@ int pYaw;
 int pPitch;
 int pRoll;
 
-// subcount
+// counter incase of lost signal
 int subCount;
 int lastsubCount;
+int lostCount=0;
 
 // storage message
 typedef struct structMsg{
@@ -93,7 +97,6 @@ structMsg rcvMsg;
 
 // starage xmessage
 String xMsg;
-
 
 // variable to store if receiving data was successful or bad
 String msgStatus1;
@@ -189,8 +192,9 @@ void initCom2(){
 
   // rcvmsg to server
   String serverPath=serverName;
-  http.begin(serverPath);     
-  if(http.GET()>0)xMsg=http.getString();
+  http.begin(serverPath);
+  server=http.GET();
+  if(server>0)xMsg=http.getString();
 
   // time for end ping
   time2=millis();
@@ -272,7 +276,12 @@ void serialDebug(){
   Serial.printf("Roll: %d%%\n",pRoll);
   Serial.printf("Mode: %s\n",Mods);
   Serial.println("");
-  Serial.printf("subCount: %d\n",subCount);
+  Serial.println("Lost Counter");
+  Serial.printf("SubCount: %d\n",subCount);
+  Serial.printf("LastsubCount: %d\n",lastsubCount);
+  Serial.printf("LostbCount: %d\n",lostCount);
+  Serial.println("");
+  Serial.println("Official Counter");
   Serial.printf("Count: %d\n",count);
   Serial.println("-------------------- debug --------------------");
 }
@@ -311,15 +320,22 @@ void Task1code(void * pvParameters){
     mapMode(Mode); 
 
     // write data to servo
-    if(subCount==lastsubCount||WiFi.status()!=WL_CONNECTED){
-      servo1.write(1500);
-      servo2.write(1500);
-      servo3.write(1500);
-      servo4.write(1500);
-      servo5.write(1899); // 1899 land mode in ardupilot
+    if(WiFi.status()!=WL_CONNECTED||server!=200||subCount==lastsubCount){
+      lostCount+=1; // lost counter
+      if(lostCount>=3000){
+        lostCount=3000;
+
+        // emergency servo protocol auto land
+        servo1.write(1500);
+        servo2.write(1500);
+        servo3.write(1500);
+        servo4.write(1500);
+        servo5.write(1899); // 1899 land mode in ardupilot
+      }
     }
     else{
       lastsubCount=subCount;
+      lostCount=0;
 
       // write servo
       servo1.write(Trottle);
