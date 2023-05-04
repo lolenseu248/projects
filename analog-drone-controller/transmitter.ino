@@ -1120,22 +1120,19 @@ TaskHandle_t Task2;
 // count
 int count=0;
 
-// msg config
-int msgMode=1; // set 1 to msg = 0x00 and 2 if msg = msg.a
-
 // com config
-int com=2; // set 1 if ESP-NOw and 2 if SERVER (internet)
+int com=1; // set 1 if ESP-NOw and 2 if SERVER (internet)
 
 // com ESP-NOW
 uint8_t myMac[]={0x40,0x22,0xD8,0x08,0xBB,0x48};
-uint8_t targetMac[]={0x40,0x22,0xD8,0x08,0xBB,0x48};
+uint8_t targetMac[]={0x40,0x22,0xD8,0x03,0x2E,0x50};
 
 // peerinfo
 esp_now_peer_info_t peerInfo;
 
 // wificonfig
-const char* ssid="lolenseu";
-const char* pass="@lolenseu24!";
+const char* ssid="Onahs!-Hotspot-AP";
+const char* pass="0x2m0q9G0z7VLIZjdHuCTMXwCU2NywNT";
 
 // server connection 
 HTTPClient http;
@@ -1198,18 +1195,19 @@ int pYaw;
 int pPitch;
 int pRoll;
 
-// storage message
-typedef struct structMsg{
-    int trottle;
-    int yaw;
-    int pitch;
-    int roll;
-    int mode;
-}
-structMsg;
-structMsg sndMsg;
+// storage xMsg
+// com 1
+typedef struct struct_message{
+  int trottle;
+  int yaw;
+  int pitch;
+  int roll;
+  int mode;
+  int count;
+}struct_message;
+struct_message sndxMsg;
 
-// starage xmessage
+// com 2
 String xMsg;
 
 // variable to store if sending data was successful or bad
@@ -1380,9 +1378,9 @@ void initWiFi(){
 }
 
 // initcom1
-void initCom1(){
+void initespnow(){
   WiFi.mode(WIFI_STA);
-  Serial.print("Initiating ESP-NOW ..");
+  Serial.println("Initiating ESP-NOW ..");
 
   // Init ESP-NOW
   if(esp_now_init()!=ESP_OK){
@@ -1406,13 +1404,13 @@ void initCom1(){
 }
 
 // inticom2
-void initCom2(String sendData){
+void initserver(String sendData){
 
   // time for start ping
   time1=millis();
 
   // sendmsg to server
-  String serverPath=serverName+"\"0x"+sendData+count+"\"";
+  String serverPath=serverName+"\"0x"+sendData+"\"";
   http.begin(serverPath);     
   http.GET();
 
@@ -1490,7 +1488,8 @@ void mapSpeed(int toSpeed){
 
 // esp-now
 void OnDataSent(const uint8_t * mac_addr,esp_now_send_status_t status){
-  Serial.println(status==ESP_NOW_SEND_SUCCESS?msgStatus2="ok!":msgStatus2="bd!");
+  if(status==ESP_NOW_SEND_SUCCESS)msgStatus2="ok!";
+  else msgStatus2="bd!";
 }
 
 // ---------- printing ----------
@@ -1601,7 +1600,7 @@ void oledScreen2(){
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
-  if (com==1){
+  if(com==1){
     display.setCursor(0,0);
     display.printf("SSTA: ");
     display.println(msgStatus1);
@@ -1609,7 +1608,7 @@ void oledScreen2(){
     display.printf("          MSTA: ");
     display.println(msgStatus2);
   }
-  if (com==2){
+  if(com==2){
     display.setCursor(0, 0);
     display.print("RSSI: ");
     display.print(WiFi.RSSI());
@@ -1692,18 +1691,14 @@ void Task1code(void * pvParameters){
 
     // prepare for send message
     if(togSW1State==1){
-      mapMode(potenM1Poss); 
-      mapSpeed(potenM2Poss);
       Trottle=setTrottle(joyX1Poss);
       Yaw=setYaw(joyY1Poss);
       Pitch=setPitch(joyX2Poss);
       Roll=setRoll(joyY2Poss);
       Mode=potenM1Poss;
     }
-    if (togSW2State==1){
+    if(togSW2State==1){
       potenM1Poss=1000;
-      mapMode(potenM1Poss); 
-      mapSpeed(potenM2Poss);
       Trottle=joyX1Poss;
       Yaw=joyY1Poss;
       Pitch=joyX2Poss;
@@ -1711,22 +1706,27 @@ void Task1code(void * pvParameters){
       Mode=potenM1Poss;
     }
 
+    // set value to send
+    // com 1
+    sndxMsg.trottle=Trottle;
+    sndxMsg.yaw=Yaw;
+    sndxMsg.pitch=Pitch;
+    sndxMsg.roll=Roll;
+    sndxMsg.mode=Mode;
+    sndxMsg.count=count;
+
+    // com 2
+    xMsg=String(Trottle)+String(Yaw)+String(Pitch)+String(Roll)+String(Mode)+String(count);
+    
+    // map mode to string
+    mapSpeed(potenM2Poss);
+
     // percent data
     pTrottle=mapPercent(Trottle);
     pYaw=mapPercent(Yaw);
     pPitch=mapPercent(Pitch);
     pRoll=mapPercent(Roll);
-    
-    // set value to send
-    sndMsg.trottle=Trottle;
-    sndMsg.yaw=Yaw;
-    sndMsg.pitch=Pitch;
-    sndMsg.roll=Roll;
-    sndMsg.mode=Mode;
-
-    // set value to send
-    xMsg=String(Trottle)+String(Yaw)+String(Pitch)+String(Roll)+String(Mode);
-
+    mapMode(potenM1Poss); 
 
     // ---------- debug data ----------
 
@@ -1760,16 +1760,17 @@ void Task2code(void * pvParameters){
     // send msg via ESP-NOW
     if(com==1){
       esp_err_t result;
-      if(msgMode==1)result=esp_now_send(targetMac,(uint8_t *)&sndMsg,sizeof(sndMsg));
-      if(msgMode==2)result=esp_now_send(targetMac,(uint8_t *)&xMsg,sizeof(xMsg)); 
+      result=esp_now_send(targetMac,(uint8_t *)&sndxMsg,sizeof(sndxMsg)); 
       if(result==ESP_OK)msgStatus1="ok!";
       else msgStatus1="bd!";
     }
 
     // send msg via request
-    if(com==2){
-      initCom2(xMsg);
-    }
+    if(com==2)initserver(xMsg);
+
+    // disable delay on task 2 wen normal run
+    //delay(1000); // debug delay
+    //delay(60000); // stop delay
   } 
 }
 
@@ -1792,14 +1793,14 @@ void setup(){
 
   if(com==1){
     // intCom1 ESP-NOW
-    initCom1();
+    initespnow();
   }
   if(com==2){
     // initWiFi
     initWiFi();
 
     // intCom2 Internet
-    initCom2("0x00");
+    initserver("0x00");
   }
   
   // joystick switch
