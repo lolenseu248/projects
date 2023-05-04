@@ -1435,9 +1435,11 @@ void initCom1() {
 // inticom2
 void initCom2(String sendData) {
   time1 = millis();
+
   String serverPath = serverName + "\"0x" + sendData + "0001" +"\"";
   http.begin(serverPath);     
   http.GET();
+  
   time2 = millis();  
   timePing = time2 - time1;                                          
 }
@@ -1701,7 +1703,7 @@ void oledScreen2() {
 
 // -------------------- task1 --------------------
 
-void Task1code( void * pvParameters ){
+void Task1code(void * pvParameters) {
 
   for(;;){
     // counter and buzzer
@@ -1807,7 +1809,7 @@ void Task1code( void * pvParameters ){
 
 // -------------------- task2 --------------------
 
-void Task2code( void * pvParameters ){
+void Task2code(void * pvParameters) {
 
   for(;;){
     // ---------- send data ----------
