@@ -245,7 +245,7 @@ void serialDebug(){
     Serial.println(msgStatus1);
     Serial.printf("Msg Status: ");
     Serial.println(msgStatus2);
-    Serial.println("\n");
+    Serial.println("");
   }
   if(com==2){
     Serial.println("WiFi");
@@ -253,7 +253,7 @@ void serialDebug(){
     Serial.println(WiFi.RSSI());
     Serial.printf("Ping: ");
     Serial.println(timePing);
-    Serial.println("\n");
+    Serial.println("");
   }
   Serial.println("Raw Data");
   Serial.printf("Trottle: %s\n",rTrottle);
@@ -278,7 +278,6 @@ void serialDebug(){
   Serial.println("");
   Serial.println("Lost Counter");
   Serial.printf("SubCount: %d\n",subCount);
-  Serial.printf("LastsubCount: %d\n",lastsubCount);
   Serial.printf("LostbCount: %d\n",lostCount);
   Serial.println("");
   Serial.println("Official Counter");
@@ -312,38 +311,41 @@ void Task1code(void * pvParameters){
     Mode=rMode.toInt();
     subCount=rCount.toInt();
 
-    // percent data
-    pTrottle=mapPercent(Trottle);
-    pYaw=mapPercent(Yaw);
-    pPitch=mapPercent(Pitch);
-    pRoll=mapPercent(Roll);
-    mapMode(Mode); 
-
-    // write data to servo
+    // emergency servo protocol auto land
     if(WiFi.status()!=WL_CONNECTED||server!=200||subCount==lastsubCount){
       lostCount+=1; // lost counter
+      if(lostCount>=100){
+
+        // stay on position
+        Trottle=1580; // increase hight by 2%
+        Yaw=1500;
+        Pitch=1500;
+        Roll=1500;
+        Mode=1500; // 1500 loiter mode
+      }
       if(lostCount>=3000){
         lostCount=3000;
-
-        // emergency servo protocol auto land
-        servo1.write(1500);
-        servo2.write(1500);
-        servo3.write(1500);
-        servo4.write(1500);
-        servo5.write(1899); // 1899 land mode in ardupilot
+        Mode=1899; // 1899 land mode
       }
     }
     else{
       lastsubCount=subCount;
       lostCount=0;
-
-      // write servo
-      servo1.write(Trottle);
-      servo2.write(Yaw);
-      servo3.write(Pitch);
-      servo4.write(Roll);
-      servo5.write(Mode);
     }
+
+    // percent data
+    pTrottle=mapPercent(Trottle);
+    pYaw=mapPercent(Yaw);
+    pPitch=mapPercent(Pitch);
+    pRoll=mapPercent(Roll);
+    mapMode(Mode);
+
+    // write servo
+    servo1.write(Trottle);
+    servo2.write(Yaw);
+    servo3.write(Pitch);
+    servo4.write(Roll);
+    servo5.write(Mode);
 
     // ---------- debug data ----------
 
