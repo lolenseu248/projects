@@ -1218,7 +1218,7 @@ String msgStatus2;
 void initVerInfo(){
 
   // serial print
-  Serial.print("\n");
+  Serial.println("");
   Serial.println("v1.0");
   Serial.println("Transmitter");
   Serial.println("@lolenseu");
@@ -1410,7 +1410,6 @@ void initCom2(String sendData){
   // ping
   timePing=time2-time1;                                          
 }
-
 
 // ---------- processing ----------
 
@@ -1754,8 +1753,6 @@ void Task2code(void * pvParameters){
   } 
 }
 
-
-
 // -------------------- setup --------------------
 
 void setup(){
@@ -1806,7 +1803,7 @@ void setup(){
 
 // -------------------- loop --------------------
 
-void loop() {
+void loop(){
   // put your main code here, to run repeatedly:
 
 }
