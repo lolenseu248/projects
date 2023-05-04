@@ -10,8 +10,15 @@
 #include <esp_now.h>
 #include <HTTPClient.h>
 
-// buzzer
-#define BUZZER 12
+// buzzer pinout
+#define BUZZER 2
+
+// servo pinout
+#define GPIOTrottle 4
+#define GPIOYaw 5
+#define GPIOPitch 19
+#define GPIORoll 21
+#define GPIOMode 23
 
 // -------------------- variables --------------------
 
@@ -40,6 +47,39 @@ long int timePing;
 // com server
 String serverName="https://blynk.cloud/external/api/get?token=Z28VmfqlAHMfu1cQrnFKYZ5RFfK0lyXP&v0";
 
+// servo
+Servo servo1;
+Servo servo2;
+Servo servo3;
+Servo servo4;
+Servo servo5;
+
+// raw data
+String rTrottle;
+String rYaw;
+String rPitch;
+String rRoll;
+String rMode;
+String rCount;
+
+// process data
+int Trottle;
+int Yaw;
+int Pitch;
+int Roll;
+int Mode;
+String Mods;
+
+// percent data
+int pTrottle;
+int pYaw;
+int pPitch;
+int pRoll;
+
+// subcount
+int subCount;
+int lastsubCount;
+
 // storage message
 typedef struct structMsg{
     int trottle;
@@ -54,6 +94,11 @@ structMsg rcvMsg;
 // starage xmessage
 String xMsg;
 
+
+// variable to store if receiving data was successful or bad
+String msgStatus1;
+String msgStatus2;
+
 // -------------------- fuctions --------------------
 
 // ---------- startup ----------
@@ -65,11 +110,13 @@ void initVerInfo(){
   Serial.println("Reciever");
   Serial.println("@lolenseu");
   Serial.println("https://github.com/lolenseu");
+  Serial.println("");
   delay(2000);
 }
 
 // initlogo
 void initLogo() {
+  Serial.println("");
   Serial.println("     ⠀⠀⠀⠀⠀⣀⣀⣀⣀⣠⣤⣤⣄⣀⣀⣀⣀⠀⠀⠀⠀⠀     ");
   Serial.println("     ⢀⣠⣶⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣶⣄⡀     ");
   Serial.println("     ⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷     ");
@@ -90,9 +137,11 @@ void initLogo() {
 
 // initBoot
 void initBoot(){
+  Serial.println("");
   Serial.println("Botting ...");
+  Serial.println("");
 
-  //DJI Tone Start Up
+  //DJI tone start up
   delay(3000);
   tone(BUZZER,800,550);
   delay(300);
@@ -138,7 +187,7 @@ void initCom2(){
   // time for start ping
   time1=millis();
 
-  // sendmsg and rcvmsg to server
+  // rcvmsg to server
   String serverPath=serverName;
   http.begin(serverPath);     
   if(http.GET()>0)xMsg=http.getString();
@@ -152,11 +201,34 @@ void initCom2(){
 
 // ---------- processing ----------
 
+// map to percent
+int mapPercent(int toMapPercent){
+  int mapValuePercent=map(toMapPercent,1000,2000,0,100);
+  return mapValuePercent;
+}
 
+// mapmode
+void mapMode(int toMode){
+  int mapMode=map(toMode,1000,2000,1,6);
+  if(mapMode==1)Mods="Stab";
+  else if(mapMode==2)Mods="At.H";
+  else if(mapMode==3)Mods="Loit";
+  else if(mapMode==4)Mods="Guid";
+  else if(mapMode==5)Mods="ReHo";
+  else if(mapMode==6)Mods="Land";
+}
 
+// write servo
+int toServo(int toTrottle,int toYaw,int toPitch,int toRoll,int toMode){
+  servo1.write(toTrottle);
+  servo2.write(toYaw);
+  servo3.write(toPitch);
+  servo4.write(toRoll);
+  servo5.write(toMode);
+}
 
 // esp-now
-void OnDataRecv(const uint8_t * mac,const uint8_t *incomingData,int len){
+void OnDataRecv(const uint8_t * mac,const uint8_t * incomingData,int len){
   memcpy(&rcvMsg,incomingData,sizeof(rcvMsg));
   Serial.print("Bytes received: ");
   Serial.println(len);
@@ -169,6 +241,51 @@ void OnDataRecv(const uint8_t * mac,const uint8_t *incomingData,int len){
 
 // ---------- printing ----------
 
+void serialDebug(){
+  Serial.println("\n");
+  Serial.println("-------------------- debug --------------------");
+  if(com==1){
+    Serial.println("ESP-NOw");
+    Serial.printf("Snd Status: ");
+    Serial.println(msgStatus1);
+    Serial.printf("Msg Status: ");
+    Serial.println(msgStatus2);
+    Serial.println("\n");
+  }
+  if(com==2){
+    Serial.println("WiFi");
+    Serial.printf("RSSI: ");
+    Serial.println(WiFi.RSSI());
+    Serial.printf("Ping: ");
+    Serial.println(timePing);
+    Serial.println("\n");
+  }
+  Serial.println("Raw Data");
+  Serial.printf("Trottle: %s\n",rTrottle);
+  Serial.printf("Yaw: %s\n",rYaw);
+  Serial.printf("Pitch: %s\n",rPitch);
+  Serial.printf("Roll: %s\n",rRoll);
+  Serial.printf("Mode: %s\n",rMode);
+  Serial.println("");
+  Serial.println("Processed Data");
+  Serial.printf("Trottle: %d\n",Trottle);
+  Serial.printf("Yaw: %d\n",Yaw);
+  Serial.printf("Pitch: %d\n",Pitch);
+  Serial.printf("Roll: %d\n",Roll);
+  Serial.printf("Mode: %d\n",Mode);
+  Serial.println("");
+  Serial.println("Official Data");
+  Serial.printf("Trottle: %d%\n",pTrottle);
+  Serial.printf("Yaw: %d%\n",pYaw);
+  Serial.printf("Pitch %d%\n",pPitch);
+  Serial.printf("Roll %d%\n",pRoll);
+  Serial.printf("Mode %s%\n",Mods);
+  Serial.println("");
+  Serial.printf("subCount: %d\n",subCount);
+  Serial.printf("Count: %d\n",count);
+  Serial.println("-------------------- debug --------------------");
+}
+
 // -------------------- task1 --------------------
 
 void Task1code(void * pvParameters){
@@ -176,6 +293,51 @@ void Task1code(void * pvParameters){
     // counter and buzzer
     if(count==100)count=0,tone(BUZZER,3500,250);
     count+=1;
+
+    // ---------- prepare data ----------
+
+    // raw data
+    rTrottle=xMsg.substring(2,6);
+    rYaw=xMsg.substring(6,10);
+    rPitch=xMsg.substring(10,14);
+    rRoll=xMsg.substring(14,18);
+    rMode=xMsg.substring(18,22);
+    rCount=xMsg.substring(22,24);
+
+    // processed data
+    Trottle=rTrottle.toInt();
+    Yaw=rYaw.toInt();
+    Pitch=rPitch.toInt();
+    Roll=rRoll.toInt();
+    Mode=rMode.toInt();
+    subCount=rCount.toInt();
+
+    // percent data
+    pTrottle=mapPercent(Trottle);
+    pYaw=mapPercent(Yaw);
+    pPitch=mapPercent(Pitch);
+    pRoll=mapPercent(Roll);
+
+    // write data to servo
+    if(subCount==lastsubCount||WiFi.status()!=WL_CONNECTED){
+      toServo(1500,1500,1500,1500,1899); // 1899 land mode in ardupilot
+    }
+    else{
+      lastsubCount=subCount;
+      toServo(Trottle,Yaw,Pitch,Roll,Mode);
+    }
+
+    // ---------- debug data ----------
+
+    // srial debug
+    if(count==1||count==26||count==51||count==76)serialDebug(); // enable this for long debug
+    //serialDebug() // enable this for short debug if delay != 1000 = fast
+
+    // delay
+    //delay(10); // run delay
+    //delay(100); // test delay
+    //delay(1000); // debug delay
+    //delay(60000); // stop delay
   }
 }
 
@@ -183,22 +345,23 @@ void Task1code(void * pvParameters){
 
 void Task2code(void * pvParameters){
   for(;;){
+
     // ---------- send data ----------
 
-    // send msg via ESP-NOW
-    /*
-    if (com == 1) {
+    // rcv msg via ESP-NOW
+    if(com==1){
+      /*
       esp_err_t result;
-
+    
       if (msgMode == 1) result = esp_now_send(targetMac, (uint8_t *) &sndMsg, sizeof(sndMsg));
       if (msgMode == 2) result = esp_now_send(targetMac, (uint8_t *) &xMsg, sizeof(xMsg));
       
       if (result == ESP_OK) msgStatus1 = "ok!";
       else msgStatus1 = "bd!";
+      */
     }
-    */
 
-    // send msg via request
+    // rcv msg via request
     if(com==2){
       initCom2();
     }
@@ -228,8 +391,15 @@ void setup(){
     initCom2();
   }
 
-  // buzzer pinout
+  // buzzer
   pinMode(BUZZER,OUTPUT);
+
+  // servo
+  servo1.attach(GPIOTrottle);
+  servo2.attach(GPIOYaw);
+  servo3.attach(GPIOPitch);
+  servo4.attach(GPIORoll);
+  servo5.attach(GPIOMode);
 
   initBoot(); // boot
 
