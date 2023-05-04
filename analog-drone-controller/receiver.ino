@@ -11,7 +11,7 @@
 #include <HTTPClient.h>
 
 // buzzer pinout
-#define BUZZER 2
+#define BUZZER 18
 
 // servo pinout
 #define GPIOTrottle 4
@@ -218,15 +218,6 @@ void mapMode(int toMode){
   else if(mapMode==6)Mods="Land";
 }
 
-// write servo
-int toServo(int toTrottle,int toYaw,int toPitch,int toRoll,int toMode){
-  servo1.write(toTrottle);
-  servo2.write(toYaw);
-  servo3.write(toPitch);
-  servo4.write(toRoll);
-  servo5.write(toMode);
-}
-
 // esp-now
 void OnDataRecv(const uint8_t * mac,const uint8_t * incomingData,int len){
   memcpy(&rcvMsg,incomingData,sizeof(rcvMsg));
@@ -275,11 +266,11 @@ void serialDebug(){
   Serial.printf("Mode: %d\n",Mode);
   Serial.println("");
   Serial.println("Official Data");
-  Serial.printf("Trottle: %d%\n",pTrottle);
-  Serial.printf("Yaw: %d%\n",pYaw);
-  Serial.printf("Pitch %d%\n",pPitch);
-  Serial.printf("Roll %d%\n",pRoll);
-  Serial.printf("Mode %s%\n",Mods);
+  Serial.printf("Trottle: %d%%\n",pTrottle);
+  Serial.printf("Yaw: %d%%\n",pYaw);
+  Serial.printf("Pitch: %d%%\n",pPitch);
+  Serial.printf("Roll: %d%%\n",pRoll);
+  Serial.printf("Mode: %s\n",Mods);
   Serial.println("");
   Serial.printf("subCount: %d\n",subCount);
   Serial.printf("Count: %d\n",count);
@@ -317,24 +308,35 @@ void Task1code(void * pvParameters){
     pYaw=mapPercent(Yaw);
     pPitch=mapPercent(Pitch);
     pRoll=mapPercent(Roll);
+    mapMode(Mode); 
 
     // write data to servo
     if(subCount==lastsubCount||WiFi.status()!=WL_CONNECTED){
-      toServo(1500,1500,1500,1500,1899); // 1899 land mode in ardupilot
+      servo1.write(1500);
+      servo2.write(1500);
+      servo3.write(1500);
+      servo4.write(1500);
+      servo5.write(1899); // 1899 land mode in ardupilot
     }
     else{
       lastsubCount=subCount;
-      toServo(Trottle,Yaw,Pitch,Roll,Mode);
+
+      // write servo
+      servo1.write(Trottle);
+      servo2.write(Yaw);
+      servo3.write(Pitch);
+      servo4.write(Roll);
+      servo5.write(Mode);
     }
 
     // ---------- debug data ----------
 
     // srial debug
     if(count==1||count==26||count==51||count==76)serialDebug(); // enable this for long debug
-    //serialDebug() // enable this for short debug if delay != 1000 = fast
+    //serialDebug(); // enable this for short debug if delay != 1000 = fast
 
     // delay
-    //delay(10); // run delay
+    delay(10); // run delay
     //delay(100); // test delay
     //delay(1000); // debug delay
     //delay(60000); // stop delay
