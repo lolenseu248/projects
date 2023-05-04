@@ -329,7 +329,7 @@ void Task1code(void * pvParameters){
     }
 
     // emergency servo protocol auto land
-    if(WiFi.status()!=WL_CONNECTED||server!=200||subCount==lastsubCount){
+    if(subCount==lastsubCount){
       lostCount+=1; // lost counter
       if(lostCount>=100){
 
