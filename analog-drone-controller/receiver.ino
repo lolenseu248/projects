@@ -30,11 +30,18 @@ TaskHandle_t Task2;
 int count=0;
 
 // com config
-int com=2; // set 1 if ESP-NOw and 2 if SERVER (internet)
+int com=1; // set 1 if ESP-NOw and 2 if SERVER (internet)
+
+// com ESP-NOW
+uint8_t myMac[]={0x40,0x22,0xD8,0x03,0x2E,0x50};
+uint8_t targetMac[]={0x40,0x22,0xD8,0x08,0xBB,0x48};
+
+// peerinfo
+esp_now_peer_info_t peerInfo;
 
 // wificonfig
-const char* ssid="lolenseu";
-const char* pass="@lolenseu24!";
+const char* ssid="Onahs!-Hotspot-AP";
+const char* pass="0x2m0q9G0z7VLIZjdHuCTMXwCU2NywNT";
 
 // server connection 
 HTTPClient http;
@@ -71,6 +78,7 @@ int Yaw;
 int Pitch;
 int Roll;
 int Mode;
+int rcvCount;
 String Mods;
 
 // percent data
@@ -84,18 +92,19 @@ int subCount;
 int lastsubCount;
 int lostCount=0;
 
-// storage message
-typedef struct structMsg{
-    int trottle;
-    int yaw;
-    int pitch;
-    int roll;
-    int mode;
-}
-structMsg;
-structMsg rcvMsg;
+// storage xMsg
+// com 1
+typedef struct struct_message{
+  int trottle;
+  int yaw;
+  int pitch;
+  int roll;
+  int mode;
+  int count;
+}struct_message;
+struct_message rcvxMsg;
 
-// starage xmessage
+// com 2
 String xMsg;
 
 // variable to store if receiving data was successful or bad
@@ -168,9 +177,9 @@ void initWiFi(){
 }
 
 // initcom1
-void initCom1(){
+void initespnow(){
   WiFi.mode(WIFI_STA);
-  Serial.print("Initiating ESP-NOW ..");
+  Serial.println("Initiating ESP-NOW ..");
 
   // Init ESP-NOW
   if(esp_now_init()!=ESP_OK){
@@ -185,7 +194,7 @@ void initCom1(){
 }
 
 // inticom2
-void initCom2(){
+void initserver(){
 
   // time for start ping
   time1=millis();
@@ -224,14 +233,15 @@ void mapMode(int toMode){
 
 // esp-now
 void OnDataRecv(const uint8_t * mac,const uint8_t * incomingData,int len){
-  memcpy(&rcvMsg,incomingData,sizeof(rcvMsg));
-  Serial.print("Bytes received: ");
-  Serial.println(len);
-  Serial.println(rcvMsg.trottle);
-  Serial.println(rcvMsg.yaw);
-  Serial.println(rcvMsg.pitch);
-  Serial.println(rcvMsg.roll);
-  Serial.println();
+  memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
+  // processed data
+
+  Trottle=rcvxMsg.trottle;
+  Yaw=rcvxMsg.yaw;
+  Pitch=rcvxMsg.pitch;
+  Roll=rcvxMsg.roll;
+  Mode=rcvxMsg.mode;
+  subCount=rcvxMsg.count;
 }
 
 // ---------- printing ----------
@@ -293,23 +303,30 @@ void Task1code(void * pvParameters){
     if(count==100)count=0,tone(BUZZER,3500,250);
     count+=1;
 
-    // ---------- prepare data ----------
+    // ---------- receive data ----------
 
-    // raw data
-    rTrottle=xMsg.substring(2,6);
-    rYaw=xMsg.substring(6,10);
-    rPitch=xMsg.substring(10,14);
-    rRoll=xMsg.substring(14,18);
-    rMode=xMsg.substring(18,22);
-    rCount=xMsg.substring(22,24);
+    // rcv msg via ESP-NOW
+    if(com==1){}
 
-    // processed data
-    Trottle=rTrottle.toInt();
-    Yaw=rYaw.toInt();
-    Pitch=rPitch.toInt();
-    Roll=rRoll.toInt();
-    Mode=rMode.toInt();
-    subCount=rCount.toInt();
+    // rcv msg via request
+    if(com==2){
+
+      // raw data
+      rTrottle=xMsg.substring(2,6);
+      rYaw=xMsg.substring(6,10);
+      rPitch=xMsg.substring(10,14);
+      rRoll=xMsg.substring(14,18);
+      rMode=xMsg.substring(18,22);
+      rCount=xMsg.substring(22,24);
+
+      // processed data
+      Trottle=rTrottle.toInt();
+      Yaw=rYaw.toInt();
+      Pitch=rPitch.toInt();
+      Roll=rRoll.toInt();
+      Mode=rMode.toInt();
+      subCount=rCount.toInt();
+    }
 
     // emergency servo protocol auto land
     if(WiFi.status()!=WL_CONNECTED||server!=200||subCount==lastsubCount){
@@ -333,19 +350,19 @@ void Task1code(void * pvParameters){
       lostCount=0;
     }
 
-    // percent data
-    pTrottle=mapPercent(Trottle);
-    pYaw=mapPercent(Yaw);
-    pPitch=mapPercent(Pitch);
-    pRoll=mapPercent(Roll);
-    mapMode(Mode);
-
     // write servo
     servo1.write(Trottle);
     servo2.write(Yaw);
     servo3.write(Pitch);
     servo4.write(Roll);
     servo5.write(Mode);
+
+    // percent data
+    pTrottle=mapPercent(Trottle);
+    pYaw=mapPercent(Yaw);
+    pPitch=mapPercent(Pitch);
+    pRoll=mapPercent(Roll);
+    mapMode(Mode);
 
     // ---------- debug data ----------
 
@@ -366,25 +383,15 @@ void Task1code(void * pvParameters){
 void Task2code(void * pvParameters){
   for(;;){
 
-    // ---------- send data ----------
-
     // rcv msg via ESP-NOW
-    if(com==1){
-      /*
-      esp_err_t result;
-    
-      if (msgMode == 1) result = esp_now_send(targetMac, (uint8_t *) &sndMsg, sizeof(sndMsg));
-      if (msgMode == 2) result = esp_now_send(targetMac, (uint8_t *) &xMsg, sizeof(xMsg));
-      
-      if (result == ESP_OK) msgStatus1 = "ok!";
-      else msgStatus1 = "bd!";
-      */
-    }
+    if(com==1){}
 
     // rcv msg via request
-    if(com==2){
-      initCom2();
-    }
+    if(com==2)initserver();
+
+    // disable delay on task 2 wen normal run
+    //delay(1000); // debug delay
+    //delay(60000); // stop delay
   } 
 }
 
@@ -401,14 +408,14 @@ void setup(){
 
   if(com==1){
     // intCom1 ESP-NOW
-    initCom1();
+    initespnow();
   }
   if(com==2){
     // initWiFi
     initWiFi();
 
     // intCom2 Internet
-    initCom2();
+    initserver();
   }
 
   // buzzer
