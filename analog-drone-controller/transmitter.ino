@@ -1223,6 +1223,7 @@ void initVerInfo(){
   Serial.println("Transmitter");
   Serial.println("@lolenseu");
   Serial.println("https://github.com/lolenseu");
+  Serial.println("");
 
   // display print
   display.clearDisplay();
@@ -1244,6 +1245,7 @@ void initVerInfo(){
 void initLogo(){
 
   // serial logo
+  Serial.println("");
   Serial.println("     ⠀⠀⠀⠀⠀⣀⣀⣀⣀⣠⣤⣤⣄⣀⣀⣀⣀⠀⠀⠀⠀⠀     ");
   Serial.println("     ⢀⣠⣶⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣶⣄⡀     ");
   Serial.println("     ⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷     ");
@@ -1270,7 +1272,11 @@ void initLogo(){
 // initboot
 void initBoot(){
   int aniDelay=100;
+  Serial.println("");
   Serial.println("Botting ...");
+  Serial.println("");
+
+  // logo start up
   display.clearDisplay();
   display.drawBitmap(0,0,wave1,128,64,WHITE);
   display.display();
@@ -1400,7 +1406,7 @@ void initCom2(String sendData){
   time1=millis();
 
   // sendmsg to server
-  String serverPath=serverName+"\"0x"+sendData+"0001"+"\"";
+  String serverPath=serverName+"\"0x"+sendData+count+"\"";
   http.begin(serverPath);     
   http.GET();
 
@@ -1477,7 +1483,7 @@ void mapSpeed(int toSpeed){
 }
 
 // esp-now
-void OnDataSent(const uint8_t *mac_addr,esp_now_send_status_t status){
+void OnDataSent(const uint8_t * mac_addr,esp_now_send_status_t status){
   Serial.println(status==ESP_NOW_SEND_SUCCESS?msgStatus2="ok!":msgStatus2="bd!");
 }
 
@@ -1493,7 +1499,7 @@ void serialDebug(){
     Serial.println(msgStatus1);
     Serial.printf("Msg Status: ");
     Serial.println(msgStatus2);
-    Serial.println("\n");
+    Serial.println("");
   }
   if(com==2){
     Serial.println("WiFi");
@@ -1501,7 +1507,7 @@ void serialDebug(){
     Serial.println(WiFi.RSSI());
     Serial.printf("Ping: ");
     Serial.println(timePing);
-    Serial.println("\n");
+    Serial.println("");
   }
   Serial.println("Raw Data");
   Serial.printf("JoyStick no.1 X= %d, Y= %d, Sw= %d \n",joyX1Pos,joyY1Pos,joySW1State);
@@ -1760,15 +1766,16 @@ void setup(){
   // Initialize Serial Monitor
   Serial.begin(115200);
 
-  // startup
-  initVerInfo(); // version
-  initLogo(); // logo
-
   // initialize OLED display with I2C address 0x3C
   if(!display.begin(SSD1306_SWITCHCAPVCC,0x3C)){
     Serial.println(F("failed to start SSD1306 OLED"));
     while(1);
   }
+
+  // startup
+  initVerInfo(); // version
+  initLogo(); // logo
+
   if(com==1){
     // intCom1 ESP-NOW
     initCom1();
