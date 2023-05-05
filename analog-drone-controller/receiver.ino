@@ -107,9 +107,9 @@ struct_message rcvxMsg;
 // com 2
 String xMsg;
 
-// variable to store if receiving data was successful or bad
-String msgStatus1;
-String msgStatus2;
+// connection and send data espnow
+String comStatus;
+String msgStatus;
 
 // -------------------- fuctions --------------------
 
@@ -234,8 +234,8 @@ void mapMode(int toMode){
 // esp-now
 void OnDataRecv(const uint8_t * mac,const uint8_t * incomingData,int len){
   memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
-  // processed data
 
+  // processed data
   Trottle=rcvxMsg.trottle;
   Yaw=rcvxMsg.yaw;
   Pitch=rcvxMsg.pitch;
@@ -251,10 +251,10 @@ void serialDebug(){
   Serial.println("-------------------- debug --------------------");
   if(com==1){
     Serial.println("ESP-NOw");
-    Serial.printf("Snd Status: ");
-    Serial.println(msgStatus1);
+    Serial.printf("Com Status: ");
+    Serial.println(comStatus);
     Serial.printf("Msg Status: ");
-    Serial.println(msgStatus2);
+    Serial.println(msgStatus);
     Serial.println("");
   }
   if(com==2){
@@ -300,7 +300,7 @@ void serialDebug(){
 void Task1code(void * pvParameters){
   for (;;) {
     // counter and buzzer
-    if(count==100)count=0,tone(BUZZER,3500,250);
+    if(count==1000)count=0,tone(BUZZER,3500,250);
     count+=1;
 
     // ---------- receive data ----------
@@ -349,6 +349,9 @@ void Task1code(void * pvParameters){
       lastsubCount=subCount;
       lostCount=0;
     }
+
+    // fix axis
+    Yaw=map(Yaw,1000,2000,2000,1000);
 
     // write servo
     servo1.write(Trottle);
