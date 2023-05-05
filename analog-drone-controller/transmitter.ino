@@ -1425,7 +1425,8 @@ void initserver(String sendData){
 
 // to map value
 int setMap(int toMap){
-  int mapValue=map(toMap,-360,4095,1000,2000);
+  int subMap=map(toMap,0,4095,0,1023);
+  int mapValue=map(subMap,0,1023,1000,2000);
   return mapValue;
 }
 
@@ -1706,6 +1707,9 @@ void Task1code(void * pvParameters){
       Mode=potenM1Poss;
     }
 
+    // ----- position fix -----
+    Yaw=map(Yaw,1000,2000,2000,1000);
+
     // set value to send
     // com 1
     sndxMsg.trottle=Trottle;
@@ -1760,8 +1764,8 @@ void Task2code(void * pvParameters){
     if(com==1){
       esp_err_t result;
       result=esp_now_send(targetMac,(uint8_t *)&sndxMsg,sizeof(sndxMsg)); 
-      if(result==ESP_OK)msgStaus="1";
-      else msgStaus="0";
+      if(result==ESP_OK)msgStatus="1";
+      else msgStatus="0";
     }
 
     // send msg via request
