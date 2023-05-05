@@ -1210,9 +1210,9 @@ struct_message sndxMsg;
 // com 2
 String xMsg;
 
-// variable to store if sending data was successful or bad
-String msgStatus1;
-String msgStatus2;
+// connection and send data espnow
+String comStatus;
+String msgStatus;
 
 // -------------------- fuctions --------------------
 
@@ -1488,8 +1488,8 @@ void mapSpeed(int toSpeed){
 
 // esp-now
 void OnDataSent(const uint8_t * mac_addr,esp_now_send_status_t status){
-  if(status==ESP_NOW_SEND_SUCCESS)msgStatus2="ok!";
-  else msgStatus2="bd!";
+  if(status==ESP_NOW_SEND_SUCCESS)comStatus="ok!";
+  else comStatus="bd!";
 }
 
 // ---------- printing ----------
@@ -1500,10 +1500,10 @@ void serialDebug(){
   Serial.println("-------------------- debug --------------------");
   if(com==1){
     Serial.println("ESP-NOw");
-    Serial.printf("Snd Status: ");
-    Serial.println(msgStatus1);
+    Serial.printf("Com Status: ");
+    Serial.println(comStatus);
     Serial.printf("Msg Status: ");
-    Serial.println(msgStatus2);
+    Serial.println(msgStatus);
     Serial.println("");
   }
   if(com==2){
@@ -1555,11 +1555,11 @@ void oledScreen1(){
   display.setTextColor(WHITE);
   if(com==1){
     display.setCursor(0,0);
-    display.printf("SSTA: ");
-    display.println(msgStatus1);
+    display.printf("ECOM: ");
+    display.println(comStatus);
     display.setCursor(0,0);
     display.printf("          MSTA: ");
-    display.println(msgStatus2);
+    display.println(msgStatus);
   }
   if(com==2){
     display.setCursor(0,0);
@@ -1602,11 +1602,11 @@ void oledScreen2(){
   display.setTextColor(WHITE);
   if(com==1){
     display.setCursor(0,0);
-    display.printf("SSTA: ");
-    display.println(msgStatus1);
+    display.printf("ECOM: ");
+    display.println(comStatus);
     display.setCursor(0,0);
     display.printf("          MSTA: ");
-    display.println(msgStatus2);
+    display.println(msgStatus);
   }
   if(com==2){
     display.setCursor(0, 0);
@@ -1743,7 +1743,7 @@ void Task1code(void * pvParameters){
     
 
     // delay
-    //delay(10); // run delay
+    delay(10); // run delay
     //delay(100); // test delay
     //delay(1000); // debug delay
     //delay(60000); // stop delay
@@ -1761,8 +1761,8 @@ void Task2code(void * pvParameters){
     if(com==1){
       esp_err_t result;
       result=esp_now_send(targetMac,(uint8_t *)&sndxMsg,sizeof(sndxMsg)); 
-      if(result==ESP_OK)msgStatus1="ok!";
-      else msgStatus1="bd!";
+      if(result==ESP_OK)msgStaus="1";
+      else msgStaus="0";
     }
 
     // send msg via request
