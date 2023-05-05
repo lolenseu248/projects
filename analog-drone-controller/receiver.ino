@@ -300,7 +300,7 @@ void serialDebug(){
 void Task1code(void * pvParameters){
   for (;;) {
     // counter and buzzer
-    if(count==1000)count=0,tone(BUZZER,3500,250);
+    if(count==100)count=0,tone(BUZZER,3500,250);
     count+=1;
 
     // ---------- receive data ----------
@@ -349,9 +349,6 @@ void Task1code(void * pvParameters){
       lastsubCount=subCount;
       lostCount=0;
     }
-
-    // fix axis
-    Yaw=map(Yaw,1000,2000,2000,1000);
 
     // write servo
     servo1.write(Trottle);
