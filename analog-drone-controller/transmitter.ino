@@ -1494,60 +1494,6 @@ void OnDataSent(const uint8_t * mac_addr,esp_now_send_status_t status){
 
 // ---------- printing ----------
 
-// serial debug
-void serialDebug(){
-  Serial.println("\n");
-  Serial.println("-------------------- debug --------------------");
-  if(com==1){
-    Serial.println("ESP-NOw");
-    Serial.printf("Com Status: ");
-    Serial.println(comStatus);
-    Serial.printf("Msg Status: ");
-    Serial.println(msgStatus);
-    Serial.println("");
-  }
-  if(com==2){
-    Serial.println("WiFi");
-    Serial.printf("RSSI: ");
-    Serial.println(WiFi.RSSI());
-    Serial.printf("Ping: ");
-    Serial.println(timePing);
-    Serial.println("");
-  }
-  Serial.println("Raw Data");
-  Serial.printf("JoyStick no.1 X= %d, Y= %d, Sw= %d\n",joyX1Pos,joyY1Pos,joySW1State);
-  Serial.printf("JoyStick no.2 X= %d, Y= %d, Sw= %d\n",joyX2Pos,joyY2Pos,joySW2State);
-  Serial.printf("PotentioMeter no.1= %d\n",potenM1Pos);
-  Serial.printf("PotentioMeter no.2= %d\n",potenM2Pos);
-  Serial.println("");
-  Serial.println("Mapped Data");
-  Serial.printf("JoyStick no.1 X= %d, Y= %d, Sw= %d\n",joyX1Poss,joyY1Poss,joySW1State);
-  Serial.printf("JoyStick no.2 X= %d, Y= %d, Sw= %d\n",joyX2Poss,joyY2Poss,joySW2State);
-  Serial.printf("PotentioMeter no.1= %d\n",potenM1Poss);
-  Serial.printf("PotentioMeter no.2= %d\n",potenM2Poss);
-  Serial.println("");
-  Serial.println("Switch");
-  Serial.printf("JoyStick no.1= %d\n",joySW1State);
-  Serial.printf("JoyStick no.2= %d\n",joySW2State);
-  Serial.printf("Toggle no.1= %d\n",togSW1State);
-  Serial.printf("Toggle no.2= %d\n",togSW2State);
-  Serial.printf("Toggle no.3= %d\n",togSW3State);
-  Serial.printf("Toggle no.4= %d\n",togSW4State);
-  Serial.printf("Toggle no.5= %d\n",togSW5State);
-  Serial.printf("Toggle no.6= %d\n",togSW6State);
-  Serial.println("");
-  Serial.println("Official Data");
-  Serial.printf("Trottle: %d%%\n",pTrottle);
-  Serial.printf("Yaw: %d%%\n",pYaw);
-  Serial.printf("Pitch: %d%%\n",pPitch);
-  Serial.printf("Roll: %d%%\n",pRoll);
-  Serial.printf("Mode: %s\n",Mods);
-  Serial.println("");
-  Serial.println("Official Counter");
-  Serial.printf("Count: %d\n",count);
-  Serial.println("-------------------- debug --------------------");
-}
-
 // oled screen setup1
 void oledScreen1(){
   display.clearDisplay();
@@ -1644,6 +1590,60 @@ void oledScreen2(){
   display.display();
 }
 
+// serial debug
+void serialDebug(){
+  Serial.println("\n");
+  Serial.println("-------------------- debug --------------------");
+  if(com==1){
+    Serial.println("ESP-NOw");
+    Serial.printf("Com Status: ");
+    Serial.println(comStatus);
+    Serial.printf("Msg Status: ");
+    Serial.println(msgStatus);
+    Serial.println("");
+  }
+  if(com==2){
+    Serial.println("WiFi");
+    Serial.printf("RSSI: ");
+    Serial.println(WiFi.RSSI());
+    Serial.printf("Ping: ");
+    Serial.println(timePing);
+    Serial.println("");
+  }
+  Serial.println("Raw Data");
+  Serial.printf("JoyStick no.1 X= %d, Y= %d, Sw= %d\n",joyX1Pos,joyY1Pos,joySW1State);
+  Serial.printf("JoyStick no.2 X= %d, Y= %d, Sw= %d\n",joyX2Pos,joyY2Pos,joySW2State);
+  Serial.printf("PotentioMeter no.1= %d\n",potenM1Pos);
+  Serial.printf("PotentioMeter no.2= %d\n",potenM2Pos);
+  Serial.println("");
+  Serial.println("Mapped Data");
+  Serial.printf("JoyStick no.1 X= %d, Y= %d, Sw= %d\n",joyX1Poss,joyY1Poss,joySW1State);
+  Serial.printf("JoyStick no.2 X= %d, Y= %d, Sw= %d\n",joyX2Poss,joyY2Poss,joySW2State);
+  Serial.printf("PotentioMeter no.1= %d\n",potenM1Poss);
+  Serial.printf("PotentioMeter no.2= %d\n",potenM2Poss);
+  Serial.println("");
+  Serial.println("Switch");
+  Serial.printf("JoyStick no.1= %d\n",joySW1State);
+  Serial.printf("JoyStick no.2= %d\n",joySW2State);
+  Serial.printf("Toggle no.1= %d\n",togSW1State);
+  Serial.printf("Toggle no.2= %d\n",togSW2State);
+  Serial.printf("Toggle no.3= %d\n",togSW3State);
+  Serial.printf("Toggle no.4= %d\n",togSW4State);
+  Serial.printf("Toggle no.5= %d\n",togSW5State);
+  Serial.printf("Toggle no.6= %d\n",togSW6State);
+  Serial.println("");
+  Serial.println("Official Data");
+  Serial.printf("Trottle: %d%%\n",pTrottle);
+  Serial.printf("Yaw: %d%%\n",pYaw);
+  Serial.printf("Pitch: %d%%\n",pPitch);
+  Serial.printf("Roll: %d%%\n",pRoll);
+  Serial.printf("Mode: %s\n",Mods);
+  Serial.println("");
+  Serial.println("Official Counter");
+  Serial.printf("Count: %d\n",count);
+  Serial.println("-------------------- debug --------------------");
+}
+
 // -------------------- task1 --------------------
 
 void Task1code(void * pvParameters){
@@ -1730,17 +1730,16 @@ void Task1code(void * pvParameters){
 
     // ---------- debug data ----------
 
-    // srial debug
-    if(count==1||count==26||count==51||count==76)serialDebug(); // enable this for long debug
-    //serialDebug(); // enable this for short debug if delay != 1000 = fast
-
     // oled screen
     // oleddisplay1
     if(togSW3State==1)oledScreen1();
 
     // oleddisplay2
     if(togSW4State==1)oledScreen2();
-    
+
+    // srial debug
+    if(count==1||count==26||count==51||count==76)serialDebug(); // enable this for long debug
+    //serialDebug(); // enable this for short debug if delay != 1000 = fast
 
     // delay
     delay(10); // run delay
