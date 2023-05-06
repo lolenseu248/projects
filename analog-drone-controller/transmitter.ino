@@ -1475,13 +1475,13 @@ int setRoll(int toRoll){
 
 // mapmode
 void mapMode(int toMode){
-  int mapMode=map(toMode,1000,2000,1,6);
-  if(mapMode==1)Mods="Stab";
-  else if(mapMode==2)Mods="At.H";
-  else if(mapMode==3)Mods="Loit";
-  else if(mapMode==4)Mods="Auto";
-  else if(mapMode==5)Mods="ReHo";
-  else if(mapMode==6)Mods="Land";
+  int mapMode=map(toMode,1000,2000,1000,2000);
+  if(mapMode>1000&&mapMode<1230)Mods="Stab";
+  else if(mapMode>1231&&mapMode<1260)Mods="AltH";
+  else if(mapMode>1361&&mapMode<1490)Mods="Loit";
+  else if(mapMode>1391&&mapMode<1621)Mods="Auto";
+  else if(mapMode>1621&&mapMode<1749)Mods="RTL ";
+  else if(mapMode>1750&&mapMode<2000)Mods="Land";
 }
 
 // mapspeed
