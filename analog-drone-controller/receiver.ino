@@ -221,12 +221,12 @@ int mapPercent(int toMapPercent){
 
 // mapmode
 void mapMode(int toMode){
-  int mapMode=map(toMode,1000,2000,1,6);
+  int mapMode=map(toMode,1000,1900,1,6);
   if(mapMode==1)Mods="Stab";
-  else if(mapMode==2)Mods="At.H";
+  else if(mapMode==2)Mods="AltH";
   else if(mapMode==3)Mods="Loit";
   else if(mapMode==4)Mods="Auto";
-  else if(mapMode==5)Mods="ReHo";
+  else if(mapMode==5)Mods="RTL ";
   else if(mapMode==6)Mods="Land";
 }
 
@@ -341,7 +341,7 @@ void Task1code(void * pvParameters){
         Yaw=1500;
         Pitch=1500;
         Roll=1500;
-        Mode=1500; // 1500 loiter mode
+        Mode=1440; // 1440 loiter mode
       }
       if(lostCount>=3000){
         lostCount=3000;
