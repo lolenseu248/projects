@@ -1476,7 +1476,7 @@ void mapMode(int toMode){
   if(mapMode==1)Mods="Stab";
   else if(mapMode==2)Mods="At.H";
   else if(mapMode==3)Mods="Loit";
-  else if(mapMode==4)Mods="Guid";
+  else if(mapMode==4)Mods="Auto";
   else if(mapMode==5)Mods="ReHo";
   else if(mapMode==6)Mods="Land";
 }
