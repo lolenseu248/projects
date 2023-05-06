@@ -153,13 +153,12 @@ void initBoot(){
   Serial.println("Botting ...");
   Serial.println("");
 
-  //DJI tone start up
+  //Startup tone
   delay(3000);
-  tone(BUZZER,800,550);
-  delay(300);
-  tone(BUZZER,1200,550);
-  delay(200);
-  tone(BUZZER,1050,550);
+  pinMode(BUZZER, OUTPUT);
+  tone(BUZZER,800,350);
+  tone(BUZZER,1000,350);
+  tone(BUZZER,1800,550);
   delay(1500);
 }
 
@@ -226,7 +225,7 @@ void mapMode(int toMode){
   if(mapMode==1)Mods="Stab";
   else if(mapMode==2)Mods="At.H";
   else if(mapMode==3)Mods="Loit";
-  else if(mapMode==4)Mods="Guid";
+  else if(mapMode==4)Mods="Auto";
   else if(mapMode==5)Mods="ReHo";
   else if(mapMode==6)Mods="Land";
 }
@@ -332,6 +331,10 @@ void Task1code(void * pvParameters){
     if(subCount==lastsubCount){
       lostCount+=1; // lost counter
       if(lostCount>=100){
+
+        // buzzer warning
+        tone(BUZZER,1000,150);
+        tone(BUZZER,800,350);
 
         // stay on position
         Trottle=1580; // increase hight by 2%
