@@ -1425,8 +1425,11 @@ void initserver(String sendData){
 
 // to map value
 int setMap(int toMap){
-  int subMap=map(toMap,0,4095,0,222); // fix the joystic input because joystic is not centerd to 2048
-  int mapValue=map(toMap,0,4095,1000,2222-subMap);
+  int subMap=map(toMap,0,4095,0,175); // fix the joystic input because joystic is not centerd to 2048
+  int mapValue=map(toMap,0,4095,1000,2175-subMap);
+
+  // default mapping if the joystic centerd to 2048
+  //int mapValue=map(toMap,0,4095,1000,2000);
   return mapValue;
 }
 
