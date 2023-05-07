@@ -14,7 +14,7 @@
 #define LED 12
 
 // buzzer pinout
-#define BUZZER 18
+#define BUZZER 22
 
 // servo pinout
 #define GPIOTrottle 4
@@ -229,9 +229,9 @@ int mapPercent(int toMapPercent){
 void mapMode(int toMode){
   int mapMode=map(toMode,1000,2000,1000,2000);
   if(mapMode>1000&&mapMode<1230)Mods="Stab";
-  else if(mapMode>1231&&mapMode<1260)Mods="AltH";
-  else if(mapMode>1361&&mapMode<1490)Mods="Loit";
-  else if(mapMode>1391&&mapMode<1621)Mods="Auto";
+  else if(mapMode>1231&&mapMode<1360)Mods="PosH";
+  else if(mapMode>1361&&mapMode<1490)Mods="AltH";
+  else if(mapMode>1391&&mapMode<1621)Mods="Loit";
   else if(mapMode>1621&&mapMode<1749)Mods="RTL ";
   else if(mapMode>1750&&mapMode<2000)Mods="Land";
 }
@@ -368,8 +368,8 @@ void Task1code(void * pvParameters){
         Roll=1500;
         Mode=1420; // 1420 loiter mode
       }
-      if(lostCount>=3000){
-        lostCount=3000;
+      if(lostCount>=500){
+        lostCount=500;
         Mode=1690; // 1690 RTL mode
       }
     }
