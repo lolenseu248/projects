@@ -1477,9 +1477,9 @@ int setRoll(int toRoll){
 void mapMode(int toMode){
   int mapMode=map(toMode,1000,2000,1000,2000);
   if(mapMode>1000&&mapMode<1230)Mods="Stab";
-  else if(mapMode>1231&&mapMode<1260)Mods="AltH";
-  else if(mapMode>1361&&mapMode<1490)Mods="Loit";
-  else if(mapMode>1391&&mapMode<1621)Mods="Auto";
+  else if(mapMode>1231&&mapMode<1360)Mods="PosH";
+  else if(mapMode>1361&&mapMode<1490)Mods="AltH";
+  else if(mapMode>1391&&mapMode<1621)Mods="Loit";
   else if(mapMode>1621&&mapMode<1749)Mods="RTL ";
   else if(mapMode>1750&&mapMode<2000)Mods="Land";
 }
@@ -1702,7 +1702,10 @@ void Task1code(void * pvParameters){
       Mode=potenM1Poss;
     }
     if(togSW2State==1){
-      potenM1Poss=1000;
+      if(potenM1Poss>990&&potenM1Poss<1230)potenM1Poss=1075;
+      else if(potenM1Poss>1231&&potenM1Poss<1360)potenM1Poss=1275;
+      else if(potenM1Poss>1360)potenM1Poss=1000;
+
       Trottle=joyX1Poss;
       Yaw=joyY1Poss;
       Pitch=joyX2Poss;
