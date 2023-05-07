@@ -349,6 +349,10 @@ void Task1code(void * pvParameters){
         tone(BUZZER,1000,150);
         tone(BUZZER,800,350);
 
+        // led warning
+        if(count==50)digitalWrite(LED, HIGH);
+        if(count==100)digitalWrite(LED, LOW);
+
         // stay on position
         Trottle=1580; // increase hight by 2%
         Yaw=1500;
