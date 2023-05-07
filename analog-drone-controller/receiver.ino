@@ -309,10 +309,10 @@ void Task1code(void * pvParameters){
     count+=1;
 
     // led blinker
-    if(blinkCount==500)digitalWrite(LED, HIGH);
-    if(blinkCount==515)digitalWrite(LED, LOW);
-    if(blinkCount==530)digitalWrite(LED, HIGH);
-    if(blinkCount==545)digitalWrite(LED, LOW),blinkCount=0;
+    if(blinkCount==300)digitalWrite(LED, HIGH);
+    if(blinkCount==305)digitalWrite(LED, LOW);
+    if(blinkCount==310)digitalWrite(LED, HIGH);
+    if(blinkCount==315)digitalWrite(LED, LOW),blinkCount=0;
     blinkCount+=1;
 
     // ---------- receive data ----------
@@ -350,8 +350,16 @@ void Task1code(void * pvParameters){
         tone(BUZZER,800,350);
 
         // led warning
-        if(count==5||15||25||35||45||55||65||75||85||95)digitalWrite(LED, HIGH);
-        if(count==10||20||30||40||50||60||80||90||100)digitalWrite(LED, LOW);
+        if(count==10)digitalWrite(LED, HIGH);
+        if(count==20)digitalWrite(LED, LOW);
+        if(count==30)digitalWrite(LED, HIGH);
+        if(count==40)digitalWrite(LED, LOW);
+        if(count==50)digitalWrite(LED, HIGH);
+        if(count==60)digitalWrite(LED, LOW);
+        if(count==70)digitalWrite(LED, HIGH);
+        if(count==80)digitalWrite(LED, LOW);
+        if(count==90)digitalWrite(LED, HIGH);
+        if(count==100)digitalWrite(LED, LOW);
 
         // stay on position
         Trottle=1580; // increase hight by 2%
