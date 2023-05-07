@@ -1702,10 +1702,7 @@ void Task1code(void * pvParameters){
       Mode=potenM1Poss;
     }
     if(togSW2State==1){
-      if(potenM1Poss>990&&potenM1Poss<1230)potenM1Poss=1075;
-      else if(potenM1Poss>1231&&potenM1Poss<1360)potenM1Poss=1275;
-      else if(potenM1Poss>1360)potenM1Poss=1000;
-
+      potenM1Poss=1000;
       Trottle=joyX1Poss;
       Yaw=joyY1Poss;
       Pitch=joyX2Poss;
