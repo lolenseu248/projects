@@ -10,6 +10,9 @@
 #include <ESP32Servo.h>
 #include <HTTPClient.h>
 
+// led pinout
+#define LED 12
+
 // buzzer pinout
 #define BUZZER 18
 
@@ -28,6 +31,9 @@ TaskHandle_t Task2;
 
 // count
 int count=0;
+
+// blinkcount
+int blinkCount=0;
 
 // com config
 int com=1; // set 1 if ESP-NOw and 2 if SERVER (internet)
@@ -302,6 +308,13 @@ void Task1code(void * pvParameters){
     if(count==100)count=0,tone(BUZZER,3500,250);
     count+=1;
 
+    // led blinker
+    if(blinkCount==500)digitalWrite(LED, HIGH);
+    if(blinkCount==515)digitalWrite(LED, LOW);
+    if(blinkCount==530)digitalWrite(LED, HIGH);
+    if(blinkCount==545)digitalWrite(LED, LOW),blinkCount=0;
+    blinkCount+=1;
+
     // ---------- receive data ----------
 
     // rcv msg via ESP-NOW
@@ -420,6 +433,9 @@ void setup(){
     // intCom2 Internet
     initserver();
   }
+
+  // led
+  pinMode(LED, OUTPUT);
 
   // buzzer
   pinMode(BUZZER,OUTPUT);
