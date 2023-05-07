@@ -350,8 +350,8 @@ void Task1code(void * pvParameters){
         tone(BUZZER,800,350);
 
         // led warning
-        if(count==50)digitalWrite(LED, HIGH);
-        if(count==100)digitalWrite(LED, LOW);
+        if(count==5||15||25||35||45||55||65||75||85||95)digitalWrite(LED, HIGH);
+        if(count==10||20||30||40||50||60||80||90||100)digitalWrite(LED, LOW);
 
         // stay on position
         Trottle=1580; // increase hight by 2%
