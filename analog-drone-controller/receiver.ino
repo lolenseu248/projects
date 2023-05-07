@@ -14,7 +14,8 @@
 #define LED 12
 
 // buzzer pinout
-#define BUZZER 22
+#define BUZZER1 18
+#define BUZZER2 22
 
 // servo pinout
 #define GPIOTrottle 4
@@ -161,10 +162,9 @@ void initBoot(){
 
   //Startup tone
   delay(3000);
-  pinMode(BUZZER, OUTPUT);
-  tone(BUZZER,800,350);
-  tone(BUZZER,1000,350);
-  tone(BUZZER,1800,550);
+  tone(BUZZER1,800,350);
+  tone(BUZZER1,1000,350);
+  tone(BUZZER1,1800,550);
   delay(1500);
 }
 
@@ -305,7 +305,7 @@ void serialDebug(){
 void Task1code(void * pvParameters){
   for (;;) {
     // counter and buzzer
-    if(count==100)count=0,tone(BUZZER,3500,250);
+    if(count==100)count=0,tone(BUZZER1,3500,250);
     count+=1;
 
     // led blinker
@@ -346,8 +346,8 @@ void Task1code(void * pvParameters){
       if(lostCount>=100){
 
         // buzzer warning
-        tone(BUZZER,1000,150);
-        tone(BUZZER,800,350);
+        tone(BUZZER2,1000,150);
+        tone(BUZZER2,800,350);
 
         // led warning
         if(count==10)digitalWrite(LED, HIGH);
@@ -447,10 +447,11 @@ void setup(){
   }
 
   // led
-  pinMode(LED, OUTPUT);
+  pinMode(LED,OUTPUT);
 
   // buzzer
-  pinMode(BUZZER,OUTPUT);
+  pinMode(BUZZER1,OUTPUT);
+  pinMode(BUZZER2,OUTPUT);
 
   // servo
   servo1.attach(GPIOTrottle);
