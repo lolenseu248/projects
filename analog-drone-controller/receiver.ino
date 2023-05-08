@@ -162,9 +162,8 @@ void initBoot(){
 
   //Startup tone
   delay(3000);
-  tone(BUZZER1,800,350);
-  tone(BUZZER1,1000,350);
-  tone(BUZZER1,1800,550);
+  tone(BUZZER,2000,500);
+  tone(BUZZER,3000,300);
   delay(1500);
 }
 
