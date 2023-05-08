@@ -37,7 +37,6 @@ Adafruit_SSD1306 display(128,64,&Wire,-1);
 
 // -------------------- variables --------------------
 
-
 // logo
 // 'icons8-anonymous-mask-90', 128x64px
 const unsigned char logo [] PROGMEM = {
@@ -416,11 +415,11 @@ void initBoot(){
   display.clearDisplay();
   display.drawBitmap(0,0,bootlogo1,128,64,WHITE);
   display.display();
-  delay(2000);
+  delay(500);
   display.clearDisplay();
   display.drawBitmap(0,0,bootlogo2,128,64,WHITE);
   display.display();
-  delay(1000);
+  delay(300);
 }
 
 // connecting animation
