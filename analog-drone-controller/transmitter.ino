@@ -1165,6 +1165,8 @@ int togSW3State;
 int togSW4State;
 int togSW5State;
 int togSW6State;
+int togSW7State;
+int togSW8Stage;
 
 // mapped data
 // joystic maps
