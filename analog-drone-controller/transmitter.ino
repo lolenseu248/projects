@@ -773,14 +773,14 @@ void Task1code(void * pvParameters){
     potenM2Poss=setMap(potenM2Pos);
 
     // prepare for send message
-    if(togSW1State==1){
+    if(togSW1State==HIGH){
       Trottle=setTrottle(joyX1Poss);
       Yaw=setYaw(joyY1Poss);
       Pitch=setPitch(joyX2Poss);
       Roll=setRoll(joyY2Poss);
       Mode=potenM1Poss;
     }
-    if(togSW2State==1){
+    else if(togSW1State==LOW){
       potenM1Poss=1000;
       Trottle=joyX1Poss;
       Yaw=joyY1Poss;
@@ -818,10 +818,10 @@ void Task1code(void * pvParameters){
 
     // oled screen
     // oleddisplay1
-    if(togSW3State==1)oledScreen1();
+    if(togSW3State==HIGH)oledScreen1();
 
     // oleddisplay2
-    if(togSW4State==1)oledScreen2();
+    else if(togSW3State==LOW)oledScreen2();
 
     // srial debug
     if(count==1||count==26||count==51||count==76)serialDebug(); // enable this for long debug
