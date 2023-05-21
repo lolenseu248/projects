@@ -558,7 +558,7 @@ void mapMode(int toMode){
   if(mapMode>1000&&mapMode<1230)Mods="Stab";
   else if(mapMode>1231&&mapMode<1360)Mods="PosH";
   else if(mapMode>1361&&mapMode<1490)Mods="AltH";
-  else if(mapMode>1391&&mapMode<1621)Mods="Loit";
+  else if(mapMode>1491&&mapMode<1621)Mods="Loit";
   else if(mapMode>1621&&mapMode<1749)Mods="RTL ";
   else if(mapMode>1750&&mapMode<2000)Mods="Land";
 }
