@@ -365,11 +365,11 @@ void Task1code(void * pvParameters){
         Yaw=1500;
         Pitch=1500;
         Roll=1500;
-        Mode=1420; // 1420 loiter mode
+        Mode=1520; // Loiter mode
       }
       if(lostCount>=500){
         lostCount=500;
-        Mode=1690; // 1690 RTL mode
+        Mode=1690; // RTL mode
       }
     }
     else{
