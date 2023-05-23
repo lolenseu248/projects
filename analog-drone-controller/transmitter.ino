@@ -845,10 +845,10 @@ void Task1code(void * pvParameters){
 
     // oled screen
     // oleddisplay1
-    if(togSW3State==HIGH)oledScreen1();
+    if(togSW3State==HIGH)oledScreen2();
 
     // oleddisplay2
-    else if(togSW3State==LOW)oledScreen2();
+    else if(togSW3State==LOW)oledScreen1();
 
     // srial debug
     if(count==1||count==26||count==51||count==76)serialDebug(); // enable this for long debug
