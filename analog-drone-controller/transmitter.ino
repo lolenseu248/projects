@@ -527,8 +527,8 @@ int setTrottle(int toTrottle){
 // setyaw
 int setYaw(int toYaw){
   if(toYaw==1500,toYaw>=1450,toYaw<=1550)Yaw=1500;
-  if(toYaw<=1200)Yaw=1300;
-  if(toYaw>=1800)Yaw=1700;
+  if(toYaw<=1200)Yaw=calcLow;
+  if(toYaw>=1800)Yaw=calcMax;
   return Yaw;
 }
 
@@ -772,15 +772,48 @@ void Task1code(void * pvParameters){
       Yaw=setYaw(joyY1Poss);
       Pitch=setPitch(joyX2Poss);
       Roll=setRoll(joyY2Poss);
-      Mode=potenM1Poss;
+
+      // for the modes
+      if(togSW2State==HIGH){
+        if(togSW4State==HIGH){
+          Mode=1550; // LoiterMode=potenM1Poss; // Fix by knob
+        }
+        else if(togSW4State==LOW){
+          Mode=1820; // Land
+        }
+      }
+      else if(togSW2State==LOW){
+        if(togSW4State==HIGH){
+          Mode=1400; // Alt Hold
+        }
+        else if(togSW4State==LOW){
+          Mode=potenM1Poss; // Fix by knob
+        }
+      }
     }
     else if(togSW1State==LOW){
-      potenM1Poss=1000;
       Trottle=joyX1Poss;
       Yaw=joyY1Poss;
       Pitch=joyX2Poss;
       Roll=joyY2Poss;
-      Mode=potenM1Poss;
+
+      // for the modes
+      if(togSW2State==HIGH){
+        if(togSW4State==HIGH){
+          Mode=1550; // Loiter
+        }
+        else if(togSW4State==LOW){
+          Mode=1820; // Land
+        }
+      }
+      else if(togSW2State==LOW){
+        if(togSW4State==HIGH){
+          Mode=1400; // Alt Hold
+        }
+        else if(togSW4State==LOW){
+          Mode=1100; // Fix Stabilize
+        }
+      }
     }
 
     // ----- position fix -----
@@ -806,16 +839,16 @@ void Task1code(void * pvParameters){
     pYaw=mapPercent(Yaw);
     pPitch=mapPercent(Pitch);
     pRoll=mapPercent(Roll);
-    mapMode(potenM1Poss); 
+    mapMode(Mode); 
 
     // ---------- debug data ----------
 
     // oled screen
     // oleddisplay1
-    if(togSW4State==HIGH)oledScreen1();
+    if(togSW3State==HIGH)oledScreen1();
 
     // oleddisplay2
-    else if(togSW4State==LOW)oledScreen2();
+    else if(togSW3State==LOW)oledScreen2();
 
     // srial debug
     if(count==1||count==26||count==51||count==76)serialDebug(); // enable this for long debug
