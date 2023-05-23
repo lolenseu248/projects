@@ -32,8 +32,8 @@ Adafruit_SSD1306 display(128,64,&Wire,-1);
 //toggle switchs
 #define togSW1 19
 #define togSW2 18
-#define togSW3 15
-#define togSW4 2
+#define togSW3 2
+#define togSW4 15
 
 // -------------------- variables --------------------
 
@@ -293,10 +293,6 @@ int togSW1State;
 int togSW2State;
 int togSW3State;
 int togSW4State;
-int togSW5State;
-int togSW6State;
-int togSW7State;
-int togSW8Stage;
 
 // mapped data
 // joystic maps
@@ -712,8 +708,6 @@ void serialDebug(){
   Serial.printf("Toggle no.2= %d\n",togSW2State);
   Serial.printf("Toggle no.3= %d\n",togSW3State);
   Serial.printf("Toggle no.4= %d\n",togSW4State);
-  Serial.printf("Toggle no.5= %d\n",togSW5State);
-  Serial.printf("Toggle no.6= %d\n",togSW6State);
   Serial.println("");
   Serial.println("Official Data");
   Serial.printf("Trottle: %d%%\n",pTrottle);
@@ -818,10 +812,10 @@ void Task1code(void * pvParameters){
 
     // oled screen
     // oleddisplay1
-    if(togSW3State==HIGH)oledScreen1();
+    if(togSW4State==HIGH)oledScreen1();
 
     // oleddisplay2
-    else if(togSW3State==LOW)oledScreen2();
+    else if(togSW4State==LOW)oledScreen2();
 
     // srial debug
     if(count==1||count==26||count==51||count==76)serialDebug(); // enable this for long debug
