@@ -307,7 +307,7 @@ int potenM2Poss;
 
 // joystic2 speed ajust
 int calcLow;
-int calcMax;
+int calcHigh;
 
 // sending process data
 int Trottle;
@@ -528,7 +528,7 @@ int setTrottle(int toTrottle){
 int setYaw(int toYaw){
   if(toYaw==1500,toYaw>=1450,toYaw<=1550)Yaw=1500;
   if(toYaw<=1200)Yaw=calcLow;
-  if(toYaw>=1800)Yaw=calcMax;
+  if(toYaw>=1800)Yaw=calcHigh;
   return Yaw;
 }
 
@@ -536,7 +536,7 @@ int setYaw(int toYaw){
 int setPitch(int toPitch){
   if(toPitch==1500,toPitch>=1450,toPitch<=1550)Pitch=1500;
   if(toPitch<=1200)Pitch=calcLow;
-  if(toPitch>=1800)Pitch=calcMax;
+  if(toPitch>=1800)Pitch=calcHigh;
   return Pitch;
 }
 
@@ -544,7 +544,7 @@ int setPitch(int toPitch){
 int setRoll(int toRoll){
   if(toRoll==1500,toRoll>=1450,toRoll<=1550)Roll=1500;
   if(toRoll<=1200)Roll=calcLow;
-  if(toRoll>=1800)Roll=calcMax;
+  if(toRoll>=1800)Roll=calcHigh;
   return Roll;
 }
 
@@ -562,7 +562,7 @@ void mapMode(int toMode){
 // mapspeed
 void mapSpeed(int toSpeed){
   calcLow=1500-map(toSpeed,1000,2000,0,500);
-  calcMax=1500+map(toSpeed,1000,2000,0,500);
+  calcHigh=1500+map(toSpeed,1000,2000,0,500);
 }
 
 // esp-now
