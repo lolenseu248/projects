@@ -353,8 +353,8 @@ void Task1code(void * pvParameters){
         Roll=1500;
         Mode=1520; // Loiter mode
       }
-      if(lostCount>=3000){
-        lostCount=3000;
+      if(lostCount>=2000){
+        lostCount=2000;
 
         // buzzer warning
         if(count==1||count==26||count==51||count==76)tone(BUZZER2,1000,200);
