@@ -161,7 +161,6 @@ void initBoot(){
   Serial.println("");
 
   //Startup tone
-  delay(3000);
   tone(BUZZER1,2000,500);
   tone(BUZZER1,3000,300);
   delay(1500);
@@ -308,10 +307,10 @@ void Task1code(void * pvParameters){
     count+=1;
 
     // led blinker
-    if(blinkCount==200)digitalWrite(LED, HIGH);
-    if(blinkCount==205)digitalWrite(LED, LOW);
-    if(blinkCount==210)digitalWrite(LED, HIGH);
-    if(blinkCount==215)digitalWrite(LED, LOW),blinkCount=0;
+    if(blinkCount==185)digitalWrite(LED, HIGH);
+    if(blinkCount==190)digitalWrite(LED, LOW);
+    if(blinkCount==195)digitalWrite(LED, HIGH);
+    if(blinkCount==200)digitalWrite(LED, LOW),blinkCount=0;
     blinkCount+=1;
 
     // ---------- receive data ----------
@@ -343,32 +342,27 @@ void Task1code(void * pvParameters){
     if(subCount==lastsubCount){
       lostCount+=1; // lost counter
       if(lostCount>=100){
-
-        // buzzer warning
-        tone(BUZZER2,1000,150);
-        tone(BUZZER2,800,350);
-
-        // led warning
-        if(count==10)digitalWrite(LED, HIGH);
-        if(count==20)digitalWrite(LED, LOW);
-        if(count==30)digitalWrite(LED, HIGH);
-        if(count==40)digitalWrite(LED, LOW);
-        if(count==50)digitalWrite(LED, HIGH);
-        if(count==60)digitalWrite(LED, LOW);
-        if(count==70)digitalWrite(LED, HIGH);
-        if(count==80)digitalWrite(LED, LOW);
-        if(count==90)digitalWrite(LED, HIGH);
-        if(count==100)digitalWrite(LED, LOW);
+        if(lostCount>=100&&lostCount<=1900){
+          if(count==1)tone(BUZZER2,1000,200);
+        }
 
         // stay on position
-        Trottle=1580; // increase hight by 2%
+        Trottle=1650; // increase hight by 10%
         Yaw=1500;
         Pitch=1500;
         Roll=1500;
         Mode=1520; // Loiter mode
       }
-      if(lostCount>=500){
-        lostCount=500;
+      if(lostCount>=3000){
+        lostCount=3000;
+
+        // buzzer warning
+        if(count==1||count==26||count==51||count==76)tone(BUZZER2,1000,200);
+
+        // led warning
+        if(count==76)digitalWrite(LED, HIGH);
+
+        // Return to Land
         Mode=1690; // RTL mode
       }
     }
