@@ -307,10 +307,11 @@ void Task1code(void * pvParameters){
     count+=1;
 
     // led blinker
-    if(blinkCount==185)digitalWrite(LED, HIGH);
-    if(blinkCount==190)digitalWrite(LED, LOW);
-    if(blinkCount==195)digitalWrite(LED, HIGH);
-    if(blinkCount==200)digitalWrite(LED, LOW),blinkCount=0;
+    if(blinkCount==5)digitalWrite(LED, HIGH);
+    if(blinkCount==10)digitalWrite(LED, LOW);
+    if(blinkCount==15)digitalWrite(LED, HIGH);
+    if(blinkCount==20)digitalWrite(LED, LOW);
+    if(blinkCount==200)blinkCount=0;
     blinkCount+=1;
 
     // ---------- receive data ----------
