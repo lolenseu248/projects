@@ -355,9 +355,8 @@ void Task1code(void * pvParameters){
         Mode=1520; // Loiter mode
       }
       if(lostCount>=2000){
-        lostCount=2000;
 
-        // buzzer warning
+        // buzzer warning for return to land
         if(count==1||count==26||count==51||count==76)tone(BUZZER2,1000,200);
 
         // led warning
@@ -365,6 +364,12 @@ void Task1code(void * pvParameters){
 
         // Return to Land
         Mode=1690; // RTL mode
+      }
+      if(lostCount>=20000){
+        lostCount=20000;
+
+        // buzzer warning for search if lost
+        if(count==11||count==36||count==61||count==86)tone(BUZZER2,200,200);
       }
     }
     else{
