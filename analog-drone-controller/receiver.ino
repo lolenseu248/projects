@@ -365,8 +365,8 @@ void Task1code(void * pvParameters){
         // Return to Land
         Mode=1690; // RTL mode
       }
-      if(lostCount>=20000){
-        lostCount=20000;
+      if(lostCount>=10000){
+        lostCount=10000;
 
         // buzzer warning for search if lost
         if(count==11||count==36||count==61||count==86)tone(BUZZER2,200,200);
