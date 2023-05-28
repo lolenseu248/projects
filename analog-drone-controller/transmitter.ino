@@ -767,14 +767,14 @@ void Task1code(void * pvParameters){
     potenM2Poss=setMap(potenM2Pos);
 
     // prepare for send message
-    if(togSW1State==HIGH){
+    if(togSW2State==HIGH){
       Trottle=setTrottle(joyX1Poss);
       Yaw=setYaw(joyY1Poss);
       Pitch=setPitch(joyX2Poss);
       Roll=setRoll(joyY2Poss);
 
       // for the modes
-      if(togSW2State==HIGH){
+      if(togSW1State==HIGH){
         if(togSW4State==HIGH){
           Mode=1550; // LoiterMode=potenM1Poss; // Fix by knob
         }
@@ -782,7 +782,7 @@ void Task1code(void * pvParameters){
           Mode=1820; // Land
         }
       }
-      else if(togSW2State==LOW){
+      else if(togSW1State==LOW){
         if(togSW4State==HIGH){
           Mode=1400; // Alt Hold
         }
@@ -791,14 +791,14 @@ void Task1code(void * pvParameters){
         }
       }
     }
-    else if(togSW1State==LOW){
+    else if(togSW2State==LOW){
       Trottle=joyX1Poss;
       Yaw=joyY1Poss;
       Pitch=joyX2Poss;
       Roll=joyY2Poss;
 
       // for the modes
-      if(togSW2State==HIGH){
+      if(togSW1State==HIGH){
         if(togSW4State==HIGH){
           Mode=1550; // Loiter
         }
@@ -806,7 +806,7 @@ void Task1code(void * pvParameters){
           Mode=1820; // Land
         }
       }
-      else if(togSW2State==LOW){
+      else if(togSW1State==LOW){
         if(togSW4State==HIGH){
           Mode=1400; // Alt Hold
         }
