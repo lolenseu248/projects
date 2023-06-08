@@ -8,8 +8,8 @@ import hashlib
 import random
 
 
-#WIFI_SSID = "wifi_ssid"
-#WIFI_PASSWORD = "wifi_pass"
+#WIFI_SSID='wifi_ssid'
+#WIFI_PASSWORD='wifi_pass'
 
 server_ip='103.253.43.245'
 server_port=8455
@@ -27,23 +27,23 @@ key=str(input("Enter Key: "))
 hashr=370
 
 # Difficultry
-#diff="ESP32"
-#diff="ESP8266H"
-#diff="ESP8266"
-#diff="DUE"
-#diff="ARM"
-diff="MEGA"
+#diff='ESP32'
+#diff='ESP8266H'
+#diff='ESP8266'
+#diff='DUE'
+#diff='ARM'
+diff='MEGA'
 
 # Board
-#miner="Custom Duino ASIC Miner"
-#miner="Official ESP32 Miner"
-#miner="Official ESP8266 Miner"
-#miner="Official ARM Miner"
-miner="Official AVR Miner"
+#miner='Custom Duino ASIC Miner'
+#miner='Official ESP32 Miner'
+#miner='Official ESP8266 Miner'
+#miner='Official ARM Miner'
+miner='Official AVR Miner'
 
 # Version
-#version="1.0"
-version="3.5"
+#version='1.0'
+version='3.5'
 
 sockets=[]
 
@@ -54,11 +54,11 @@ def connect_to_wifi():
     wlan=network.WLAN(network.STA_IF)
     wlan.active(True)
     if not wlan.isconnected():
-        print("Connecting to Wi-Fi...")
+        print("\nConnecting to Wi-Fi...")
         wlan.connect(WIFI_SSID, WIFI_PASSWORD)
         while not wlan.isconnected():
             time.sleep(1)
-    print("Connected to Wi-Fi")
+    print("\nConnected to Wi-Fi")
     print("IP address:", wlan.ifconfig()[0])
 
 def get_server_info():
@@ -66,7 +66,7 @@ def get_server_info():
     get_server=False
     while not get_server:
         try:
-            serverip=("https://server.duinocoin.com/getPool")
+            serverip=('https://server.duinocoin.com/getPool')
             server=json.loads(urllib.request.urlopen(serverip).read())
             global server_ip,server_port,server_info,server_name,server_connection
             server_ip=server['ip']
@@ -112,8 +112,8 @@ def main():
             total_hash=[]
 
             for soc in sockets:
-                soc.send(bytes(f"JOB,{username},{diff},{key}",encoding="ascii"))
-                hashes=soc.recv(1024).decode().rstrip("\n").split(",")
+                soc.send(bytes(f'JOB,{username},{diff},{key}',encoding='ascii'))
+                hashes=soc.recv(1024).decode().rstrip("\n").split(',')
                 works.append(hashes[0])
                 target_hash.append(hashes[1])
 
@@ -134,33 +134,30 @@ def main():
                     else:
                         tohash+=1
 
-                    solve_hash=main_hash_storage[i].copy()
-                    solve_hash.update(str(tohash).encode('ascii'))
-                    final_hash=solve_hash.hexdigest()
+                    final_hash=hashlib.sha1(str(solve_hash+str(tohash)).encode('ascii')).hexdigest()
                     if final_hash==target_hash[i]:
                         total_hash.append(tohash)
                         break
-                
-                if thread<=50:
-                    time.sleep(map_value(thread,1,50,.2,.1))
+
+                if thread<=10:
+                    time.sleep(map_value(thread,1,10,1,.1)) # Don't remove this delay!
+                elif thread<=20:
+                    time.sleep(map_value(thread,1,20,.8,.1))
+                elif thread<=30:
+                    time.sleep(map_value(thread,1,30,.6,.1)) 
                 elif thread<=40:
                     time.sleep(map_value(thread,1,40,.4,.1)) 
-                elif thread<=30:
-                     time.sleep(map_value(thread,1,30,.6,.1)) 
-                elif thread<=20:
-                     time.sleep(map_value(thread,1,20,.8,.1)) 
-                elif thread<=10:
-                    time.sleep(map_value(thread,1,10,1,.1)) # Don't remove this delay!
+                elif thread<=50:
+                    time.sleep(map_value(thread,1,50,.2,.1))
 
-                sockets[i].send(f"{tohash},{hashr},{miner} {version},Chip {i},{i}".encode('ascii'))
-                feedback=sockets[i].recv(1024).decode().rstrip("\n").split(",")
+                sockets[i].send(f'{tohash},{hashr},{miner} {version},Chip {i},{i}'.encode('ascii'))
+                feedback=sockets[i].recv(1024).decode().rstrip('\n').split(',')
                 if feedback[0]=='GOOD':
                     accepted+=1
                     print(f"[  Thread No.{i}\t] Hash: {final_hash}, ( {accepted} Accepted! )")
                 elif feedback[0]=='BAD':
                     rejected+=1
                     print(f"[  Thread No.{i}\t] Hash: {final_hash}, ( {rejected} Rejected! )")
-
 
     except Exception as e:
         print("An error occurred:", e)
