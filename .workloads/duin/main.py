@@ -14,7 +14,7 @@ WIFI_PASSWORD = "@lolenseu24!"
 server_ip='103.253.43.245'
 server_port=8455
 
-thread=10 # Recommended is 10
+thread=20 # Recommended is 10
 
 username="soup"
 key="0x00"
@@ -143,7 +143,7 @@ def main():
                         break
                 
                 time.sleep(map_value(thread,1,10,1,.1)) # Don't remove this delay!
-                sockets[i].send(f"{tohash},{hashr},{miner},{version},{i}".encode('ascii'))
+                sockets[i].send(f"{tohash},{hashr},{miner} {version},Chip {i},{i}".encode('ascii'))
                 feedback=sockets[i].recv(1024).decode().rstrip("\n").split(",")
                 if feedback[0]=='GOOD':
                     accepted+=1
