@@ -123,9 +123,10 @@ def main():
                 main_hash_storage.append(main_hash) 
                 temp_hash_storage.append(temp_hash)
 
-            thread_count=list(range(thread))
-            random_sequence=random.sample(thread_count,len(thread_count))
-            for i in random_sequence:
+            #thread_count=list(range(thread))
+            #random_sequence=random.sample(thread_count,len(thread_count))
+            #for i in random_sequence:
+            for i in range(thread):
                 solve_hash=works[i]
                 tohash=0
                 while True:
