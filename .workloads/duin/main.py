@@ -1,5 +1,5 @@
 #import machine
-import network
+#import network
 import time
 import json
 import urllib.request
@@ -8,16 +8,15 @@ import hashlib
 import random
 
 
-WIFI_SSID = "lolenseu"
-WIFI_PASSWORD = "@lolenseu24!"
+#WIFI_SSID = "wifi_ssid"
+#WIFI_PASSWORD = "wifi_pass"
 
 server_ip='103.253.43.245'
 server_port=8455
 
-thread=20 # Recommended is 10
-
-username="soup"
-key="0x00"
+thread=int(input("Enter Thread No. Max is 50: ")) # Recommended is 10
+username=str(input("Enter Username: "))
+key=str(input("Enter Key: "))
 
 # Hashrate
 #hashr=12000
@@ -142,7 +141,17 @@ def main():
                         total_hash.append(tohash)
                         break
                 
-                time.sleep(map_value(thread,1,10,1,.1)) # Don't remove this delay!
+                if thread<=50:
+                    time.sleep(map_value(thread,1,50,.2,.1))
+                elif thread<=40:
+                    time.sleep(map_value(thread,1,40,.4,.1)) 
+                elif thread<=30:
+                     time.sleep(map_value(thread,1,30,.6,.1)) 
+                elif thread<=20:
+                     time.sleep(map_value(thread,1,20,.8,.1)) 
+                elif thread<=10:
+                    time.sleep(map_value(thread,1,10,1,.1)) # Don't remove this delay!
+
                 sockets[i].send(f"{tohash},{hashr},{miner} {version},Chip {i},{i}".encode('ascii'))
                 feedback=sockets[i].recv(1024).decode().rstrip("\n").split(",")
                 if feedback[0]=='GOOD':
@@ -154,9 +163,6 @@ def main():
 
 
     except Exception as e:
-        for i in range(thread):
-            soc[i].close()
-            
         print("An error occurred:", e)
         print("Reconnecting in 3s...")
         time.sleep(3)
