@@ -14,7 +14,7 @@ import random
 server_ip='103.253.43.245'
 server_port=8455
 
-thread=int(input("Enter Thread No. Min is 5, Max is 50: ")) # Recommended is 10
+thread=int(input("Enter Thread No. Min is 10, Max is 50: ")) # Recommended is 10
 username=str(input("Enter Username: "))
 key=str(input("Enter Key: "))
 
@@ -65,6 +65,7 @@ def connect_to_wifi():
 def get_server_info():
     print("\nConnecting to Server")
     get_server=False
+    reconnect_time=3
     while not get_server:
         try:
             serverip=('https://server.duinocoin.com/getPool')
@@ -77,8 +78,9 @@ def get_server_info():
             server_connection=server['success']
             get_server=True
         except:
-            print("\nConnetion Failed!, Retrying...")
-            time.sleep(2)
+            print(f"\nConnetion Failed!, Retrying in {reconnect_time}s...")
+            time.sleep(reconnect_time)
+            reconnect_time+=3
             continue
 
     print("\nServer Details")
@@ -137,7 +139,7 @@ def main():
                         final_hash.append(find_hash)
                         break
 
-            time.sleep(map_value(thread,5,50,.5,0)) # Don't remove this delay!, Change the 0 if using ultra fast computer to .1
+            time.sleep(map_value(thread,10,50,.5,.1)) # Don't remove this delay!
             thread_count=list(range(thread))
             random_sequence=random.sample(thread_count,len(thread_count))
             for i in random_sequence:
@@ -162,7 +164,7 @@ def main():
 
 
 if __name__ == '__main__':
-    if thread<5:
+    if thread<10:
         print("\nThread is to Low!")
         exit()
     else:
