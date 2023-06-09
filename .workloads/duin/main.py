@@ -14,7 +14,7 @@ import random
 server_ip='103.253.43.245'
 server_port=8455
 
-thread=int(input("Enter Thread No. Max is 50: ")) # Recommended is 10
+thread=int(input("Enter Thread No. Min is 5, Max is 50: ")) # Recommended is 10
 username=str(input("Enter Username: "))
 key=str(input("Enter Key: "))
 
@@ -45,7 +45,8 @@ miner='Official AVR Miner'
 #version='1.0'
 version='3.5'
 
-sockets=[]
+hashr_min=hashr-int(hashr/100)
+hashr_max=hashr+int(hashr/100)
 
 def map_value(var,in_min,in_max,out_min,out_max):
     return (var-in_min)*(out_max-out_min)/(in_max-in_min)+out_min
@@ -90,6 +91,7 @@ def get_server_info():
 def main():
     try:
         print("\nEstablish Threads")
+        sockets=[]
         for i in range(thread):
             try:  
                 soc=socket.socket()
@@ -100,74 +102,71 @@ def main():
             except ConnectionRefusedError:
                 print(f"[  Thread No.{i}\t] Unable connect to the server.")
         
-        print("\nStart Mining")
         accepted=0
         rejected=0
-
+        print("\nStart Mining")
         while True:
-            works=[]
+            work_hash=[]
             target_hash=[]
-            main_hash_storage=[]
-            temp_hash_storage=[]
-            total_hash=[]
+            difficultry=[]
+            final_hash=[]
+            total_result=[]
 
             for soc in sockets:
                 soc.send(bytes(f'JOB,{username},{diff},{key}',encoding='ascii'))
-                hashes=soc.recv(1024).decode().rstrip("\n").split(',')
-                works.append(hashes[0])
-                target_hash.append(hashes[1])
+                job=soc.recv(1024).decode().rstrip("\n").split(',')
+                work_hash.append(job[0])
+                target_hash.append(job[1])
+                difficultry.append(job[2])
 
             for i in range(thread):
-                main_hash=hashlib.sha1(str(works[i]).encode('ascii'))
-                temp_hash=None
-                main_hash_storage.append(main_hash) 
-                temp_hash_storage.append(temp_hash)
-
-            #thread_count=list(range(thread))
-            #random_sequence=random.sample(thread_count,len(thread_count))
-            #for i in random_sequence:
-            for i in range(thread):
-                solve_hash=works[i]
-                tohash=0
+                result=0
                 while True:
-                    if tohash>=100*hashr:
-                        tohash=0
+                    if result>=100*hashr:
+                        result=0
                     else:
-                        tohash+=1
+                        result+=1
 
-                    final_hash=hashlib.sha1(str(solve_hash+str(tohash)).encode('ascii')).hexdigest()
-                    if final_hash==target_hash[i]:
-                        total_hash.append(tohash)
+                    find_hash=hashlib.sha1(str(work_hash[i]+str(result)).encode('ascii')).hexdigest()
+                    if find_hash==target_hash[i]:
+                        total_result.append(result)
+                        final_hash.append(find_hash)
+                        break
+                    elif 100*int(difficultry[i])+1<=result:
+                        total_result.append(result)
+                        final_hash.append(find_hash)
                         break
 
-                if thread<=10:
-                    time.sleep(map_value(thread,1,10,1,.1)) # Don't remove this delay!
-                elif thread<=20:
-                    time.sleep(map_value(thread,1,20,.8,.1))
-                elif thread<=30:
-                    time.sleep(map_value(thread,1,30,.6,.1)) 
-                elif thread<=40:
-                    time.sleep(map_value(thread,1,40,.4,.1)) 
-                elif thread<=50:
-                    time.sleep(map_value(thread,1,50,.2,.1))
-
-                sockets[i].send(f'{tohash},{hashr},{miner} {version},Chip {i},{i}'.encode('ascii'))
+            time.sleep(map_value(thread,5,50,.5,0)) # Don't remove this delay!, Change the 0 if using ultra fast computer to .1
+            thread_count=list(range(thread))
+            random_sequence=random.sample(thread_count,len(thread_count))
+            for i in random_sequence:
+                hash_rate=str(random.randint(hashr_min,hashr_max))+'.'+str(random.randint(1,99))
+                sockets[i].send(f'{total_result[i]},{hash_rate},{miner} {version},Chip {i},{i}'.encode('ascii'))
                 feedback=sockets[i].recv(1024).decode().rstrip('\n').split(',')
                 if feedback[0]=='GOOD':
                     accepted+=1
-                    print(f"[  Thread No.{i}\t] Hash: {final_hash}, ( {accepted} Accepted! )")
+                    print(f"[  Thread No.{i}\t] Hash: {final_hash[i]}, ( {accepted} Accepted! )")
                 elif feedback[0]=='BAD':
                     rejected+=1
-                    print(f"[  Thread No.{i}\t] Hash: {final_hash}, ( {rejected} Rejected! )")
-
+                    print(f"[  Thread No.{i}\t] Hash: {final_hash[i]}, ( {rejected} Rejected! )")
+    
     except Exception as e:
+        for soc in sockets:
+            soc.close()
+    
         print("An error occurred:", e)
         print("Reconnecting in 3s...")
         time.sleep(3)
+    
 
 
 if __name__ == '__main__':
-    while True:
-        #connect_to_wifi()
-        get_server_info()
-        main()
+    if thread<5:
+        print("\nThread is to Low!")
+        exit()
+    else:
+        while True:
+            #connect_to_wifi()
+            get_server_info()
+            main()
