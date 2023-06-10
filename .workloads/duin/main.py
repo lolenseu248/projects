@@ -14,36 +14,33 @@ import random
 server_ip='103.253.43.245'
 server_port=8455
 
-thread=int(input("Enter Thread No. Min is 10, Max is 50: ")) # Recommended is 10
 username=str(input("Enter Username: "))
 key=str(input("Enter Key: "))
 
-# Hashrate
-#hashr=12000
-#hashr=6000
-#hashr=4500
-#hashr=1000
-#hashr=520
-hashr=370
+# Delays 
+delay=.1  # Enable for Normal run
+#delay=.5 # Enable for Test run -If Thread is 15 below consider Test run!
+
+# ---------- Config ----------
+# Thread
+#thread=15 # 
+thread=20 #
 
 # Difficultry
-#diff='ESP32'
-#diff='ESP8266H'
-#diff='ESP8266'
 #diff='DUE'
 #diff='ARM'
+#diff='AVR'
 diff='MEGA'
 
+# Hashrate
+hashr=370
+
 # Board
-#miner='Custom Duino ASIC Miner'
-#miner='Official ESP32 Miner'
-#miner='Official ESP8266 Miner'
-#miner='Official ARM Miner'
 miner='Official AVR Miner'
 
 # Version
-#version='1.0'
 version='3.5'
+# ---------- Config ----------
 
 hashr_min=hashr-int(hashr/100)
 hashr_max=hashr+int(hashr/100)
@@ -124,22 +121,18 @@ def main():
             for i in range(thread):
                 result=0
                 while True:
-                    if result>=100*hashr:
-                        result=0
-                    else:
-                        result+=1
-
+                    result+=1
                     find_hash=hashlib.sha1(str(work_hash[i]+str(result)).encode('ascii')).hexdigest()
                     if find_hash==target_hash[i]:
                         total_result.append(result)
                         final_hash.append(find_hash)
                         break
-                    elif 100*int(difficultry[i])+1<=result:
+                    elif result>=100*int(difficultry[i])+1:
                         total_result.append(result)
                         final_hash.append(find_hash)
                         break
 
-            time.sleep(map_value(thread,10,50,.5,.1)) # Don't remove this delay!
+            time.sleep(delay) # Don't remove this delay!
             thread_count=list(range(thread))
             random_sequence=random.sample(thread_count,len(thread_count))
             for i in random_sequence:
@@ -162,9 +155,8 @@ def main():
         time.sleep(3)
     
 
-
 if __name__ == '__main__':
-    if thread<10:
+    if thread<15:
         print("\nThread is to Low!")
         exit()
     else:
