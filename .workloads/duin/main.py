@@ -17,14 +17,15 @@ server_port=7656
 username=str(input("Enter Username: "))
 key=str(input("Enter Key: "))
 
-# Delays 
+# Delays
+#delay=0 # For slow ping
 delay=.4  # Enable for Normal run
 #delay=1 # Enable for Test run -If Thread is 15 below consider Test run!
 
 # ---------- Config ----------
 # Thread
-thread=15 # 
-#thread=20 #
+#thread=15
+thread=20
 
 # Difficultry
 #diff='DUE'
@@ -136,7 +137,6 @@ def main():
             thread_count=list(range(thread))
             random_sequence=random.sample(thread_count,len(thread_count))
             for i in random_sequence:
-                time.sleep(random.uniform(.1,.2))
                 hash_rate=str(random.randint(hashr_min,hashr_max))+'.'+str(random.randint(1,99))
                 sockets[i].send(f'{total_result[i]},{hash_rate},{miner} {version},,{None}'.encode('ascii'))
                 feedback=sockets[i].recv(1024).decode().rstrip('\n').split(',')
@@ -147,7 +147,7 @@ def main():
                     rejected+=1
                     print(f"[  Thread No.{i}\t] Hash: {final_hash[i]}, ( {rejected} Rejected! )")
 
-            if accepted>=random.randint(8000,10000):
+            if accepted>=16000:
                 print("Breaking.")
                 break
     
