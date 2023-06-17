@@ -348,7 +348,7 @@ void Task1code(void * pvParameters){
         }
 
         // stay on position
-        Trottle=1650; // increase hight by 10%
+        Trottle=1700; // increase hight by 20%
         Yaw=1500;
         Pitch=1500;
         Roll=1500;
