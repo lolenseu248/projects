@@ -24,8 +24,8 @@ delay=.4  # Enable for Normal run
 
 # ---------- Config ----------
 # Thread
-#thread=15
-thread=20
+#thread=16
+thread=21
 
 # Difficultry
 #diff='DUE'
@@ -146,10 +146,6 @@ def main():
                 elif feedback[0]=='BAD':
                     rejected+=1
                     print(f"[  Thread No.{i}\t] Hash: {final_hash[i]}, ( {rejected} Rejected! )")
-
-            if accepted>=16000:
-                print("Breaking.")
-                break
     
     except Exception as e:
         for soc in sockets:
