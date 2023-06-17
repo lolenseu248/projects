@@ -310,11 +310,11 @@ int calcLow;
 int calcHigh;
 
 // sending process data
-int Trottle;
-int Yaw;
-int Pitch;
-int Roll;
-int Mode;
+int Trottle=1700;
+int Yaw=1500;
+int Pitch=1500;
+int Roll=1500;
+int Mode=1100;
 String Mods;
 
 // percent data
