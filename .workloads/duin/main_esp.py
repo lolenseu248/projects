@@ -17,10 +17,10 @@ server_port=7656
 username=str(input("Enter Username: "))
 key=str(input("Enter Key: "))
 
-# Delays
-#delay=0 # For slow ping
-delay=.4  # Enable for Normal run
-#delay=1 # Enable for Test run -If Thread is 15 below consider Test run!
+# Delays -If PC is "" use the delay for safety else sus
+#delay=0 # Turtle
+delay=.4  # Cheetah
+#delay=1 # Enable for Test -If Thread is 15 below consider as Test!
 
 # ---------- Config ----------
 # Thread
@@ -79,7 +79,8 @@ def get_server_info():
             server_connection=server['success']
             get_server=True
         except:
-            if reconnect_time>=30:
+            if reconnect_time>=15:
+                print("Unable to reach the server!")
                 break
             print(f"\nConnetion Failed!, Retrying in {reconnect_time}s...")
             time.sleep(reconnect_time)
