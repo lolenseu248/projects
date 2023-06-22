@@ -1,5 +1,5 @@
 import time
-import urllib.request
+import requests
 import json
 import socket
 import hashlib
@@ -40,7 +40,7 @@ def get_server_info():
     while not server_connection:
         try:
             serverip=('https://server.duinocoin.com/getPool')
-            server=json.loads(urllib.request.urlopen(serverip).read())
+            server=json.loads(requests.get(serverip).text)
             global server_ip,server_port,server_info,server_name
             server_ip=server['ip']
             server_port=server['port']
