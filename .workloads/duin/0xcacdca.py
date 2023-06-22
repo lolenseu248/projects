@@ -7,6 +7,10 @@ import random
 
 
 # ---------- Config ----------
+# Manual Server
+#server_ip='103.253.43.245'
+#server_port=5715
+
 # Wallet
 username='0xcacdcabdccchbdd0'
 key='0xcacdca'
