@@ -45,8 +45,8 @@ def get_server_info():
     while not server_connection:
         try:
             get_server=('https://server.duinocoin.com/getPool')
-            #server=json.loads(requests.get(get_server).text) # For request
-            server=json.loads(os.popen(f'curl {get_server}').read()) # For curl
+            server=json.loads(requests.get(get_server).text) # For request
+            #server=json.loads(os.popen(f'curl {get_server}').read()) # For curl
             
             global server_ip,server_port,server_info,server_name
             server_ip=server['ip']
@@ -125,9 +125,10 @@ def main():
             end_calc=time.time()
             calc_time=end_calc-start_calc
             if calc_time>.5:
-                time.sleep(0)
+                pass
             else:
-                time.sleep(.5-calc_time)
+                #time.sleep(.5-calc_time) # Uncomment if Thread is below 12
+                pass
 
             thread_count=list(range(thread))
             random_sequence=random.sample(thread_count,len(thread_count))
