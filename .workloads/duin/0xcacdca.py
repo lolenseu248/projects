@@ -1,5 +1,6 @@
 import time
 import requests
+import os
 import json
 import socket
 import hashlib
@@ -43,8 +44,10 @@ def get_server_info():
     reconnect_time=3
     while not server_connection:
         try:
-            serverip=('https://server.duinocoin.com/getPool')
-            server=json.loads(requests.get(serverip).text)
+            get_server=('https://server.duinocoin.com/getPool')
+            #server=json.loads(requests.get(get_server).text) # For request
+            server=json.loads(os.popen(f'curl {get_server}').read()) # For curl
+            
             global server_ip,server_port,server_info,server_name
             server_ip=server['ip']
             server_port=server['port']
