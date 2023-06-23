@@ -51,6 +51,7 @@ def find_port():
             find_port-=1
             continue
 
+    soc_port.close()
     print(f"Port: {find_port}")
     return find_port
 
