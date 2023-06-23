@@ -9,8 +9,7 @@ import random
 
 # ---------- Config ----------
 # Manual Server
-#server_ip='103.253.43.245'
-#server_port=5715
+server_ip='103.253.43.245' # Singapore Server
 
 # Wallet
 username='0xcacdcabdccchbdd0'
@@ -37,6 +36,19 @@ hashr_max=hashr+int(hashr/100)
 
 def map_value(var,in_min,in_max,out_min,out_max):
     return (var-in_min)*(out_max-out_min)/(in_max-in_min)+out_min
+
+def find_port():
+    find_port=9999
+    while True:
+        try:
+            soc_port=socket.socket()
+            soc_port.connect((str('103.253.43.245'),int(find_port)))
+            break
+        except:
+            soc_port.close()
+            find_port-=1
+            continue
+    return find_port
 
 def get_server_info():
     print("\nConnecting to Server")
@@ -127,7 +139,7 @@ def main():
             if calc_time>.5:
                 pass
             else:
-                #time.sleep(.5-calc_time) # Uncomment if Thread is below 12
+                #time.sleep(.5-calc_time) # Uncomment if Thread is below 12 else sus
                 pass
 
             thread_count=list(range(thread))
@@ -158,5 +170,6 @@ if __name__ == '__main__':
         exit()
     else:
         while True:
-            get_server_info()
+            server_port=find_port() # For Manual Server
+            #get_server_info() # For Auto Server
             main()
