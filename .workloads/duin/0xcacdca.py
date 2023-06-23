@@ -46,9 +46,14 @@ def find_port():
             soc_port=socket.socket()
             soc_port.connect((str('103.253.43.245'),int(find_port)))
             break
+        
         except:
             soc_port.close()
-            find_port-=1
+            if find_port<=999:
+                find_port=9999
+            else:
+                find_port-=1
+
             continue
 
     soc_port.close()
