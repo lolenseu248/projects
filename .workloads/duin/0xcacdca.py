@@ -19,10 +19,10 @@ key='0xcacdca'
 thread=15
 
 # Difficultry
-diff='MEGA'
+diff='AVR'
 
 # Hashrate
-hashr=370
+hashr=338
 
 # Board
 miner='Official AVR Miner'
