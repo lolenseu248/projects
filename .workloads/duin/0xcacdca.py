@@ -39,6 +39,8 @@ def map_value(var,in_min,in_max,out_min,out_max):
 
 def find_port():
     find_port=9999
+    print("\nFinding Server Port")
+    print(f"IP: {server_ip}")
     while True:
         try:
             soc_port=socket.socket()
@@ -48,6 +50,8 @@ def find_port():
             soc_port.close()
             find_port-=1
             continue
+
+    print(f"Port: {find_port}")
     return find_port
 
 def get_server_info():
