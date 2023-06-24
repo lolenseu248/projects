@@ -11,12 +11,18 @@ import random
 # Manual Server
 server_ip='103.253.43.245' # Singapore Server
 
+# Uncomment only one
+target_port='LOW' # If low port betwen 4999 to 1000
+#target_port='HIGH' # If high port betwen 9999 to 5000
+
+
+# Thread
+thread=26 # Below 12 not allowed
+
 # Wallet
 username='0xcacdcabdccchbdd0'
 key='0xcacdca'
 
-# Thread
-thread=15
 
 # Difficultry
 diff='AVR'
@@ -38,22 +44,33 @@ def map_value(var,in_min,in_max,out_min,out_max):
     return (var-in_min)*(out_max-out_min)/(in_max-in_min)+out_min
 
 def find_port():
-    find_port=9999
+    if target_port=='LOW':
+        find_port=4999
+    elif target_port=='HIGH':
+        find_port=9999
+
     print("\nFinding Server Port")
     print(f"IP: {server_ip}")
     while True:
         try:
             soc_port=socket.socket()
-            soc_port.connect((str('103.253.43.245'),int(find_port)))
+            soc_port.connect((str(server_ip),int(find_port)))
             break
         
         except:
             soc_port.close()
-            if find_port<=999:
-                find_port=9999
-            else:
-                find_port-=1
+            if target_port=='LOW':
+                if find_port<=1000:
+                    find_port=4999
+                else:
+                    find_port-=1
 
+            elif target_port=='HIGH':
+                if find_port<=5000:
+                    find_port=9999
+                else:
+                    find_port-=1
+            
             continue
 
     soc_port.close()
@@ -180,6 +197,8 @@ if __name__ == '__main__':
         exit()
     else:
         while True:
+            # Uncomment only one
             server_port=find_port() # For Manual Server
             #get_server_info() # For Auto Server
+
             main()
