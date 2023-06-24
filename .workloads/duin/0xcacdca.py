@@ -12,12 +12,12 @@ import random
 server_ip='103.253.43.245' # Singapore Server
 
 # Uncomment only one
-target_port='LOW' # If low port betwen 4999 to 1000
-#target_port='HIGH' # If high port betwen 9999 to 5000
+#target_port='LOW' # If low port betwen 4999 to 1000
+target_port='HIGH' # If high port betwen 9999 to 5000
 
 
 # Thread
-thread=25 # Below 12 not allowed
+thread=15# Below 12 is not allowed
 
 # Wallet
 username='0xcacdcabdccchbdd0'
