@@ -9,11 +9,12 @@ import random
 
 # ---------- Config ----------
 # Manual Server
-server_ip='103.253.43.245' # Singapore Server
+server_ip='103.253.43.245' # AS
+#server_ip='162.212.157.226' # NA
 
 # Uncomment only one
-#target_port='LOW' # If low to high port betwen 1000 to 9999
-target_port='HIGH' # If high to low port betwen 9999 to 1000
+target_port='LOW' # If low to high port betwen 1000 to 9999
+#target_port='HIGH' # If high to low port betwen 9999 to 1000
 
 
 # Thread
@@ -26,11 +27,11 @@ username,key='0xcacdcabdccchbdd0','0xcacdca'
 # Simulation Speed,Difficultry,Hashrate, and Miner (Device to Simulate)
 # AVR
 speed,diff,hashr,miner,version='SLOW','AVR',258,'AVR I2C','3.5'                              # AVR I2C
-#speed,diff,hashr,miner,version='SLOW','AVR',338,'Official AVR Miner','3.5'                   # Official AVR Miner
+#speed,diff,hashr,miner,version='SLOW','AVR',338,'Official AVR Miner','3.5'                   # AVR Miner
 
 # ESP
-#speed,diff,hashr,miner,version='FAST','ESP8266N',12000,'Official ESP8266 Miner','3.5'        # Official ESP8266 Miner
-#speed,diff,hashr,miner,version='FAST','ESP32',18000,'Official ESP32 Miner','3.5'             # Official ESP32 Miner
+#speed,diff,hashr,miner,version='FAST','ESP8266N',12000,'Official ESP8266 Miner','3.5'        # ESP8266 Miner
+#speed,diff,hashr,miner,version='FAST','ESP32',18000,'Official ESP32 Miner','3.5'             # ESP32 Miner
 # ---------- Config ----------
 
 
