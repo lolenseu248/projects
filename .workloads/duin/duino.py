@@ -20,17 +20,17 @@ target_port='HIGH' # If high port betwen 9999 to 5000
 thread=15# Below 12 is not allowed
 
 # Wallet Username and key
-username,key='amux','amux'
+username,key='0xcacdcabdccchbdd0','0xcacdca'
 
 
 # Simulation Speed,Difficultry,Hashrate, and Miner (Device to Simulate)
 # AVR
-#speed,diff,hashr,miner,version='SLOW','AVR',258,'AVR I2C','3.5'                              # AVR I2C
+speed,diff,hashr,miner,version='SLOW','AVR',258,'AVR I2C','3.5'                              # AVR I2C
 #speed,diff,hashr,miner,version='SLOW','AVR',338,'Official AVR Miner','3.5'                   # Official AVR Miner
 
 # ESP
-#speed,diff,hashr,miner,version='FAST','ESP8266',9500,'Official ESP8266 Miner','3.5'          # Official ESP8266 Miner
-speed,diff,hashr,miner,version='FAST','ESP32',18000,'Official ESP32 Miner','3.5'             # Official ESP32 Miner
+#speed,diff,hashr,miner,version='FAST','ESP8266N',12000,'Official ESP8266 Miner','3.5'        # Official ESP8266 Miner
+#speed,diff,hashr,miner,version='FAST','ESP32',18000,'Official ESP32 Miner','3.5'             # Official ESP32 Miner
 # ---------- Config ----------
 
 
@@ -125,7 +125,7 @@ def main():
         for i in range(thread):
             try:  
                 soc=socket.socket()
-                soc.connect((str(server_ip),int(2539)))
+                soc.connect((str(server_ip),int(server_port)))
                 sockets.append(soc)
                 soc.recv(100).decode()
                 print(f"[  Thread {i}\t] Connected successfully.")
@@ -204,6 +204,6 @@ if __name__ == '__main__':
         while True:
             # Uncomment only one
             #get_server_info() # For Auto Server
-            #server_port=find_port() # For Manual Server
+            server_port=find_port() # For Manual Server
 
             main()
