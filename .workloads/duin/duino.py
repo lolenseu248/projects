@@ -12,8 +12,8 @@ import random
 server_ip='103.253.43.245' # Singapore Server
 
 # Uncomment only one
-#target_port='LOW' # If low port betwen 4999 to 1000
-target_port='HIGH' # If high port betwen 9999 to 5000
+#target_port='LOW' # If low to high port betwen 1000 to 9999
+target_port='HIGH' # If high to low port betwen 9999 to 1000
 
 
 # Thread
@@ -75,7 +75,7 @@ def get_server_info():
 
 def find_port():
     if target_port=='LOW':
-        find_port=4999
+        find_port=1000
     elif target_port=='HIGH':
         find_port=9999
 
@@ -83,8 +83,13 @@ def find_port():
     print(f"IP: {server_ip}")
     while True:
         try:
-            if find_port==8080:
-                find_port=8079
+            if target_port=='LOW':
+                if find_port==8080:
+                    find_port=8081
+            elif target_port=='HIGH':
+                if find_port==8080:
+                    find_port=8079
+                
             soc_port=socket.socket()
             soc_port.connect((str(server_ip),int(find_port)))
             break
@@ -92,13 +97,13 @@ def find_port():
         except:
             soc_port.close()
             if target_port=='LOW':
-                if find_port<=1000:
-                    find_port=4999
+                if find_port>=9999:
+                    find_port=1000
                 else:
-                    find_port-=1
+                    find_port+=1
 
             elif target_port=='HIGH':
-                if find_port<=5000:
+                if find_port<=1000:
                     find_port=9999
                 else:
                     find_port-=1
