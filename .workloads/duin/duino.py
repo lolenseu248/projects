@@ -83,6 +83,8 @@ def find_port():
     print(f"IP: {server_ip}")
     while True:
         try:
+            if find_port==8080:
+                find_port=8079
             soc_port=socket.socket()
             soc_port.connect((str(server_ip),int(find_port)))
             break
