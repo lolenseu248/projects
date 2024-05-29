@@ -1,0 +1,42 @@
+lowinvin=1885,935
+sortinvi=1830,965
+
+fistcell=1855,920
+=1750,"
+=1670,"
+=1590,"
+
+secondcell=1830,815
+=","
+
+thirdcell=1830,730
+=","
+
+totop=85
+toleft=80
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+----------------------
+def clicker(x, y, monitor):
+    time.sleep(3)
+    mouse.position = (monitor['left'] + x, monitor['top'] + y + 20)
+    time.sleep(.5)
+    mouse.press(Button.left)
+    time.sleep(.5)
+    mouse.position = (monitor['left'] + x, monitor['top'] + y + 500)
+    time.sleep(.5)
+    mouse.release(Button.left)
+
+    exit()
