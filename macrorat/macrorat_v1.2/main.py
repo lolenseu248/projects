@@ -135,18 +135,12 @@ while True:
 
         if lootpixelresult:
             keyboard.press(Key.shift)
-            time.sleep(.1)
 
-            while lootpixelresult:
-
-                if stop_loot:
-                    break
-
+            while lootpixelresult and not stop_loot:
                 lootbox()
                 lootpixelresult=lootof()
 
             keyboard.release(Key.shift)
-            time.sleep(.1)
 
         print(f'loop: {loop_counter}, items clicked: {click_counter}',end='\r')
         if loop_counter==9:
