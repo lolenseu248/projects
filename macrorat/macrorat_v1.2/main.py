@@ -16,7 +16,7 @@ def clicker(x,y):
     else:
         delay=.05
 
-    mouse.position=(x+24+random.randint(1,10),y+24+random.randint(1,10))
+    mouse.position=(x+24+random.randint(1,24),y+24+random.randint(1,24))
     time.sleep(.05)
     mouse.press(Button.left)
     time.sleep(delay)
