@@ -5,7 +5,7 @@ import numpy as np
 
 from mss import mss
 from pynput.mouse import Button,Controller as MouseController
-from pynput.keyboard import Listener,Key,KeyCode,Controller as KeyboardController
+from pynput.keyboard import Listener,KeyCode,Key,Controller as KeyboardController
 
 
 #func
@@ -70,8 +70,8 @@ def lootbox():
                 break
 
             item_region=lootbox_gray[item_top:item_bottom,item_left:item_right]
-
             exclude_match_found=False
+            
             for gray_exclude in gray_exclude_template:
                 exclude_result=cv.matchTemplate(item_region,gray_exclude,cv.TM_CCOEFF_NORMED)
                 exclude_min_val,exclude_max_val,_,_=cv.minMaxLoc(exclude_result)
