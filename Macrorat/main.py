@@ -105,7 +105,7 @@ previous_x=0
 previous_y=0
 loop_counter=0
 
-match_threshold=0.8
+match_threshold=0.75
 
 stop_loot=False
 
