@@ -71,6 +71,9 @@ def lootbox():
         template_result=cv.matchTemplate(lootbox_gray,gray_item,cv.TM_CCOEFF_NORMED)
         min_val,max_val,min_loc,max_loc=cv.minMaxLoc(template_result)
 
+        if stop_loot:
+            break
+
         if max_val>=match_threshold:
             item_x,item_y=max_loc[0],max_loc[1]
             item_left,item_top=item_x,item_y
@@ -151,11 +154,7 @@ while True:
         if lootpixelresult:
             keyboard.press(Key.shift)
 
-            while lootpixelresult:
-
-                if stop_loot:
-                    break
-
+            while lootpixelresult and not stop_loot:
                 lootbox()
                 lootpixelresult=lootof()
 
