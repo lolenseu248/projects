@@ -309,6 +309,9 @@ int potenM2Poss;
 int calcLow;
 int calcHigh;
 
+// current trottle
+int currentTrottle=1720;
+
 // sending process data
 int Trottle=1720;
 int Yaw=1500;
@@ -521,6 +524,14 @@ int setTrottle(int toTrottle){
   if(toTrottle>=1800)Trottle=Trottle+=5;
   if(Trottle<=1000)Trottle=1000;
   if(Trottle>=2000)Trottle=1800;
+  return Trottle;
+}
+
+// settrottleinmode
+int setTrottleInMode(int toTrottle){
+  Trottle=1500;
+  if(toTrottle<=1200)Trottle=1350;
+  if(toTrottle>=1800)Trottle=1650;
   return Trottle;
 }
 
@@ -772,7 +783,6 @@ void Task1code(void * pvParameters){
 
     // prepare for send message
     if(togSW2State==HIGH){
-      Trottle=setTrottle(joyX1Poss);
       Yaw=setYaw(joyY1Poss);
       Pitch=setPitch(joyX2Poss);
       Roll=setRoll(joyY2Poss);
@@ -780,23 +790,29 @@ void Task1code(void * pvParameters){
       // for the modes
       if(togSW1State==HIGH){
         if(togSW4State==HIGH){
+          Trottle=setTrottleInMode(joyX1Poss);
           Mode=1550; // Loiter
         }
         else if(togSW4State==LOW){
+          Trottle=setTrottleInMode(joyX1Poss);
           Mode=1820; // Land
         }
       }
       else if(togSW1State==LOW){
         if(togSW4State==HIGH){
+          Trottle=setTrottleInMode(joyX1Poss);
           Mode=1400; // Alt Hold
         }
         else if(togSW4State==LOW){
+          Trottle=currentTrottle;
+          currentTrottle=setTrottle(joyX1Poss); // setTrottle only on knob or stab
           Mode=potenM1Poss; // Fix by knob
         }
       }
     }
     else if(togSW2State==LOW){
-      Trottle=joyX1Poss;
+      currentTrottle=joyX1Poss;
+      Trottle=currentTrottle;
       Yaw=joyY1Poss;
       Pitch=joyX2Poss;
       Roll=joyY2Poss;
