@@ -768,6 +768,7 @@ void Task1code(void * pvParameters){
 
     // prepare for send message
     if(togSW2State==HIGH){
+      Trottle=setTrottle(joyX1Poss);
       Yaw=setYaw(joyY1Poss);
       Pitch=setPitch(joyX2Poss);
       Roll=setRoll(joyY2Poss);
@@ -786,7 +787,6 @@ void Task1code(void * pvParameters){
           Mode=1400; // Alt Hold
         }
         else if(togSW4State==LOW){
-          Trottle=setTrottle(joyX1Poss); // setTrottle only on knob or stab
           Mode=potenM1Poss; // Fix by knob
         }
       }
