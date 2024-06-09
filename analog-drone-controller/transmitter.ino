@@ -310,10 +310,10 @@ int calcLow;
 int calcHigh;
 
 // current trottle
-int currentTrottle;
+int currentTrottle=1750;
 
 // sending process data
-int Trottle=1500;
+int Trottle=1750;
 int Yaw=1500;
 int Pitch=1500;
 int Roll=1500;
