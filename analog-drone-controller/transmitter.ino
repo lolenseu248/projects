@@ -727,7 +727,7 @@ void Task1code(void * pvParameters){
   for(;;){
 
     // counter and buzzer
-    if(count==100)count=0;
+    if(count==100)count=-1;
     count+=1;
 
     // ---------- prepare data ----------
@@ -851,7 +851,7 @@ void Task1code(void * pvParameters){
     else if(togSW3State==LOW)oledScreen1();
 
     // srial debug
-    if(count==1||count==26||count==51||count==76)serialDebug(); // enable this for long debug
+    if(count==0||count==20||count==40||count==60||count==80)serialDebug(); // enable this for long debug
     //serialDebug(); // enable this for short debug if delay != 1000 = fast
 
     // delay
