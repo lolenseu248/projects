@@ -807,7 +807,8 @@ void Task1code(void * pvParameters){
       }
     }
     else if(togSW2State==LOW){
-      Trottle=joyX1Poss;
+      currentTrottle=joyX1Poss;
+      Trottle=currentTrottle;
       Yaw=joyY1Poss;
       Pitch=joyX2Poss;
       Roll=joyY2Poss;
