@@ -671,7 +671,7 @@ void oledScreen2(){
 
 // serial debug
 void serialDebug(){
-  Serial.println("\n");
+  Serial.println("\r");
   Serial.println("-------------------- debug --------------------");
   if(com==1){
     Serial.println("ESP-NOw");
