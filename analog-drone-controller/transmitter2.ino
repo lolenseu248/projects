@@ -795,13 +795,13 @@ void Task1code(void * pvParameters){
         }
         else if(togSW4State==LOW){
           Trottle=setTrottleInMode(joyX1Poss);
-          Mode=1820; // Land
+          Mode=1400; // Alt Hold
         }
       }
       else if(togSW1State==LOW){
         if(togSW4State==HIGH){
           Trottle=setTrottleInMode(joyX1Poss);
-          Mode=1400; // Alt Hold
+          Mode=1820; // Land
         }
         else if(togSW4State==LOW){
           Trottle=currentTrottle;
@@ -823,12 +823,12 @@ void Task1code(void * pvParameters){
           Mode=1550; // Loiter
         }
         else if(togSW4State==LOW){
-          Mode=1820; // Land
+          Mode=1400; // Alt Hold
         }
       }
       else if(togSW1State==LOW){
         if(togSW4State==HIGH){
-          Mode=1400; // Alt Hold
+          Mode=1820; // Land
         }
         else if(togSW4State==LOW){
           Mode=1100; // Fix Stabilize
