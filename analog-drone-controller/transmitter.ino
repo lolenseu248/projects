@@ -779,6 +779,9 @@ void Task1code(void * pvParameters){
     potenM1Poss=setMap(potenM1Pos);
     potenM2Poss=setMap(potenM2Pos);
 
+    // map mode to string
+    mapSpeed(potenM2Poss);
+
     // prepare for send message
     if(togSW2State==HIGH){
       Yaw=setYaw(joyY1Poss);
@@ -836,9 +839,6 @@ void Task1code(void * pvParameters){
 
     // ----- position fix -----
     Yaw=map(Yaw,1000,2000,2000,1000);
-
-    // map mode to string
-    mapSpeed(potenM2Poss);
 
     // set value to send
     // com 1
