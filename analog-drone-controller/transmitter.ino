@@ -722,7 +722,7 @@ void serialDebug(){
   Serial.printf("Toggle no.4= %d\n",togSW4State);
   Serial.println("");
   Serial.println("Official Data");
-	Serial.printf("Speed: %d%%\n",pSpeed);
+  Serial.printf("Speed: %d%%\n",pSpeed);
   Serial.printf("Trottle: %d%%\n",pTrottle);
   Serial.printf("Yaw: %d%%\n",pYaw);
   Serial.printf("Pitch: %d%%\n",pPitch);
@@ -837,7 +837,7 @@ void Task1code(void * pvParameters){
     // ----- position fix -----
     Yaw=map(Yaw,1000,2000,2000,1000);
 
-	// map mode to string
+    // map mode to string
     mapSpeed(potenM2Poss);
 
     // set value to send
@@ -853,6 +853,7 @@ void Task1code(void * pvParameters){
     xMsg=String(Trottle)+String(Yaw)+String(Pitch)+String(Roll)+String(Mode)+String(count);
 
     // percent data
+    pSpeed=mapPercent(potenM2Poss)
     pTrottle=mapPercent(Trottle);
     pYaw=mapPercent(Yaw);
     pPitch=mapPercent(Pitch);
