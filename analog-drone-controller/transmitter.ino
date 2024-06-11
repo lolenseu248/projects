@@ -853,7 +853,7 @@ void Task1code(void * pvParameters){
     xMsg=String(Trottle)+String(Yaw)+String(Pitch)+String(Roll)+String(Mode)+String(count);
 
     // percent data
-    pSpeed=mapPercent(potenM2Poss)
+    pSpeed=mapPercent(potenM2Poss);
     pTrottle=mapPercent(Trottle);
     pYaw=mapPercent(Yaw);
     pPitch=mapPercent(Pitch);
