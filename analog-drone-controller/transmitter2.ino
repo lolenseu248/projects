@@ -321,6 +321,7 @@ int Mode=1540;
 String Mods;
 
 // percent data
+int pSpeed;
 int pTrottle;
 int pYaw;
 int pPitch;
@@ -511,10 +512,10 @@ int setMap(int toMap){
   return mapValue;
 }
 
-// map to percent
-int mapPercent(int toMapPercent){
-  int mapValuePercent=map(toMapPercent,1000,2000,0,100);
-  return mapValuePercent;
+// mapspeed
+void mapSpeed(int toSpeed){
+  calcLow=1500-map(toSpeed,1000,2000,0,500);
+  calcHigh=1500+map(toSpeed,1000,2000,0,500);
 }
 
 // to set official data
@@ -570,10 +571,10 @@ void mapMode(int toMode){
   else if(mapMode>1750&&mapMode<2000)Mods="Land";
 }
 
-// mapspeed
-void mapSpeed(int toSpeed){
-  calcLow=1500-map(toSpeed,1000,2000,0,500);
-  calcHigh=1500+map(toSpeed,1000,2000,0,500);
+// map to percent
+int mapPercent(int toMapPercent){
+  int mapValuePercent=map(toMapPercent,1000,2000,0,100);
+  return mapValuePercent;
 }
 
 // esp-now
@@ -685,7 +686,7 @@ void serialDebug(){
   Serial.println("\n");
   Serial.println("-------------------- debug --------------------");
   if(com==1){
-    Serial.println("ESP-NOw");
+    Serial.println("ESP-NOW");
     Serial.printf("Com Status: ");
     Serial.println(comStatus);
     Serial.printf("Msg Status: ");
@@ -725,6 +726,7 @@ void serialDebug(){
   */
   
   Serial.println("Official Data");
+  Serial.printf("Speed: %d%%\n",pSpeed);
   Serial.printf("Trottle: %d%%\n",pTrottle);
   Serial.printf("Yaw: %d%%\n",pYaw);
   Serial.printf("Pitch: %d%%\n",pPitch);
@@ -839,6 +841,9 @@ void Task1code(void * pvParameters){
     // ----- position fix -----
     Yaw=map(Yaw,1000,2000,2000,1000);
 
+    // map mode to string
+    mapSpeed(potenM2Poss);
+
     // set value to send
     // com 1
     sndxMsg.trottle=Trottle;
@@ -850,11 +855,9 @@ void Task1code(void * pvParameters){
 
     // com 2
     xMsg=String(Trottle)+String(Yaw)+String(Pitch)+String(Roll)+String(Mode)+String(count);
-    
-    // map mode to string
-    mapSpeed(potenM2Poss);
 
     // percent data
+    pSpeed=mapPercent(potenM2Poss);
     pTrottle=mapPercent(Trottle);
     pYaw=mapPercent(Yaw);
     pPitch=mapPercent(Pitch);
