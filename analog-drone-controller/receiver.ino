@@ -6,11 +6,15 @@
 
 #include <WiFi.h>
 #include <esp_now.h>
-#include <Servo.h>
+#include <ESP32Servo.h>
 #include <HTTPClient.h>
 
 // led pinout
 #define LED 12
+
+// serial pinout
+#define RXD 16
+#define TXD 17
 
 // buzzer pinout
 #define BUZZER1 18
@@ -91,35 +95,41 @@ int Mode;
 int rcvCount;
 String Mods;
 
+// counter incase of lost signal
+int subCount;
+int lastsubCount;
+int lostCount=0;
+
 // percent data
 int pTrottle;
 int pYaw;
 int pPitch;
 int pRoll;
 
-// counter incase of lost signal
-int subCount;
-int lastsubCount;
-int lostCount=0;
+// connection and send data espnow
+String comStatus;
+String msgStatus;
 
 // storage xMsg
 // com 1
-typedef struct struct_message{
+typedef struct struct_message_snd{
+  char data[128];
+}struct_message_snd;
+struct_message_snd sndxMsg;
+
+typedef struct struct_message_rcv{
   int trottle;
   int yaw;
   int pitch;
   int roll;
   int mode;
   int count;
-}struct_message;
-struct_message rcvxMsg;
+  char data[128];
+}struct_message_rcv;
+struct_message_rcv rcvxMsg;
 
 // com 2
 String xMsg;
-
-// connection and send data espnow
-String comStatus;
-String msgStatus;
 
 // -------------------- fuctions --------------------
 
@@ -157,13 +167,22 @@ void initespnow(){
 
   // Init ESP-NOW
   if(esp_now_init()!=ESP_OK){
-    Serial.println("Error initializing ESP-NOW");
+    Serial.println("Error Initializing ESP-NOW");
     return;
   }
-  
-  // Once ESPNow is successfully Init, we will register for recv CB to
-  // get recv packer info
-  esp_now_register_recv_cb(OnDataRecv);
+
+  // Register peer
+  memcpy(peerInfo.peer_addr,targetMac,6);
+  peerInfo.channel=0;  
+  peerInfo.encrypt=false;
+  if(esp_now_add_peer(&peerInfo)!=ESP_OK){
+    Serial.println("Failed to add peer");
+    return;
+  }
+
+  // Register callbacks
+  esp_now_register_send_cb(OnDataSent);
+  esp_now_register_recv_cb(reinterpret_cast<esp_now_recv_cb_t>(OnDataRecv));
   delay(500);
 }
 
@@ -206,16 +225,13 @@ void mapMode(int toMode){
 }
 
 // esp-now
-void OnDataRecv(const uint8_t * mac,const uint8_t * incomingData,int len){
-  memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
+void OnDataSent(const uint8_t * mac_addr,esp_now_send_status_t status){
+  if(status==ESP_NOW_SEND_SUCCESS)comStatus="ok!";
+  else comStatus="bd!";
+}
 
-  // processed data
-  Trottle=rcvxMsg.trottle;
-  Yaw=rcvxMsg.yaw;
-  Pitch=rcvxMsg.pitch;
-  Roll=rcvxMsg.roll;
-  Mode=rcvxMsg.mode;
-  subCount=rcvxMsg.count;
+void OnDataRecv(const uint8_t *mac_addr,const uint8_t *incomingData,int data_len){
+  memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
 }
 
 // ---------- printing ----------
@@ -224,7 +240,7 @@ void serialDebug(){
   Serial.println("\n");
   Serial.println("-------------------- debug --------------------");
   if(com==1){
-    Serial.println("ESP-NOw");
+    Serial.println("ESP-NOW");
     Serial.printf("Com Status: ");
     Serial.println(comStatus);
     Serial.printf("Msg Status: ");
@@ -287,12 +303,19 @@ void Task1code(void * pvParameters){
 
     // ---------- receive data ----------
 
-    // rcv msg via ESP-NOW
-    if(com==1){}
+    // msg via ESP-NOW
+    if(com==1){
+      // processed data
+      Trottle=rcvxMsg.trottle;
+      Yaw=rcvxMsg.yaw;
+      Pitch=rcvxMsg.pitch;
+      Roll=rcvxMsg.roll;
+      Mode=rcvxMsg.mode;
+      subCount=rcvxMsg.count;
+    }
 
-    // rcv msg via request
+    // msg via request
     if(com==2){
-
       // raw data
       rTrottle=xMsg.substring(2,6);
       rYaw=xMsg.substring(6,10);
@@ -309,6 +332,8 @@ void Task1code(void * pvParameters){
       Mode=rMode.toInt();
       subCount=rCount.toInt();
     }
+    
+    // ---------- prepare data ----------
 
     // emergency servo protocol auto land
     if(subCount==lastsubCount){
@@ -364,7 +389,7 @@ void Task1code(void * pvParameters){
 
     // ---------- debug data ----------
 
-    // srial debug
+    // serial debug
     if(count==0||count==20||count==40||count==60||count==80)serialDebug(); // enable this for long debug
     //serialDebug(); // enable this for short debug if delay != 1000 = fast
 
@@ -381,10 +406,17 @@ void Task1code(void * pvParameters){
 void Task2code(void * pvParameters){
   for(;;){
 
-    // rcv msg via ESP-NOW
-    if(com==1){}
+    // ---------- send data ----------
 
-    // rcv msg via request
+    // msg via ESP-NOW
+    if(com==1){
+      esp_err_t result;
+      result=esp_now_send(targetMac,(uint8_t *)&sndxMsg,sizeof(sndxMsg)); 
+      if(result==ESP_OK)msgStatus="1";
+      else msgStatus="0";
+    }
+
+    // msg via request
     if(com==2)initserver();
 
     // disable delay on task 2 wen normal run
@@ -399,6 +431,7 @@ void setup(){
   // put your setup code here, to run once:
   // Initialize Serial Monitor
   Serial.begin(115200);
+  Serial2.begin(9600,SERIAL_8N1, RXD, TXD);
 
   if(com==1){
     // intCom1 ESP-NOW
