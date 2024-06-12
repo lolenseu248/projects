@@ -1,4 +1,3 @@
-// v1.0
 // Reciever
 // @lolenseu
 // https:github.com/lolenseu
@@ -7,7 +6,7 @@
 
 #include <WiFi.h>
 #include <esp_now.h>
-#include <ESP32Servo.h>
+#include <Servo.h>
 #include <HTTPClient.h>
 
 // led pinout
@@ -26,6 +25,24 @@
 
 // -------------------- variables --------------------
 
+// ---------- manualvar ----------
+
+// com config
+int com=1; // set 1 if ESP-NOw and 2 if SERVER (internet)
+
+// com ESP-NOW
+uint8_t myMac[]={0x40,0x22,0xD8,0x03,0x2E,0x50};
+uint8_t targetMac[]={0x40,0x22,0xD8,0x08,0xBB,0x48};
+
+// wificonfig
+const char* ssid="Onahs!-Hotspot-AP";
+const char* pass="0x2m0q9G0z7VLIZjdHuCTMXwCU2NywNT";
+
+// com server
+String serverUrl="https://blynk.cloud/external/api/get?token=Z28VmfqlAHMfu1cQrnFKYZ5RFfK0lyXP&v0";
+
+// ---------- fixvar ----------
+
 // task
 TaskHandle_t Task1;
 TaskHandle_t Task2;
@@ -36,19 +53,8 @@ int count=0;
 // blinkcount
 int blinkCount=0;
 
-// com config
-int com=1; // set 1 if ESP-NOw and 2 if SERVER (internet)
-
-// com ESP-NOW
-uint8_t myMac[]={0x40,0x22,0xD8,0x03,0x2E,0x50};
-uint8_t targetMac[]={0x40,0x22,0xD8,0x08,0xBB,0x48};
-
 // peerinfo
 esp_now_peer_info_t peerInfo;
-
-// wificonfig
-const char* ssid="Onahs!-Hotspot-AP";
-const char* pass="0x2m0q9G0z7VLIZjdHuCTMXwCU2NywNT";
 
 // server connection 
 HTTPClient http;
@@ -60,9 +66,6 @@ int server;
 long int time1;
 long int time2;
 long int timePing;
-
-// com server
-String serverName="https://blynk.cloud/external/api/get?token=Z28VmfqlAHMfu1cQrnFKYZ5RFfK0lyXP&v0";
 
 // servo
 Servo servo1;
@@ -122,38 +125,6 @@ String msgStatus;
 
 // ---------- startup ----------
 
-// version
-void initVerInfo(){
-  Serial.println("");
-  Serial.println("v1.0");
-  Serial.println("Reciever");
-  Serial.println("@lolenseu");
-  Serial.println("https://github.com/lolenseu");
-  Serial.println("");
-  delay(2000);
-}
-
-// initlogo
-void initLogo() {
-  Serial.println("");
-  Serial.println("     ⠀⠀⠀⠀⠀⣀⣀⣀⣀⣠⣤⣤⣄⣀⣀⣀⣀⠀⠀⠀⠀⠀     ");
-  Serial.println("     ⢀⣠⣶⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣶⣄⡀     ");
-  Serial.println("     ⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷     ");
-  Serial.println("     ⣿⣿⣿⡿⠛⠉⠉⠙⠿⣿⣿⣿⣿⠿⠋⠉⠉⠛⢿⣿⣿⣿     ");
-  Serial.println("     ⣿⣿⣿⣶⣿⣿⣿⣦⠀⢘⣿⣿⡃⠀⣴⣿⣿⣿⣶⣿⣿⣿     ");
-  Serial.println("     ⣿⣿⣿⣏⠉⠀⠈⣙⣿⣿⣿⣿⣿⣿⣋⠁⠀⠉⣹⣿⣿⣿     ");
-  Serial.println("     ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿     ");
-  Serial.println("     ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿     ");
-  Serial.println("     ⢸⣿⣿⣎⠻⣿⣿⣿⣿⡿⠋⠙⢿⣿⣿⣿⣿⠟⣱⣿⣿⡇     ");
-  Serial.println("     ⠀⢿⣿⣿⣧⠀⠉⠉⠉⠀⢀⡀⠀⠉⠉⠉⠀⣼⣿⣿⡿⠀     ");
-  Serial.println("     ⠀⠈⢻⣿⣿⣷⣶⣶⣶⣶⣿⣿⣶⣶⣶⣶⣾⣿⣿⡟⠁⠀     ");
-  Serial.println("     ⠀⠀⠀⠹⣿⣿⣿⣿⣿⣿⠉⠉⣿⣿⣿⣿⣿⣿⠏⠀⠀⠀     ");
-  Serial.println("     ⠀⠀⠀⠀⠈⠻⣿⣿⣿⣿⠀⠀⣿⣿⣿⣿⠟⠁⠀⠀⠀⠀     ");
-  Serial.println("     ⠀⠀⠀⠀⠀⠀⠀⠙⠻⢿⣦⣴⡿⠟⠋⠀⠀⠀⠀         ");
-  Serial.println("");
-  delay(3000);
-}
-
 // initBoot
 void initBoot(){
   Serial.println("");
@@ -203,7 +174,7 @@ void initserver(){
   time1=millis();
 
   // rcvmsg to server
-  String serverPath=serverName;
+  String serverPath=serverUrl;
   http.begin(serverPath);
   server=http.GET();
   if(server>0)xMsg=http.getString();
@@ -303,7 +274,7 @@ void serialDebug(){
 void Task1code(void * pvParameters){
   for (;;) {
     // counter and buzzer
-    if(count==100)count=0,tone(BUZZER1,3500,250);
+    if(count==100)count=-1,tone(BUZZER1,3500,250);
     count+=1;
 
     // led blinker
@@ -348,16 +319,16 @@ void Task1code(void * pvParameters){
         }
 
         // stay on position
-        Trottle=1700; // increase hight by 20%
+        Trottle=1720; // increase hight by 20%
         Yaw=1500;
         Pitch=1500;
         Roll=1500;
-        Mode=1520; // Loiter mode
+        Mode=1540; // Loiter mode
       }
       if(lostCount>=2000){
 
         // buzzer warning for return to land
-        if(count==1||count==26||count==51||count==76)tone(BUZZER2,1000,200);
+        if(count==0||count==25||count==50||count==75)tone(BUZZER2,1000,200);
 
         // led warning
         if(count==76)digitalWrite(LED, HIGH);
@@ -369,7 +340,7 @@ void Task1code(void * pvParameters){
         lostCount=10000;
 
         // buzzer warning for search if lost
-        if(count==11||count==36||count==61||count==86)tone(BUZZER2,200,200);
+        if(count==10||count==35||count==60||count==85)tone(BUZZER2,200,200);
       }
     }
     else{
@@ -394,7 +365,7 @@ void Task1code(void * pvParameters){
     // ---------- debug data ----------
 
     // srial debug
-    if(count==1||count==26||count==51||count==76)serialDebug(); // enable this for long debug
+    if(count==0||count==20||count==40||count==60||count==80)serialDebug(); // enable this for long debug
     //serialDebug(); // enable this for short debug if delay != 1000 = fast
 
     // delay
@@ -428,10 +399,6 @@ void setup(){
   // put your setup code here, to run once:
   // Initialize Serial Monitor
   Serial.begin(115200);
-
-  // startup
-  initVerInfo(); // version
-  initLogo(); // logo
 
   if(com==1){
     // intCom1 ESP-NOW
