@@ -12,27 +12,27 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-// screen initiation
-Adafruit_SSD1306 display(128,64,&Wire,-1);
-
-// joystic pinoutss
-#define joyX1 33
-#define joyY1 32
-#define joySW1 25
-
-#define joyX2 34
-#define joyY2 35
-#define joySW2 26
-
-//potentiometer pinouts
-#define potenMeter1 36
-#define potenMeter2 39
-
-//toggle switchs
+//toggle pinout
 #define togSW1 19
 #define togSW2 18
 #define togSW3 2
 #define togSW4 15
+
+// joystic pinout
+#define joySW1 25
+#define joyX1 33
+#define joyY1 32
+
+#define joySW2 26
+#define joyX2 34
+#define joyY2 35
+
+//potentiometer pinout
+#define potenMeter1 36
+#define potenMeter2 39
+
+// screen initiation
+Adafruit_SSD1306 display(128,64,&Wire,-1);
 
 // -------------------- variables --------------------
 
@@ -73,23 +73,23 @@ long int time2;
 long int timePing;
 
 // raw data
-// joystic inputs
-int joyX1Pos;
-int joyY1Pos;
-int joySW1State;
-int joyX2Pos;
-int joyY2Pos;
-int joySW2State;
-
-// potentiometer inputs
-int potenM1Pos;
-int potenM2Pos;
-
-// toggle
+// toggle inputs
 int togSW1State;
 int togSW2State;
 int togSW3State;
 int togSW4State;
+
+// joystic inputs
+int joySW1State;
+int joyX1Pos;
+int joyY1Pos;
+int joySW2State;
+int joyX2Pos;
+int joyY2Pos;
+
+// potentiometer inputs
+int potenM1Pos;
+int potenM2Pos;
 
 // mapped data
 // joystic maps
@@ -124,24 +124,30 @@ int pYaw;
 int pPitch;
 int pRoll;
 
+// connection and send data espnow
+String comStatus;
+String msgStatus;
+
 // storage xMsg
 // com 1
-typedef struct struct_message{
+typedef struct struct_message_snd{
   int trottle;
   int yaw;
   int pitch;
   int roll;
   int mode;
   int count;
-}struct_message;
-struct_message sndxMsg;
+  char data[128];
+}struct_message_snd;
+struct_message_snd sndxMsg;
+
+typedef struct struct_message_rcv{
+  char data[128];
+}struct_message_rcv;
+struct_message_rcv rcvxMsg;
 
 // com 2
 String xMsg;
-
-// connection and send data espnow
-String comStatus;
-String msgStatus;
 
 // -------------------- fuctions --------------------
 
@@ -207,10 +213,6 @@ void initespnow(){
     return;
   }
 
-  // Once ESPNow is successfully Init, we will register for Send CB to
-  // get the status of Trasnmitted packet
-  esp_now_register_send_cb(OnDataSent);
-
   // Register peer
   memcpy(peerInfo.peer_addr,targetMac,6);
   peerInfo.channel=0;  
@@ -219,6 +221,10 @@ void initespnow(){
     Serial.println("Failed to add peer");
     return;
   }
+
+  // Register callbacks
+  esp_now_register_send_cb(OnDataSent);
+  esp_now_register_recv_cb(reinterpret_cast<esp_now_recv_cb_t>(OnDataRecv));
   delay(500);
 }
 
@@ -300,6 +306,12 @@ int setRoll(int toRoll){
   return Roll;
 }
 
+// map to percent
+int mapPercent(int toMapPercent){
+  int mapValuePercent=map(toMapPercent,1000,2000,0,100);
+  return mapValuePercent;
+}
+
 // mapmode
 void mapMode(int toMode){
   int mapMode=map(toMode,1000,2000,1000,2000);
@@ -311,16 +323,14 @@ void mapMode(int toMode){
   else if(mapMode>1750&&mapMode<2000)Mods="Land";
 }
 
-// map to percent
-int mapPercent(int toMapPercent){
-  int mapValuePercent=map(toMapPercent,1000,2000,0,100);
-  return mapValuePercent;
-}
-
 // esp-now
-void OnDataSent(const uint8_t * mac_addr,esp_now_send_status_t status){
+void OnDataSent(const uint8_t *mac_addr,esp_now_send_status_t status){
   if(status==ESP_NOW_SEND_SUCCESS)comStatus="ok!";
   else comStatus="bd!";
+}
+
+void OnDataRecv(const uint8_t *mac_addr,const uint8_t *incomingData,int data_len){
+  memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
 }
 
 // ---------- printing ----------
@@ -478,33 +488,32 @@ void serialDebug(){
 
 void Task1code(void * pvParameters){
   for(;;){
-
-    // counter and buzzer
+    // counter
     if(count==100)count=-1;
     count+=1;
 
     // ---------- prepare data ----------
     
     // raw data
-    // read X,Y and SW analog values of joystic no.1
-    joyX1Pos=analogRead(joyX1);
-    joyY1Pos=analogRead(joyY1);
-    joySW1State=digitalRead(joySW1);
-
-    // read X,Y and SW analog values of joystic no.2
-    joyX2Pos=analogRead(joyX2);
-    joyY2Pos=analogRead(joyY2);
-    joySW2State=digitalRead(joySW2);
-
-    // read potentiometer analog values
-    potenM1Pos=analogRead(potenMeter1);
-    potenM2Pos=analogRead(potenMeter2);
-
     // read toglle input value
     togSW1State=digitalRead(togSW1);
     togSW2State=digitalRead(togSW2);
     togSW3State=digitalRead(togSW3);
     togSW4State=digitalRead(togSW4);
+
+    // read X,Y and SW analog values of joystic no.1
+    joySW1State=digitalRead(joySW1);
+    joyX1Pos=analogRead(joyX1);
+    joyY1Pos=analogRead(joyY1);
+
+    // read X,Y and SW analog values of joystic no.2
+    joySW2State=digitalRead(joySW2);
+    joyX2Pos=analogRead(joyX2);
+    joyY2Pos=analogRead(joyY2);
+
+    // read potentiometer analog values
+    potenM1Pos=analogRead(potenMeter1);
+    potenM2Pos=analogRead(potenMeter2);
 
     // mapped data
     // mapped joystic values of joystic no.1
@@ -577,20 +586,25 @@ void Task1code(void * pvParameters){
       }
     }
 
-    // ----- position fix -----
+    // fix yaw position 
     Yaw=map(Yaw,1000,2000,2000,1000);
 
-    // set value to send
-    // com 1
-    sndxMsg.trottle=Trottle;
-    sndxMsg.yaw=Yaw;
-    sndxMsg.pitch=Pitch;
-    sndxMsg.roll=Roll;
-    sndxMsg.mode=Mode;
-    sndxMsg.count=count;
+    // ---------- send data ----------
 
-    // com 2
-    xMsg=String(Trottle)+String(Yaw)+String(Pitch)+String(Roll)+String(Mode)+String(count);
+    // msg via ESP-NOW
+    if(com==1){
+      sndxMsg.trottle=Trottle;
+      sndxMsg.yaw=Yaw;
+      sndxMsg.pitch=Pitch;
+      sndxMsg.roll=Roll;
+      sndxMsg.mode=Mode;
+      sndxMsg.count=count;
+    }
+
+    // msg via request
+    if(com==2){
+      xMsg=String(Trottle)+String(Yaw)+String(Pitch)+String(Roll)+String(Mode)+String(count);
+    }
 
     // percent data
     pSpeed=mapPercent(potenM2Poss);
@@ -609,7 +623,7 @@ void Task1code(void * pvParameters){
     // oleddisplay2
     else if(togSW3State==LOW)oledScreen1();
 
-    // srial debug
+    // serial debug
     if(count==0||count==20||count==40||count==60||count==80)serialDebug(); // enable this for long debug
     //serialDebug(); // enable this for short debug if delay != 1000 = fast
 
@@ -628,7 +642,7 @@ void Task2code(void * pvParameters){
 
     // ---------- send data ----------
 
-    // send msg via ESP-NOW
+    // msg via ESP-NOW
     if(com==1){
       esp_err_t result;
       result=esp_now_send(targetMac,(uint8_t *)&sndxMsg,sizeof(sndxMsg)); 
@@ -636,7 +650,7 @@ void Task2code(void * pvParameters){
       else msgStatus="0";
     }
 
-    // send msg via request
+    // msg via request
     if(com==2)initserver(xMsg);
 
     // disable delay on task 2 wen normal run
@@ -669,16 +683,16 @@ void setup(){
     // intCom2 Internet
     initserver("0x00");
   }
-  
-  // joystick switch
-  pinMode(joySW1,INPUT);
-  pinMode(joySW2,INPUT);
 
   // toggle switch
   pinMode(togSW1,INPUT_PULLUP);
   pinMode(togSW2,INPUT_PULLUP);
   pinMode(togSW3,INPUT_PULLUP);
   pinMode(togSW4,INPUT_PULLUP);
+  
+  // joystick switch
+  pinMode(joySW1,INPUT);
+  pinMode(joySW2,INPUT);
 
   initBoot(); // boot
 
