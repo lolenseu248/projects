@@ -35,7 +35,8 @@
 int com=1; // set 1 if ESP-NOw and 2 if SERVER (internet)
 
 // com ESP-NOW
-uint8_t myMac[]={0x40,0x22,0xD8,0x03,0x2E,0x50};
+//uint8_t myMac[]={0x40,0x22,0xD8,0x03,0x2E,0x50};
+uint8_t myMac[]={0x40,0x22,0xD8,0x05,0x68,0xB2};
 uint8_t targetMac[]={0x40,0x22,0xD8,0x08,0xBB,0x48};
 
 // wificonfig
@@ -48,11 +49,12 @@ String serverUrl="https://blynk.cloud/external/api/get?token=Z28VmfqlAHMfu1cQrnF
 // ---------- fixvar ----------
 
 // task
-TaskHandle_t Task1;
-TaskHandle_t Task2;
+TaskHandle_t cpu1;
+TaskHandle_t cpu2;
 
-// count
-int count=0;
+// counter
+int loop1=0;
+int loop2=0;
 
 // blinkcount
 int blinkCount=0;
@@ -123,7 +125,7 @@ typedef struct struct_message_rcv{
   int pitch;
   int roll;
   int mode;
-  int count;
+  int loop1;
   char data[128];
 }struct_message_rcv;
 struct_message_rcv rcvxMsg;
@@ -281,7 +283,8 @@ void serialDebug(){
   Serial.printf("LostbCount: %d\n",lostCount);
   Serial.println("");
   Serial.println("Official Counter");
-  Serial.printf("Count: %d\n",count);
+  Serial.printf("Cpu1: %d\n",loop1);
+  Serial.printf("Cpu2: %d\n",loop2);
   Serial.println("-------------------- debug --------------------");
 }
 
@@ -289,9 +292,9 @@ void serialDebug(){
 
 void Task1code(void * pvParameters){
   for (;;) {
-    // counter and buzzer
-    if(count==100)count=-1,tone(BUZZER1,3500,250);
-    count+=1;
+    // cpu1 counter and buzzer
+    loop1+=1;
+    if(loop1==100)loop1=0,tone(BUZZER1,3500,250);
 
     // led blinker
     if(blinkCount==5)digitalWrite(LED, HIGH);
@@ -311,7 +314,15 @@ void Task1code(void * pvParameters){
       Pitch=rcvxMsg.pitch;
       Roll=rcvxMsg.roll;
       Mode=rcvxMsg.mode;
-      subCount=rcvxMsg.count;
+      subCount=rcvxMsg.loop1;
+
+      // serial uart
+      while(Serial.available()>=sizeof(sndxMsg.data)){
+        Serial.readBytes(sndxMsg.data,sizeof(sndxMsg.data));
+      }
+      if(Serial.availableForWrite()>=sizeof(rcvxMsg.data)){
+        Serial.write(rcvxMsg.data,sizeof(rcvxMsg.data));
+      }
     }
 
     // msg via request
@@ -340,7 +351,7 @@ void Task1code(void * pvParameters){
       lostCount+=1; // lost counter
       if(lostCount>=100){
         if(lostCount>=100&&lostCount<=1900){
-          if(count==1)tone(BUZZER2,1000,200);
+          if(loop1==1)tone(BUZZER2,1000,200);
         }
 
         // stay on position
@@ -353,10 +364,10 @@ void Task1code(void * pvParameters){
       if(lostCount>=2000){
 
         // buzzer warning for return to land
-        if(count==0||count==25||count==50||count==75)tone(BUZZER2,1000,200);
+        if(loop1==0||loop1==25||loop1==50||loop1==75)tone(BUZZER2,1000,200);
 
         // led warning
-        if(count==76)digitalWrite(LED, HIGH);
+        if(loop1==76)digitalWrite(LED, HIGH);
 
         // Return to Land
         Mode=1690; // RTL mode
@@ -365,7 +376,7 @@ void Task1code(void * pvParameters){
         lostCount=10000;
 
         // buzzer warning for search if lost
-        if(count==10||count==35||count==60||count==85)tone(BUZZER2,200,200);
+        if(loop1==10||loop1==35||loop1==60||loop1==85)tone(BUZZER2,200,200);
       }
     }
     else{
@@ -390,7 +401,7 @@ void Task1code(void * pvParameters){
     // ---------- debug data ----------
 
     // serial debug
-    if(count==0||count==20||count==40||count==60||count==80)serialDebug(); // enable this for long debug
+    if(loop1==0||loop1==20||loop1==40||loop1==60||loop1==80)serialDebug(); // enable this for long debug
     //serialDebug(); // enable this for short debug if delay != 1000 = fast
 
     // delay
@@ -405,6 +416,9 @@ void Task1code(void * pvParameters){
 
 void Task2code(void * pvParameters){
   for(;;){
+    // cpu2 counter
+    loop2+=1;
+    if(loop2==100)loop2=0;
 
     // ---------- send data ----------
 
@@ -465,8 +479,8 @@ void setup(){
   delay(300);
 
   // task handler
-  xTaskCreatePinnedToCore(Task1code,"Task1",10000,NULL,2,&Task1,0);
-  xTaskCreatePinnedToCore(Task2code,"Task2",10000,NULL,1,&Task2,1);
+  xTaskCreatePinnedToCore(Task1code,"cpu1",10000,NULL,2,&cpu1,0);
+  xTaskCreatePinnedToCore(Task2code,"cpu2",10000,NULL,1,&cpu2,1);
 }
 
 // -------------------- loop --------------------
