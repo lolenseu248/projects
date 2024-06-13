@@ -39,7 +39,7 @@ Adafruit_SSD1306 display(128,64,&Wire,-1);
 // ---------- manualvar ----------
 
 // com config
-int com=1; // set 1 if ESP-NOw and 2 if SERVER (internet)
+int com=1;  // set 1 if ESP-NOW and 2 if SERVER (internet)
 
 // com ESP-NOW
 uint8_t myMac[]={0x40,0x22,0xD8,0x08,0xBB,0x48};
@@ -131,7 +131,7 @@ String msgStatus;
 
 // storage xMsg
 // com 1
-typedef struct struct_message_snd{
+typedef struct struct_message{
   int trottle;
   int yaw;
   int pitch;
@@ -139,16 +139,14 @@ typedef struct struct_message_snd{
   int mode;
   int loop1;
   char data[128];
-}struct_message_snd;
-struct_message_snd sndxMsg;
+}struct_message;
+struct_message espxMsg;
 
-typedef struct struct_message_rcv{
-  char data[128];
-}struct_message_rcv;
-struct_message_rcv rcvxMsg;
+// uart data
+String uartData;
 
 // com 2
-String xMsg;
+String intxMsg;
 
 // -------------------- fuctions --------------------
 
@@ -331,7 +329,7 @@ void OnDataSent(const uint8_t *mac_addr,esp_now_send_status_t status){
 }
 
 void OnDataRecv(const uint8_t *mac_addr,const uint8_t *incomingData,int data_len){
-  memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
+  memcpy(&espxMsg,incomingData,sizeof(espxMsg));
 }
 
 // ---------- printing ----------
@@ -488,7 +486,7 @@ void serialDebug(){
 
 // -------------------- task1 --------------------
 
-void Task1code(void * pvParameters){
+void Task1code(void *pvParameters){
   for(;;){
     // cpu1 counter
     loop1+=1;
@@ -591,38 +589,30 @@ void Task1code(void * pvParameters){
     // fix yaw position 
     Yaw=map(Yaw,1000,2000,2000,1000);
 
-    // ---------- send data ----------
-
-    // msg via ESP-NOW
-    if(com==1){
-      sndxMsg.trottle=Trottle;
-      sndxMsg.yaw=Yaw;
-      sndxMsg.pitch=Pitch;
-      sndxMsg.roll=Roll;
-      sndxMsg.mode=Mode;
-      sndxMsg.loop1=loop1;
-
-      // serial uart
-      for(int index=0;Serial.available()>0&&index<sizeof(sndxMsg.data);index++){
-        sndxMsg.data[index]=Serial.read();
-      }
-      if(Serial.availableForWrite()>=sizeof(rcvxMsg.data)){
-        Serial.write(rcvxMsg.data,sizeof(rcvxMsg.data));
-      }
-    }
-
-    // msg via request
-    if(com==2){
-      xMsg=String(Trottle)+String(Yaw)+String(Pitch)+String(Roll)+String(Mode)+String(loop1);
-    }
-
     // percent data
     pSpeed=mapPercent(potenM2Poss);
     pTrottle=mapPercent(Trottle);
     pYaw=mapPercent(Yaw);
     pPitch=mapPercent(Pitch);
     pRoll=mapPercent(Roll);
-    mapMode(Mode); 
+    mapMode(Mode);
+
+    // ---------- send data ----------
+
+    // msg via ESP-NOW
+    if(com==1){
+      espxMsg.trottle=Trottle;
+      espxMsg.yaw=Yaw;
+      espxMsg.pitch=Pitch;
+      espxMsg.roll=Roll;
+      espxMsg.mode=Mode;
+      espxMsg.loop1=loop1;
+    }
+
+    // msg via request
+    if(com==2){
+      intxMsg=String(Trottle)+String(Yaw)+String(Pitch)+String(Roll)+String(Mode)+String(loop1);
+    }
 
     // ---------- debug data ----------
 
@@ -647,7 +637,7 @@ void Task1code(void * pvParameters){
 
 // -------------------- task2 --------------------
 
-void Task2code(void * pvParameters){
+void Task2code(void *pvParameters){
   for(;;){
     // cpu2 counter
     loop2+=1;
@@ -658,13 +648,13 @@ void Task2code(void * pvParameters){
     // msg via ESP-NOW
     if(com==1){
       esp_err_t result;
-      result=esp_now_send(targetMac,(uint8_t *)&sndxMsg,sizeof(sndxMsg)); 
+      result=esp_now_send(targetMac,(uint8_t *)&espxMsg,sizeof(espxMsg)); 
       if(result==ESP_OK)msgStatus="1";
       else msgStatus="0";
     }
 
     // msg via request
-    if(com==2)initserver(xMsg);
+    if(com==2)initserver(intxMsg);
 
     // disable delay on task 2 wen normal run
     //delay(1000); // debug delay

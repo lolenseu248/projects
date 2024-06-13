@@ -32,7 +32,7 @@
 // ---------- manualvar ----------
 
 // com config
-int com=1; // set 1 if ESP-NOw and 2 if SERVER (internet)
+int com=1; // set 1 if ESP-NOW and 2 if SERVER (internet)
 
 // com ESP-NOW
 uint8_t myMac[]={0x40,0x22,0xD8,0x03,0x2E,0x50};
@@ -113,12 +113,7 @@ String msgStatus;
 
 // storage xMsg
 // com 1
-typedef struct struct_message_snd{
-  char data[128];
-}struct_message_snd;
-struct_message_snd sndxMsg;
-
-typedef struct struct_message_rcv{
+typedef struct struct_message{
   int trottle;
   int yaw;
   int pitch;
@@ -126,11 +121,15 @@ typedef struct struct_message_rcv{
   int mode;
   int loop1;
   char data[128];
-}struct_message_rcv;
-struct_message_rcv rcvxMsg;
+}struct_message;
+struct_message espxMsg;
+
+// uart data
+String uartData;
+
 
 // com 2
-String xMsg;
+String intxMsg;
 
 // -------------------- fuctions --------------------
 
@@ -197,7 +196,7 @@ void initserver(){
   String serverPath=serverUrl;
   http.begin(serverPath);
   server=http.GET();
-  if(server>0)xMsg=http.getString();
+  if(server>0)intxMsg=http.getString();
 
   // time for end ping
   time2=millis();
@@ -226,13 +225,13 @@ void mapMode(int toMode){
 }
 
 // esp-now
-void OnDataSent(const uint8_t * mac_addr,esp_now_send_status_t status){
+void OnDataSent(const uint8_t *mac_addr,esp_now_send_status_t status){
   if(status==ESP_NOW_SEND_SUCCESS)comStatus="ok!";
   else comStatus="bd!";
 }
 
 void OnDataRecv(const uint8_t *mac_addr,const uint8_t *incomingData,int data_len){
-  memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
+  memcpy(&espxMsg,incomingData,sizeof(espxMsg));
 }
 
 // ---------- printing ----------
@@ -289,17 +288,17 @@ void serialDebug(){
 
 // -------------------- task1 --------------------
 
-void Task1code(void * pvParameters){
-  for (;;) {
+void Task1code(void *pvParameters){
+  for(;;){
     // cpu1 counter and buzzer
     loop1+=1;
     if(loop1==100)loop1=0,tone(BUZZER1,3500,250);
 
     // led blinker
-    if(blinkCount==5)digitalWrite(LED, HIGH);
-    if(blinkCount==10)digitalWrite(LED, LOW);
-    if(blinkCount==15)digitalWrite(LED, HIGH);
-    if(blinkCount==20)digitalWrite(LED, LOW);
+    if(blinkCount==5)digitalWrite(LED,HIGH);
+    if(blinkCount==10)digitalWrite(LED,LOW);
+    if(blinkCount==15)digitalWrite(LED,HIGH);
+    if(blinkCount==20)digitalWrite(LED,LOW);
     if(blinkCount==200)blinkCount=0;
     blinkCount+=1;
 
@@ -308,31 +307,23 @@ void Task1code(void * pvParameters){
     // msg via ESP-NOW
     if(com==1){
       // processed data
-      Trottle=rcvxMsg.trottle;
-      Yaw=rcvxMsg.yaw;
-      Pitch=rcvxMsg.pitch;
-      Roll=rcvxMsg.roll;
-      Mode=rcvxMsg.mode;
-      subCount=rcvxMsg.loop1;
-
-      // serial uart
-      for(int index=0;Serial.available()>0&&index<sizeof(sndxMsg.data);index++){
-        sndxMsg.data[index]=Serial.read();
-      }
-      if(Serial.availableForWrite()>=sizeof(rcvxMsg.data)){
-        Serial.write(rcvxMsg.data,sizeof(rcvxMsg.data));
-      }
+      Trottle=espxMsg.trottle;
+      Yaw=espxMsg.yaw;
+      Pitch=espxMsg.pitch;
+      Roll=espxMsg.roll;
+      Mode=espxMsg.mode;
+      subCount=espxMsg.loop1;
     }
 
     // msg via request
     if(com==2){
       // raw data
-      rTrottle=xMsg.substring(2,6);
-      rYaw=xMsg.substring(6,10);
-      rPitch=xMsg.substring(10,14);
-      rRoll=xMsg.substring(14,18);
-      rMode=xMsg.substring(18,22);
-      rCount=xMsg.substring(22,24);
+      rTrottle=intxMsg.substring(2,6);
+      rYaw=intxMsg.substring(6,10);
+      rPitch=intxMsg.substring(10,14);
+      rRoll=intxMsg.substring(14,18);
+      rMode=intxMsg.substring(18,22);
+      rCount=intxMsg.substring(22,24);
 
       // processed data
       Trottle=rTrottle.toInt();
@@ -366,7 +357,7 @@ void Task1code(void * pvParameters){
         if(loop1==0||loop1==25||loop1==50||loop1==75)tone(BUZZER2,1000,200);
 
         // led warning
-        if(loop1==76)digitalWrite(LED, HIGH);
+        if(loop1==76)digitalWrite(LED,HIGH);
 
         // Return to Land
         Mode=1690; // RTL mode
@@ -383,19 +374,19 @@ void Task1code(void * pvParameters){
       lostCount=0;
     }
 
-    // write servo
-    servo1.write(Trottle);
-    servo2.write(Yaw);
-    servo3.write(Pitch);
-    servo4.write(Roll);
-    servo5.write(Mode);
-
     // percent data
     pTrottle=mapPercent(Trottle);
     pYaw=mapPercent(Yaw);
     pPitch=mapPercent(Pitch);
     pRoll=mapPercent(Roll);
     mapMode(Mode);
+
+    // write servo
+    servo1.write(Trottle);
+    servo2.write(Yaw);
+    servo3.write(Pitch);
+    servo4.write(Roll);
+    servo5.write(Mode);
 
     // ---------- debug data ----------
 
@@ -413,7 +404,7 @@ void Task1code(void * pvParameters){
 
 // -------------------- task2 --------------------
 
-void Task2code(void * pvParameters){
+void Task2code(void *pvParameters){
   for(;;){
     // cpu2 counter
     loop2+=1;
@@ -424,7 +415,7 @@ void Task2code(void * pvParameters){
     // msg via ESP-NOW
     if(com==1){
       esp_err_t result;
-      result=esp_now_send(targetMac,(uint8_t *)&sndxMsg,sizeof(sndxMsg)); 
+      result=esp_now_send(targetMac,(uint8_t *)&espxMsg,sizeof(espxMsg)); 
       if(result==ESP_OK)msgStatus="1";
       else msgStatus="0";
     }
@@ -444,7 +435,7 @@ void setup(){
   // put your setup code here, to run once:
   // Initialize Serial Monitor
   Serial.begin(115200);
-  Serial2.begin(9600,SERIAL_8N1, RXD, TXD);
+  Serial2.begin(57600,SERIAL_8N1,RXD,TXD);
 
   if(com==1){
     // intCom1 ESP-NOW
