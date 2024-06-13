@@ -603,8 +603,8 @@ void Task1code(void * pvParameters){
       sndxMsg.loop1=loop1;
 
       // serial uart
-      while(Serial.available()>=sizeof(sndxMsg.data)){
-        Serial.readBytes(sndxMsg.data,sizeof(sndxMsg.data));
+      for(int index=0;Serial.available()>0&&index<sizeof(sndxMsg.data);index++){
+        sndxMsg.data[index]=Serial.read();
       }
       if(Serial.availableForWrite()>=sizeof(rcvxMsg.data)){
         Serial.write(rcvxMsg.data,sizeof(rcvxMsg.data));
