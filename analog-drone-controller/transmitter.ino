@@ -43,7 +43,8 @@ int com=1; // set 1 if ESP-NOw and 2 if SERVER (internet)
 
 // com ESP-NOW
 uint8_t myMac[]={0x40,0x22,0xD8,0x08,0xBB,0x48};
-uint8_t targetMac[]={0x40,0x22,0xD8,0x03,0x2E,0x50};
+//uint8_t targetMac[]={0x40,0x22,0xD8,0x03,0x2E,0x50};
+uint8_t targetMac[]={0x40,0x22,0xD8,0x05,0x68,0xB2};
 
 // wificonfig
 const char* ssid="Onahs!-Hotspot-AP";
@@ -55,11 +56,12 @@ String serverUrl="https://blynk.cloud/external/api/update?token=Z28VmfqlAHMfu1cQ
 // ---------- fixvar ----------
 
 // task
-TaskHandle_t Task1;
-TaskHandle_t Task2;
+TaskHandle_t cpu1;
+TaskHandle_t cpu2;
 
-// count
-int count=0;
+// counter
+int loop1=0;
+int loop2=0;
 
 // peerinfo
 esp_now_peer_info_t peerInfo;
@@ -136,7 +138,7 @@ typedef struct struct_message_snd{
   int pitch;
   int roll;
   int mode;
-  int count;
+  int loop1;
   char data[128];
 }struct_message_snd;
 struct_message_snd sndxMsg;
@@ -378,7 +380,7 @@ void oledScreen1(){
   display.print("%");
   display.setCursor(0,50);
   display.print("Count: ");
-  display.print(count);
+  display.print(loop1);
   display.display();
 }
 
@@ -427,7 +429,7 @@ void oledScreen2(){
   display.print(potenM2Poss);  
   display.setCursor(0,50);
   display.print("Count: ");
-  display.print(count);
+  display.print(loop1);
   display.display();
 }
 
@@ -480,7 +482,8 @@ void serialDebug(){
   Serial.printf("Mode: %s\n",Mods);
   Serial.println("");
   Serial.println("Official Counter");
-  Serial.printf("Count: %d\n",count);
+  Serial.printf("Cpu1: %d\n",loop1);
+  Serial.printf("Cpu2: %d\n",loop2);
   Serial.println("-------------------- debug --------------------");
 }
 
@@ -488,9 +491,9 @@ void serialDebug(){
 
 void Task1code(void * pvParameters){
   for(;;){
-    // counter
-    if(count==100)count=-1;
-    count+=1;
+    // cpu1 counter
+    if(loop1==100)loop1=-1;
+    loop1+=1;
 
     // ---------- prepare data ----------
     
@@ -598,12 +601,20 @@ void Task1code(void * pvParameters){
       sndxMsg.pitch=Pitch;
       sndxMsg.roll=Roll;
       sndxMsg.mode=Mode;
-      sndxMsg.count=count;
+      sndxMsg.loop1=loop1;
+
+      // serial uart
+      while(Serial.available()>=sizeof(sndxMsg.data)){
+        Serial.readBytes(sndxMsg.data,sizeof(sndxMsg.data));
+      }
+      if(Serial.availableForWrite()>=sizeof(rcvxMsg.data)){
+        Serial.write(rcvxMsg.data,sizeof(rcvxMsg.data));
+      }
     }
 
     // msg via request
     if(com==2){
-      xMsg=String(Trottle)+String(Yaw)+String(Pitch)+String(Roll)+String(Mode)+String(count);
+      xMsg=String(Trottle)+String(Yaw)+String(Pitch)+String(Roll)+String(Mode)+String(loop1);
     }
 
     // percent data
@@ -624,7 +635,7 @@ void Task1code(void * pvParameters){
     else if(togSW3State==LOW)oledScreen1();
 
     // serial debug
-    if(count==0||count==20||count==40||count==60||count==80)serialDebug(); // enable this for long debug
+    if(loop1==0||loop1==20||loop1==40||loop1==60||loop1==80)serialDebug(); // enable this for long debug
     //serialDebug(); // enable this for short debug if delay != 1000 = fast
 
     // delay
@@ -639,6 +650,9 @@ void Task1code(void * pvParameters){
 
 void Task2code(void * pvParameters){
   for(;;){
+    // cpu2 counter
+    if(loop2==100)loop2=-1;
+    loop2+=1;
 
     // ---------- send data ----------
 
@@ -700,8 +714,8 @@ void setup(){
   delay(300);
 
   // task handler
-  xTaskCreatePinnedToCore(Task1code,"Task1",10000,NULL,2,&Task1,0);
-  xTaskCreatePinnedToCore(Task2code,"Task2",10000,NULL,1,&Task2,1);
+  xTaskCreatePinnedToCore(Task1code,"cpu1",10000,NULL,2,&cpu1,0);
+  xTaskCreatePinnedToCore(Task2code,"cpu2",10000,NULL,1,&cpu2,1);
 }
 
 // -------------------- loop --------------------
