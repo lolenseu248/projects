@@ -492,8 +492,8 @@ void serialDebug(){
 void Task1code(void * pvParameters){
   for(;;){
     // cpu1 counter
-    if(loop1==100)loop1=-1;
     loop1+=1;
+    if(loop1==100)loop1=0;
 
     // ---------- prepare data ----------
     
@@ -651,8 +651,8 @@ void Task1code(void * pvParameters){
 void Task2code(void * pvParameters){
   for(;;){
     // cpu2 counter
-    if(loop2==100)loop2=-1;
     loop2+=1;
+    if(loop2==100)loop2=0;
 
     // ---------- send data ----------
 
