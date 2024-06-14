@@ -5,9 +5,10 @@
 // -------------------- include and define --------------------
 
 #include <WiFi.h>
+#include <MAVLink.h>
 #include <esp_now.h>
 #include <ESP32Servo.h>
-#include <HTTPClient.h>
+#include <HardwareSerial.h>
 
 // led pinout
 #define LED 12
@@ -31,19 +32,9 @@
 
 // ---------- manualvar ----------
 
-// com config
-int com=1; // set 1 if ESP-NOW and 2 if SERVER (internet)
-
-// com ESP-NOW
+// ESP-NOW
 uint8_t myMac[]={0x40,0x22,0xD8,0x03,0x2E,0x50};
 uint8_t targetMac[]={0x40,0x22,0xD8,0x08,0xBB,0x48};
-
-// wificonfig
-const char* ssid="Onahs!-Hotspot-AP";
-const char* pass="0x2m0q9G0z7VLIZjdHuCTMXwCU2NywNT";
-
-// com server
-String serverUrl="https://blynk.cloud/external/api/get?token=Z28VmfqlAHMfu1cQrnFKYZ5RFfK0lyXP&v0";
 
 // ---------- fixvar ----------
 
@@ -60,12 +51,6 @@ int blinkCount=0;
 
 // peerinfo
 esp_now_peer_info_t peerInfo;
-
-// server connection 
-HTTPClient http;
-
-// server response
-int server;
 
 //time for ping
 long int time1;
@@ -107,29 +92,36 @@ int pYaw;
 int pPitch;
 int pRoll;
 
-// connection and send data espnow
-String comStatus;
-String msgStatus;
+// uart buf and len
+struct MavlinkMessage {
+  int len;
+  char buf[128];
+};
+MavlinkMessage MavLinkMsg;
 
-// storage xMsg
-// com 1
-typedef struct struct_message{
+// send_message
+typedef struct send_message{
+  int len;
+  char buf[128];
+};
+send_message sndxMsg;
+
+// recive_message
+typedef struct recive_message{
   int trottle;
   int yaw;
   int pitch;
   int roll;
   int mode;
   int loop1;
-  char data[128];
-}struct_message;
-struct_message espxMsg;
+  int len;
+  char buf[128];
+};
+recive_message rcvxMsg;
 
-// uart data
-String uartData;
-
-
-// com 2
-String intxMsg;
+// connection and send data espnow
+String comStatus;
+String msgStatus;
 
 // -------------------- fuctions --------------------
 
@@ -149,18 +141,7 @@ void initBoot(){
 
 // ---------- connection ----------
 
-// initwifi
-void initWiFi(){
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid,pass);
-  Serial.print("Connecting to WiFi ..");
-  while(WiFi.status()!=WL_CONNECTED){
-    Serial.print(".");
-    delay(500);
-  }
-}
-
-// initcom1
+// init esp-now
 void initespnow(){
   WiFi.mode(WIFI_STA);
   Serial.println("Initiating ESP-NOW ..");
@@ -184,25 +165,6 @@ void initespnow(){
   esp_now_register_send_cb(OnDataSent);
   esp_now_register_recv_cb(reinterpret_cast<esp_now_recv_cb_t>(OnDataRecv));
   delay(500);
-}
-
-// inticom2
-void initserver(){
-
-  // time for start ping
-  time1=millis();
-
-  // rcvmsg to server
-  String serverPath=serverUrl;
-  http.begin(serverPath);
-  server=http.GET();
-  if(server>0)intxMsg=http.getString();
-
-  // time for end ping
-  time2=millis();
-
-  // ping
-  timePing=time2-time1;                                          
 }
 
 // ---------- processing ----------
@@ -231,7 +193,7 @@ void OnDataSent(const uint8_t *mac_addr,esp_now_send_status_t status){
 }
 
 void OnDataRecv(const uint8_t *mac_addr,const uint8_t *incomingData,int data_len){
-  memcpy(&espxMsg,incomingData,sizeof(espxMsg));
+  memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
 }
 
 // ---------- printing ----------
@@ -239,22 +201,12 @@ void OnDataRecv(const uint8_t *mac_addr,const uint8_t *incomingData,int data_len
 void serialDebug(){
   Serial.println("\n");
   Serial.println("-------------------- debug --------------------");
-  if(com==1){
-    Serial.println("ESP-NOW");
-    Serial.printf("Com Status: ");
-    Serial.println(comStatus);
-    Serial.printf("Msg Status: ");
-    Serial.println(msgStatus);
-    Serial.println("");
-  }
-  if(com==2){
-    Serial.println("WiFi");
-    Serial.printf("RSSI: ");
-    Serial.println(WiFi.RSSI());
-    Serial.printf("Ping: ");
-    Serial.println(timePing);
-    Serial.println("");
-  }
+  Serial.println("ESP-NOW");
+  Serial.printf("Com Status: ");
+  Serial.println(comStatus);
+  Serial.printf("Msg Status: ");
+  Serial.println(msgStatus);
+  Serial.println("");
   Serial.println("Raw Data");
   Serial.printf("Trottle: %s\n",rTrottle);
   Serial.printf("Yaw: %s\n",rYaw);
@@ -288,7 +240,7 @@ void serialDebug(){
 
 // -------------------- task1 --------------------
 
-void Task1code(void *pvParameters){
+void Task1code(void*pvParameters){
   for(;;){
     // cpu1 counter and buzzer
     loop1+=1;
@@ -302,39 +254,42 @@ void Task1code(void *pvParameters){
     if(blinkCount==200)blinkCount=0;
     blinkCount+=1;
 
-    // ---------- receive data ----------
+    // ---------- in data ----------
 
-    // msg via ESP-NOW
-    if(com==1){
-      // processed data
-      Trottle=espxMsg.trottle;
-      Yaw=espxMsg.yaw;
-      Pitch=espxMsg.pitch;
-      Roll=espxMsg.roll;
-      Mode=espxMsg.mode;
-      subCount=espxMsg.loop1;
+    // rcvmsg via ESP-NOW
+    // processed data
+    Trottle=rcvxMsg.trottle;
+    Yaw=rcvxMsg.yaw;
+    Pitch=rcvxMsg.pitch;
+    Roll=rcvxMsg.roll;
+    Mode=rcvxMsg.mode;
+    subCount=rcvxMsg.loop1;
+    MavLinkMsg.len=rcvxMsg.len;
+    memcpy(MavLinkMsg.buf,rcvxMsg.buf,sizeof(rcvxMsg.buf));
+
+    // uart srial write
+    if(Serial2.availableForWrite()>=sizeof(MavLinkMsg.len)){
+      Serial2.write(MavLinkMsg.buf,sizeof(MavLinkMsg.len));
     }
 
-    // msg via request
-    if(com==2){
-      // raw data
-      rTrottle=intxMsg.substring(2,6);
-      rYaw=intxMsg.substring(6,10);
-      rPitch=intxMsg.substring(10,14);
-      rRoll=intxMsg.substring(14,18);
-      rMode=intxMsg.substring(18,22);
-      rCount=intxMsg.substring(22,24);
-
-      // processed data
-      Trottle=rTrottle.toInt();
-      Yaw=rYaw.toInt();
-      Pitch=rPitch.toInt();
-      Roll=rRoll.toInt();
-      Mode=rMode.toInt();
-      subCount=rCount.toInt();
+   // uart srial read
+    mavlink_message_t msg;
+    mavlink_status_t status;
+    while(Serial2.available()>0){
+      uint8_t c=Serial2.read();
+      if (mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+        MavLinkMsg.len=mavlink_msg_to_send_buffer((uint8_t*)MavLinkMsg.buf,&msg);
+      }
+    }
+    static unsigned long lastHeartbeatTime=0;
+    if (millis()-lastHeartbeatTime>1000) {
+      lastHeartbeatTime=millis();
+      mavlink_message_t heartbeatMsg;
+      mavlink_msg_heartbeat_pack(1,200,&heartbeatMsg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_ARDUPILOTMEGA,MAV_MODE_PREFLIGHT,0,MAV_STATE_STANDBY);
+      MavLinkMsg.len=mavlink_msg_to_send_buffer((uint8_t*)MavLinkMsg.buf,&msg);
     }
     
-    // ---------- prepare data ----------
+    // ---------- process data ----------
 
     // emergency servo protocol auto land
     if(subCount==lastsubCount){
@@ -374,6 +329,13 @@ void Task1code(void *pvParameters){
       lostCount=0;
     }
 
+    // write servo
+    servo1.write(Trottle);
+    servo2.write(Yaw);
+    servo3.write(Pitch);
+    servo4.write(Roll);
+    servo5.write(Mode);
+
     // percent data
     pTrottle=mapPercent(Trottle);
     pYaw=mapPercent(Yaw);
@@ -381,12 +343,13 @@ void Task1code(void *pvParameters){
     pRoll=mapPercent(Roll);
     mapMode(Mode);
 
-    // write servo
-    servo1.write(Trottle);
-    servo2.write(Yaw);
-    servo3.write(Pitch);
-    servo4.write(Roll);
-    servo5.write(Mode);
+    // ---------- in n out line divider ----------
+
+    // ---------- out data ----------
+
+    // sndmsg via ESP-NOW
+    sndxMsg.len=MavLinkMsg.len;
+    memcpy(sndxMsg.buf,MavLinkMsg.buf,sizeof(MavLinkMsg.buf));
 
     // ---------- debug data ----------
 
@@ -404,7 +367,7 @@ void Task1code(void *pvParameters){
 
 // -------------------- task2 --------------------
 
-void Task2code(void *pvParameters){
+void Task2code(void*pvParameters){
   for(;;){
     // cpu2 counter
     loop2+=1;
@@ -413,15 +376,10 @@ void Task2code(void *pvParameters){
     // ---------- send data ----------
 
     // msg via ESP-NOW
-    if(com==1){
-      esp_err_t result;
-      result=esp_now_send(targetMac,(uint8_t *)&espxMsg,sizeof(espxMsg)); 
-      if(result==ESP_OK)msgStatus="1";
-      else msgStatus="0";
-    }
-
-    // msg via request
-    if(com==2)initserver();
+    esp_err_t result;
+    result=esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg)); 
+    if(result==ESP_OK)msgStatus="1";
+    else msgStatus="0";
 
     // disable delay on task 2 wen normal run
     //delay(1000); // debug delay
@@ -437,17 +395,8 @@ void setup(){
   Serial.begin(115200);
   Serial2.begin(57600,SERIAL_8N1,RXD,TXD);
 
-  if(com==1){
-    // intCom1 ESP-NOW
-    initespnow();
-  }
-  if(com==2){
-    // initWiFi
-    initWiFi();
-
-    // intCom2 Internet
-    initserver();
-  }
+  // int ESP-NOW
+  initespnow();
 
   // led
   pinMode(LED,OUTPUT);

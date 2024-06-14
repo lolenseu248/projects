@@ -7,10 +7,11 @@
 #include <SPI.h>
 #include <WiFi.h>
 #include <Wire.h>
+#include <MAVLink.h>
 #include <esp_now.h>
-#include <HTTPClient.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <HardwareSerial.h>
 
 //toggle pinout
 #define togSW1 19
@@ -38,19 +39,9 @@ Adafruit_SSD1306 display(128,64,&Wire,-1);
 
 // ---------- manualvar ----------
 
-// com config
-int com=1;  // set 1 if ESP-NOW and 2 if SERVER (internet)
-
-// com ESP-NOW
+// ESP-NOW
 uint8_t myMac[]={0x40,0x22,0xD8,0x08,0xBB,0x48};
 uint8_t targetMac[]={0x40,0x22,0xD8,0x03,0x2E,0x50};
-
-// wificonfig
-const char* ssid="Onahs!-Hotspot-AP";
-const char* pass="0x2m0q9G0z7VLIZjdHuCTMXwCU2NywNT";
-
-// com server
-String serverUrl="https://blynk.cloud/external/api/update?token=Z28VmfqlAHMfu1cQrnFKYZ5RFfK0lyXP&v0=";
 
 // ---------- fixvar ----------
 
@@ -64,9 +55,6 @@ int loop2=0;
 
 // peerinfo
 esp_now_peer_info_t peerInfo;
-
-// server connection 
-HTTPClient http;
 
 //time for ping
 long int time1;
@@ -125,28 +113,36 @@ int pYaw;
 int pPitch;
 int pRoll;
 
-// connection and send data espnow
-String comStatus;
-String msgStatus;
+// uart buf and len
+struct MavlinkMessage {
+  int len;
+  char buf[128];
+};
+MavlinkMessage MavLinkMsg;
 
-// storage xMsg
-// com 1
-typedef struct struct_message{
+// send_message
+typedef struct send_message{
   int trottle;
   int yaw;
   int pitch;
   int roll;
   int mode;
   int loop1;
-  char data[128];
-}struct_message;
-struct_message espxMsg;
+  int len;
+  char buf[128];
+};
+send_message sndxMsg;
 
-// uart data
-String uartData;
+// recive_message
+typedef struct recive_message{
+  int len;
+  char buf[128];
+};
+recive_message rcvxMsg;
 
-// com 2
-String intxMsg;
+// connection and send data espnow
+String comStatus;
+String msgStatus;
 
 // -------------------- fuctions --------------------
 
@@ -169,39 +165,7 @@ void initBoot(){
 
 // ---------- connection ----------
 
-// connecting animation
-void conAni(){
-  int conAniDelay=200;
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
-  display.setCursor(20,20);
-  display.print(" Connecting .");
-  display.display();
-  delay(conAniDelay);
-  display.setCursor(20,20);
-  display.print(" Connecting ..");
-  display.display();
-  delay(conAniDelay);
-  display.setCursor(20,20);
-  display.print(" Connecting ...");
-  display.display();
-  delay(conAniDelay);
-}
-
-// initwifi
-void initWiFi(){
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid,pass);
-  Serial.print("Connecting to WiFi ..");
-  while(WiFi.status()!=WL_CONNECTED){
-    Serial.print(".");
-    conAni();
-    delay(500);
-  }
-}
-
-// initcom1
+// init esp-now
 void initespnow(){
   WiFi.mode(WIFI_STA);
   Serial.println("Initiating ESP-NOW ..");
@@ -225,24 +189,6 @@ void initespnow(){
   esp_now_register_send_cb(OnDataSent);
   esp_now_register_recv_cb(reinterpret_cast<esp_now_recv_cb_t>(OnDataRecv));
   delay(500);
-}
-
-// inticom2
-void initserver(String sendData){
-
-  // time for start ping
-  time1=millis();
-
-  // sendmsg to server
-  String serverPath=serverUrl+"\"0x"+sendData+"\"";
-  http.begin(serverPath);     
-  http.GET();
-
-  // time for end ping
-  time2=millis();  
-
-  // ping
-  timePing=time2-time1;                                          
 }
 
 // ---------- processing ----------
@@ -329,7 +275,7 @@ void OnDataSent(const uint8_t *mac_addr,esp_now_send_status_t status){
 }
 
 void OnDataRecv(const uint8_t *mac_addr,const uint8_t *incomingData,int data_len){
-  memcpy(&espxMsg,incomingData,sizeof(espxMsg));
+  memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
 }
 
 // ---------- printing ----------
@@ -339,23 +285,12 @@ void oledScreen1(){
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
-  if(com==1){
-    display.setCursor(0,0);
-    display.printf("ECOM: ");
-    display.println(comStatus);
-    display.setCursor(0,0);
-    display.printf("          MSTA: ");
-    display.println(msgStatus);
-  }
-  if(com==2){
-    display.setCursor(0,0);
-    display.print("RSSI: ");
-    display.print(WiFi.RSSI());
-    display.setCursor(0,0);
-    display.printf("          Ping: ");
-    display.print(timePing);
-    display.println("ms");
-  }
+  display.setCursor(0,0);
+  display.printf("ECOM: ");
+  display.println(comStatus);
+  display.setCursor(0,0);
+  display.printf("          MSTA: ");
+  display.println(msgStatus);
   display.setCursor(0,50);
   display.print("          Mode: ");
   display.print(Mods);
@@ -386,23 +321,12 @@ void oledScreen2(){
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
-  if(com==1){
-    display.setCursor(0,0);
-    display.printf("ECOM: ");
-    display.println(comStatus);
-    display.setCursor(0,0);
-    display.printf("          MSTA: ");
-    display.println(msgStatus);
-  }
-  if(com==2){
-    display.setCursor(0, 0);
-    display.print("RSSI: ");
-    display.print(WiFi.RSSI());
-    display.setCursor(0, 0);
-    display.printf("          Ping: ");
-    display.print(timePing);
-    display.println("ms");
-  }
+  display.setCursor(0,0);
+  display.printf("ECOM: ");
+  display.println(comStatus);
+  display.setCursor(0,0);
+  display.printf("          MSTA: ");
+  display.println(msgStatus);
   display.setCursor(0,50);
   display.print("          Mode: ");
   display.print(Mods);
@@ -434,22 +358,12 @@ void oledScreen2(){
 void serialDebug(){
   Serial.println("\n");
   Serial.println("-------------------- debug --------------------");
-  if(com==1){
-    Serial.println("ESP-NOW");
-    Serial.printf("Com Status: ");
-    Serial.println(comStatus);
-    Serial.printf("Msg Status: ");
-    Serial.println(msgStatus);
-    Serial.println("");
-  }
-  if(com==2){
-    Serial.println("WiFi");
-    Serial.printf("RSSI: ");
-    Serial.println(WiFi.RSSI());
-    Serial.printf("Ping: ");
-    Serial.println(timePing);
-    Serial.println("");
-  }
+  Serial.println("ESP-NOW");
+  Serial.printf("Com Status: ");
+  Serial.println(comStatus);
+  Serial.printf("Msg Status: ");
+  Serial.println(msgStatus);
+  Serial.println("");
   Serial.println("Raw Data");
   Serial.printf("JoyStick no.1 X= %d, Y= %d, Sw= %d\n",joyX1Pos,joyY1Pos,joySW1State);
   Serial.printf("JoyStick no.2 X= %d, Y= %d, Sw= %d\n",joyX2Pos,joyY2Pos,joySW2State);
@@ -486,14 +400,42 @@ void serialDebug(){
 
 // -------------------- task1 --------------------
 
-void Task1code(void *pvParameters){
+void Task1code(void*pvParameters){
   for(;;){
     // cpu1 counter
     loop1+=1;
     if(loop1==100)loop1=0;
 
-    // ---------- prepare data ----------
-    
+    // ---------- in data ----------
+
+    // rcvmsg via ESP-NOW
+    MavLinkMsg.len=rcvxMsg.len;
+    memcpy(MavLinkMsg.buf,rcvxMsg.buf,sizeof(rcvxMsg.buf));
+
+    // uart srial write
+    if(Serial.availableForWrite()>=sizeof(MavLinkMsg.len)){
+      Serial.write(MavLinkMsg.buf,sizeof(MavLinkMsg.len));
+    }
+
+    // uart srial read
+    mavlink_message_t msg;
+    mavlink_status_t status;
+    while(Serial.available()>0){
+      uint8_t c=Serial.read();
+      if (mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+        MavLinkMsg.len=mavlink_msg_to_send_buffer((uint8_t*)MavLinkMsg.buf,&msg);
+      }
+    }
+    static unsigned long lastHeartbeatTime=0;
+    if (millis()-lastHeartbeatTime>1000) {
+      lastHeartbeatTime=millis();
+      mavlink_message_t heartbeatMsg;
+      mavlink_msg_heartbeat_pack(1,200,&heartbeatMsg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_ARDUPILOTMEGA,MAV_MODE_PREFLIGHT,0,MAV_STATE_STANDBY);
+      MavLinkMsg.len=mavlink_msg_to_send_buffer((uint8_t*)MavLinkMsg.buf,&msg);
+    }
+
+    // ---------- process data ----------
+
     // raw data
     // read toglle input value
     togSW1State=digitalRead(togSW1);
@@ -597,23 +539,19 @@ void Task1code(void *pvParameters){
     pRoll=mapPercent(Roll);
     mapMode(Mode);
 
-    // ---------- send data ----------
+    // ---------- in n out line divider ----------
 
-    // msg via ESP-NOW
-    if(com==1){
-      espxMsg.trottle=Trottle;
-      espxMsg.yaw=Yaw;
-      espxMsg.pitch=Pitch;
-      espxMsg.roll=Roll;
-      espxMsg.mode=Mode;
-      espxMsg.loop1=loop1;
-    }
+    // ---------- out data ----------
 
-    // msg via request
-    if(com==2){
-      intxMsg=String(Trottle)+String(Yaw)+String(Pitch)+String(Roll)+String(Mode)+String(loop1);
-    }
-
+    // sndmsg via ESP-NOW
+    sndxMsg.trottle=Trottle;
+    sndxMsg.yaw=Yaw;
+    sndxMsg.pitch=Pitch;
+    sndxMsg.roll=Roll;
+    sndxMsg.mode=Mode;
+    sndxMsg.loop1=loop1;
+    sndxMsg.len=MavLinkMsg.len;
+    memcpy(sndxMsg.buf, MavLinkMsg.buf, sizeof(MavLinkMsg.buf));
     // ---------- debug data ----------
 
     // oled screen
@@ -637,7 +575,7 @@ void Task1code(void *pvParameters){
 
 // -------------------- task2 --------------------
 
-void Task2code(void *pvParameters){
+void Task2code(void*pvParameters){
   for(;;){
     // cpu2 counter
     loop2+=1;
@@ -646,15 +584,10 @@ void Task2code(void *pvParameters){
     // ---------- send data ----------
 
     // msg via ESP-NOW
-    if(com==1){
-      esp_err_t result;
-      result=esp_now_send(targetMac,(uint8_t *)&espxMsg,sizeof(espxMsg)); 
-      if(result==ESP_OK)msgStatus="1";
-      else msgStatus="0";
-    }
-
-    // msg via request
-    if(com==2)initserver(intxMsg);
+    esp_err_t result;
+    result=esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg)); 
+    if(result==ESP_OK)msgStatus="1";
+    else msgStatus="0";
 
     // disable delay on task 2 wen normal run
     //delay(1000); // debug delay
@@ -675,17 +608,8 @@ void setup(){
     while(1);
   }
 
-  if(com==1){
-    // intCom1 ESP-NOW
-    initespnow();
-  }
-  if(com==2){
-    // initWiFi
-    initWiFi();
-
-    // intCom2 Internet
-    initserver("0x00");
-  }
+  // int ESP-NOW
+  initespnow();
 
   // toggle switch
   pinMode(togSW1,INPUT_PULLUP);
