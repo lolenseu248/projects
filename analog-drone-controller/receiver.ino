@@ -8,7 +8,6 @@
 #include <MAVLink.h>
 #include <esp_now.h>
 #include <ESP32Servo.h>
-#include <HardwareSerial.h>
 
 // led pinout
 #define LED 12
@@ -85,15 +84,9 @@ int subCount;
 int lastsubCount;
 int lostCount=0;
 
-// percent data
-int pTrottle;
-int pYaw;
-int pPitch;
-int pRoll;
-
-// prev len and buf
-uint16_t oldlen;
-uint8_t oldbuf[128];
+// mavlink
+mavlink_message_t msg;
+mavlink_status_t status;
 
 // send_message
 typedef struct send_message{
@@ -114,6 +107,12 @@ typedef struct recive_message{
   uint8_t buf[128];
 };
 recive_message rcvxMsg;
+
+// percent data
+int pTrottle;
+int pYaw;
+int pPitch;
+int pRoll;
 
 // connection and send data espnow
 String comStatus;
@@ -191,6 +190,17 @@ void OnDataSent(const uint8_t *mac_addr,esp_now_send_status_t status){
 
 void OnDataRecv(const uint8_t *mac_addr,const uint8_t *incomingData,int data_len){
   memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
+
+  // rcv controls
+  Trottle=rcvxMsg.trottle;
+  Yaw=rcvxMsg.yaw;
+  Pitch=rcvxMsg.pitch;
+  Roll=rcvxMsg.roll;
+  Mode=rcvxMsg.mode;
+  subCount=rcvxMsg.loop1;
+
+  // uart serial recive and write
+  Serial2.write(rcvxMsg.buf,rcvxMsg.len);
 }
 
 // ---------- printing ----------
@@ -252,38 +262,13 @@ void Task1code(void*pvParameters){
       //digitalWrite(BUZZER,LOW);
     }
 
-    // ---------- in data ----------
-
-    // uart serial read and write
-    mavlink_message_t msg;
-    mavlink_status_t status;
+    // uart serial read
     while(Serial2.available()>0){
       uint8_t c=Serial2.read();
       if (mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
         sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
       }
     }
-    static unsigned long lastHeartbeatTime=0;
-    if(millis()-lastHeartbeatTime>1000){
-      lastHeartbeatTime=millis();
-      mavlink_message_t heartbeatMsg;
-      mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
-      sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
-    }
-    if(rcvxMsg.len!=oldlen&&rcvxMsg.buf!=oldbuf){
-      Serial.write(rcvxMsg.buf,rcvxMsg.len);
-      oldlen=rcvxMsg.len;
-      memcpy(oldbuf,rcvxMsg.buf,sizeof(oldbuf));
-    }
-
-    // rcvmsg via ESP-NOW
-    // processed data
-    Trottle=rcvxMsg.trottle;
-    Yaw=rcvxMsg.yaw;
-    Pitch=rcvxMsg.pitch;
-    Roll=rcvxMsg.roll;
-    Mode=rcvxMsg.mode;
-    subCount=rcvxMsg.loop1;
     
     // ---------- process data ----------
 
@@ -348,12 +333,6 @@ void Task1code(void*pvParameters){
     pRoll=mapPercent(Roll);
     mapMode(Mode);
 
-    // ---------- in and out line divider ----------
-
-    // ---------- out data ----------
-
-    // sndmsg via ESP-NOW
-
     // ---------- debug data ----------
 
     // serial debug
@@ -395,7 +374,7 @@ void setup(){
   // put your setup code here, to run once:
   // Initialize Serial Monitor
   Serial.begin(115200);
-  Serial2.begin(57600,SERIAL_8N1,RXD,TXD);
+  Serial2.begin(115200,SERIAL_8N1,RXD,TXD);
 
   // int ESP-NOW
   initespnow();

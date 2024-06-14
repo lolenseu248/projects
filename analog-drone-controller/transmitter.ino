@@ -11,7 +11,6 @@
 #include <esp_now.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include <HardwareSerial.h>
 
 //toggle pinout
 #define togSW1 19
@@ -106,16 +105,9 @@ int Roll=1500;
 int Mode=1540;
 String Mods;
 
-// percent data
-int pSpeed;
-int pTrottle;
-int pYaw;
-int pPitch;
-int pRoll;
-
-// prev len and buf
-uint16_t oldlen;
-uint8_t oldbuf[128];
+// mavlink
+mavlink_message_t msg;
+mavlink_status_t status;
 
 // send_message
 typedef struct send_message{
@@ -136,6 +128,13 @@ typedef struct recive_message{
   uint8_t buf[128];
 };
 recive_message rcvxMsg;
+
+// percent data
+int pSpeed;
+int pTrottle;
+int pYaw;
+int pPitch;
+int pRoll;
 
 // connection and send data espnow
 String comStatus;
@@ -273,6 +272,12 @@ void OnDataSent(const uint8_t *mac_addr,esp_now_send_status_t status){
 
 void OnDataRecv(const uint8_t *mac_addr,const uint8_t *incomingData,int data_len){
   memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
+
+  // uart serial recive and write plus heartbeat
+  Serial.write(rcvxMsg.buf,rcvxMsg.len);
+
+  mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
+  sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
 }
 
 // ---------- printing ----------
@@ -405,25 +410,14 @@ void Task1code(void*pvParameters){
     loop1+=1;
     if(loop1==100)loop1=0;
 
-    // ---------- in data ----------
-
-    // rcvmsg via ESP-NOW
-
-    // uart serial read and write
-    mavlink_message_t msg;
-    mavlink_status_t status;
+    // uart serial read
     while(Serial.available()>0){
       uint8_t c=Serial.read();
       if (mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
         sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
       }
     }
-    if(rcvxMsg.len!=oldlen&&rcvxMsg.buf!=oldbuf){
-      Serial.write(rcvxMsg.buf,rcvxMsg.len);
-      oldlen=rcvxMsg.len;
-      memcpy(oldbuf,rcvxMsg.buf,sizeof(oldbuf));
-    }
-    
+
     // ---------- process data ----------
 
     // raw data
@@ -521,6 +515,14 @@ void Task1code(void*pvParameters){
     // fix yaw position 
     Yaw=map(Yaw,1000,2000,2000,1000);
 
+    // snd controls
+    sndxMsg.trottle=Trottle;
+    sndxMsg.yaw=Yaw;
+    sndxMsg.pitch=Pitch;
+    sndxMsg.roll=Roll;
+    sndxMsg.mode=Mode;
+    sndxMsg.loop1=loop1;
+
     // percent data
     pSpeed=mapPercent(potenM2Poss);
     pTrottle=mapPercent(Trottle);
@@ -528,18 +530,7 @@ void Task1code(void*pvParameters){
     pPitch=mapPercent(Pitch);
     pRoll=mapPercent(Roll);
     mapMode(Mode);
-
-    // ---------- in and out line divider ----------
-
-    // ---------- out data ----------
-
-    // sndmsg via ESP-NOW
-    sndxMsg.trottle=Trottle;
-    sndxMsg.yaw=Yaw;
-    sndxMsg.pitch=Pitch;
-    sndxMsg.roll=Roll;
-    sndxMsg.mode=Mode;
-    sndxMsg.loop1=loop1;
+    
     // ---------- debug data ----------
 
     // oled screen
