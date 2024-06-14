@@ -94,14 +94,14 @@ int pRoll;
 
 // uart buf and len
 struct MavlinkMessage {
-  int len;
+  uint16_t len;
   char buf[128];
 };
 MavlinkMessage MavLinkMsg;
 
 // send_message
 typedef struct send_message{
-  int len;
+  uint16_t len;
   char buf[128];
 };
 send_message sndxMsg;
@@ -114,7 +114,7 @@ typedef struct recive_message{
   int roll;
   int mode;
   int loop1;
-  int len;
+  uint16_t len;
   char buf[128];
 };
 recive_message rcvxMsg;

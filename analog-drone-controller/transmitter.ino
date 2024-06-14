@@ -115,7 +115,7 @@ int pRoll;
 
 // uart buf and len
 struct MavlinkMessage {
-  int len;
+  uint16_t len;
   char buf[128];
 };
 MavlinkMessage MavLinkMsg;
@@ -128,14 +128,14 @@ typedef struct send_message{
   int roll;
   int mode;
   int loop1;
-  int len;
+  uint16_t len;
   char buf[128];
 };
 send_message sndxMsg;
 
 // recive_message
 typedef struct recive_message{
-  int len;
+  uint16_t len;
   char buf[128];
 };
 recive_message rcvxMsg;
@@ -413,15 +413,15 @@ void Task1code(void*pvParameters){
     memcpy(MavLinkMsg.buf,rcvxMsg.buf,sizeof(rcvxMsg.buf));
 
     // uart srial write
-    if(Serial.availableForWrite()>=sizeof(MavLinkMsg.len)){
-      Serial.write(MavLinkMsg.buf,sizeof(MavLinkMsg.len));
+    if(Serial2.availableForWrite()>=sizeof(MavLinkMsg.len)){
+      Serial2.write(MavLinkMsg.buf,sizeof(MavLinkMsg.len));
     }
 
     // uart srial read
     mavlink_message_t msg;
     mavlink_status_t status;
-    while(Serial.available()>0){
-      uint8_t c=Serial.read();
+    while(Serial2.available()>0){
+      uint8_t c=Serial2.read();
       if (mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
         MavLinkMsg.len=mavlink_msg_to_send_buffer((uint8_t*)MavLinkMsg.buf,&msg);
       }
@@ -551,7 +551,7 @@ void Task1code(void*pvParameters){
     sndxMsg.mode=Mode;
     sndxMsg.loop1=loop1;
     sndxMsg.len=MavLinkMsg.len;
-    memcpy(sndxMsg.buf, MavLinkMsg.buf, sizeof(MavLinkMsg.buf));
+    memcpy(sndxMsg.buf,MavLinkMsg.buf,sizeof(MavLinkMsg.buf));
     // ---------- debug data ----------
 
     // oled screen
@@ -600,6 +600,7 @@ void setup(){
   // put your setup code here, to run once:
   // Initialize Serial Monitor
   Serial.begin(115200);
+  Serial2.begin(115200);
 
   // initialize OLED display with I2C address 0x3C
   if(!display.begin(SSD1306_SWITCHCAPVCC,0x3C)){
