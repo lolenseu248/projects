@@ -190,17 +190,6 @@ void OnDataSent(const uint8_t *mac_addr,esp_now_send_status_t status){
 
 void OnDataRecv(const uint8_t *mac_addr,const uint8_t *incomingData,int data_len){
   memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
-
-  // rcv controls
-  Trottle=rcvxMsg.trottle;
-  Yaw=rcvxMsg.yaw;
-  Pitch=rcvxMsg.pitch;
-  Roll=rcvxMsg.roll;
-  Mode=rcvxMsg.mode;
-  subCount=rcvxMsg.loop1;
-
-  // uart serial recive and write
-  Serial2.write(rcvxMsg.buf,rcvxMsg.len);
 }
 
 // ---------- printing ----------
@@ -262,13 +251,13 @@ void Task1code(void*pvParameters){
       //digitalWrite(BUZZER,LOW);
     }
 
-    // uart serial read
-    while(Serial2.available()>0){
-      uint8_t c=Serial2.read();
-      if (mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-        sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
-      }
-    }
+    // rcv controls
+    Trottle=rcvxMsg.trottle;
+    Yaw=rcvxMsg.yaw;
+    Pitch=rcvxMsg.pitch;
+    Roll=rcvxMsg.roll;
+    Mode=rcvxMsg.mode;
+    subCount=rcvxMsg.loop1;
     
     // ---------- process data ----------
 
@@ -354,13 +343,22 @@ void Task2code(void*pvParameters){
     loop2+=1;
     if(loop2==100)loop2=0;
 
-    // ---------- send data ----------
+   // uart serial read and send
+    while(Serial2.available()>0){
+      uint8_t c=Serial2.read();
+      if (mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+        sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+      }
+    }
 
     // msg via ESP-NOW
     esp_err_t result;
     result=esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg)); 
     if(result==ESP_OK)msgStatus="1";
     else msgStatus="0";
+
+    // uart serial receive and write
+    Serial2.write(rcvxMsg.buf,rcvxMsg.len);
 
     // delay
     delay(10); // run delay

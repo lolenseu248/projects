@@ -272,12 +272,6 @@ void OnDataSent(const uint8_t *mac_addr,esp_now_send_status_t status){
 
 void OnDataRecv(const uint8_t *mac_addr,const uint8_t *incomingData,int data_len){
   memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
-
-  // uart serial recive and write plus heartbeat
-  Serial.write(rcvxMsg.buf,rcvxMsg.len);
-
-  mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
-  sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
 }
 
 // ---------- printing ----------
@@ -409,14 +403,6 @@ void Task1code(void*pvParameters){
     // cpu1 counter
     loop1+=1;
     if(loop1==100)loop1=0;
-
-    // uart serial read
-    while(Serial.available()>0){
-      uint8_t c=Serial.read();
-      if (mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-        sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
-      }
-    }
 
     // ---------- process data ----------
 
@@ -559,13 +545,29 @@ void Task2code(void*pvParameters){
     loop2+=1;
     if(loop2==100)loop2=0;
 
-    // ---------- send data ----------
+    // uart serial read and send
+    while(Serial.available()>0){
+      uint8_t c=Serial.read();
+      if (mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+        sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+      }
+    }
 
     // msg via ESP-NOW
     esp_err_t result;
     result=esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg)); 
     if(result==ESP_OK)msgStatus="1";
     else msgStatus="0";
+
+    // uart serial receive and write plus heartbeat
+    Serial.write(rcvxMsg.buf,rcvxMsg.len);
+
+    static unsigned long lastHeartbeatTime=0;
+    if(millis()-lastHeartbeatTime>1000){
+      lastHeartbeatTime=millis();
+      mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
+      sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+    }
 
     // delay
     delay(10); // run delay
