@@ -207,6 +207,7 @@ void serialDebug(){
   Serial.printf("Msg Status: ");
   Serial.println(msgStatus);
   Serial.println("");
+  /*
   Serial.println("Raw Data");
   Serial.printf("Trottle: %s\n",rTrottle);
   Serial.printf("Yaw: %s\n",rYaw);
@@ -221,6 +222,7 @@ void serialDebug(){
   Serial.printf("Roll: %d\n",Roll);
   Serial.printf("Mode: %d\n",Mode);
   Serial.println("");
+  */
   Serial.println("Official Data");
   Serial.printf("Trottle: %d%%\n",pTrottle);
   Serial.printf("Yaw: %d%%\n",pYaw);

@@ -364,6 +364,7 @@ void serialDebug(){
   Serial.printf("Msg Status: ");
   Serial.println(msgStatus);
   Serial.println("");
+  /*
   Serial.println("Raw Data");
   Serial.printf("JoyStick no.1 X= %d, Y= %d, Sw= %d\n",joyX1Pos,joyY1Pos,joySW1State);
   Serial.printf("JoyStick no.2 X= %d, Y= %d, Sw= %d\n",joyX2Pos,joyY2Pos,joySW2State);
@@ -384,6 +385,7 @@ void serialDebug(){
   Serial.printf("Toggle no.3= %d\n",togSW3State);
   Serial.printf("Toggle no.4= %d\n",togSW4State);
   Serial.println("");
+  */
   Serial.println("Official Data");
   Serial.printf("Speed: %d%%\n",pSpeed);
   Serial.printf("Trottle: %d%%\n",pTrottle);
