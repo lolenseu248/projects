@@ -589,7 +589,9 @@ void Task2code(void*pvParameters){
     if(result==ESP_OK)msgStatus="1";
     else msgStatus="0";
 
-    // disable delay on task 2 wen normal run
+    // delay
+    delay(10); // run delay
+    //delay(100); // test delay
     //delay(1000); // debug delay
     //delay(60000); // stop delay
   } 
