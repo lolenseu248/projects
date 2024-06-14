@@ -91,12 +91,9 @@ int pYaw;
 int pPitch;
 int pRoll;
 
-// uart buf and len
-struct MavlinkMessage {
-  uint16_t len;
-  uint8_t buf[128];
-};
-MavlinkMessage MavLinkMsg;
+// prev len and buf
+uint16_t oldlen;
+uint8_t oldbuf[128];
 
 // send_message
 typedef struct send_message{
@@ -133,8 +130,9 @@ void initBoot(){
   Serial.println("");
 
   //Startup tone
-  tone(BUZZER1,2000,500);
-  tone(BUZZER1,3000,300);
+  digitalWrite(BUZZER,HIGH);
+  delay(50);
+  digitalWrite(BUZZER,LOW);
   delay(1500);
 }
 
@@ -249,12 +247,34 @@ void Task1code(void*pvParameters){
     loop1+=1;
     if(loop1==100){
       loop1=0;
-      digitalWrite(BUZZER,HIGH);
+      //digitalWrite(BUZZER,HIGH);
       delay(50);
-      digitalWrite(BUZZER,LOW);
+      //digitalWrite(BUZZER,LOW);
     }
 
     // ---------- in data ----------
+
+    // uart serial read and write
+    mavlink_message_t msg;
+    mavlink_status_t status;
+    while(Serial2.available()>0){
+      uint8_t c=Serial2.read();
+      if (mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+        sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+      }
+    }
+    static unsigned long lastHeartbeatTime=0;
+    if(millis()-lastHeartbeatTime>1000){
+      lastHeartbeatTime=millis();
+      mavlink_message_t heartbeatMsg;
+      mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
+      sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+    }
+    if(rcvxMsg.len!=oldlen&&rcvxMsg.buf!=oldbuf){
+      Serial.write(rcvxMsg.buf,rcvxMsg.len);
+      oldlen=rcvxMsg.len;
+      memcpy(oldbuf,rcvxMsg.buf,sizeof(oldbuf));
+    }
 
     // rcvmsg via ESP-NOW
     // processed data
@@ -264,30 +284,6 @@ void Task1code(void*pvParameters){
     Roll=rcvxMsg.roll;
     Mode=rcvxMsg.mode;
     subCount=rcvxMsg.loop1;
-    MavLinkMsg.len=rcvxMsg.len;
-    memcpy(MavLinkMsg.buf,rcvxMsg.buf,sizeof(rcvxMsg.buf));
-
-    // uart serial write
-    if(Serial2.availableForWrite()>0){
-      Serial2.write(MavLinkMsg.buf,MavLinkMsg.len);
-    }
-
-   // uart serial read
-    mavlink_message_t msg;
-    mavlink_status_t status;
-    while(Serial2.available()>0){
-      uint8_t c=Serial2.read();
-      if (mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-        MavLinkMsg.len=mavlink_msg_to_send_buffer(MavLinkMsg.buf,&msg);
-      }
-    }
-    static unsigned long lastHeartbeatTime=0;
-    if (millis()-lastHeartbeatTime>1000) {
-      lastHeartbeatTime=millis();
-      mavlink_message_t heartbeatMsg;
-      mavlink_msg_heartbeat_pack(1,200,&heartbeatMsg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_ARDUPILOTMEGA,MAV_MODE_PREFLIGHT,0,MAV_STATE_STANDBY);
-      MavLinkMsg.len=mavlink_msg_to_send_buffer(MavLinkMsg.buf,&msg);
-    }
     
     // ---------- process data ----------
 
@@ -297,9 +293,9 @@ void Task1code(void*pvParameters){
       if(lostCount>=100){
         if(lostCount>=100&&lostCount<=1900){
           if(loop1==1){
-            digitalWrite(BUZZER,HIGH);
-            delay(100);
-            digitalWrite(BUZZER,LOW);
+            //digitalWrite(BUZZER,HIGH);
+            delay(50);
+            //digitalWrite(BUZZER,LOW);
           }
         }
 
@@ -314,9 +310,9 @@ void Task1code(void*pvParameters){
 
         // buzzer warning for return to land
         if(loop1==0||loop1==25||loop1==50||loop1==75){
-          digitalWrite(BUZZER,HIGH);
-          delay(100);
-          digitalWrite(BUZZER,LOW);
+          //digitalWrite(BUZZER,HIGH);
+          delay(50);
+          //digitalWrite(BUZZER,LOW);
         }
 
         // Return to Land
@@ -327,9 +323,9 @@ void Task1code(void*pvParameters){
 
         // buzzer warning for search if lost
         if(loop1==10||loop1==35||loop1==60||loop1==85){
-          digitalWrite(BUZZER,HIGH);
-          delay(100);
-          digitalWrite(BUZZER,LOW);
+          //digitalWrite(BUZZER,HIGH);
+          delay(50);
+          //digitalWrite(BUZZER,LOW);
         }
       }
     }
@@ -352,18 +348,16 @@ void Task1code(void*pvParameters){
     pRoll=mapPercent(Roll);
     mapMode(Mode);
 
-    // ---------- in n out line divider ----------
+    // ---------- in and out line divider ----------
 
     // ---------- out data ----------
 
     // sndmsg via ESP-NOW
-    sndxMsg.len=MavLinkMsg.len;
-    memcpy(sndxMsg.buf,MavLinkMsg.buf,sizeof(MavLinkMsg.buf));
 
     // ---------- debug data ----------
 
     // serial debug
-    if(loop1==0||loop1==20||loop1==40||loop1==60||loop1==80)serialDebug(); // enable this for long debug
+    //if(loop1==0||loop1==20||loop1==40||loop1==60||loop1==80)serialDebug(); // enable this for long debug
     //serialDebug(); // enable this for short debug if delay != 1000 = fast
 
     // delay

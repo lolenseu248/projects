@@ -113,12 +113,9 @@ int pYaw;
 int pPitch;
 int pRoll;
 
-// uart buf and len
-struct MavlinkMessage {
-  uint16_t len;
-  uint8_t buf[128];
-};
-MavlinkMessage MavLinkMsg;
+// prev len and buf
+uint16_t oldlen;
+uint8_t oldbuf[128];
 
 // send_message
 typedef struct send_message{
@@ -411,31 +408,22 @@ void Task1code(void*pvParameters){
     // ---------- in data ----------
 
     // rcvmsg via ESP-NOW
-    MavLinkMsg.len=rcvxMsg.len;
-    memcpy(MavLinkMsg.buf,rcvxMsg.buf,sizeof(rcvxMsg.buf));
 
-    // uart serial write
-    if(Serial2.availableForWrite()>0){
-      Serial2.write(MavLinkMsg.buf,MavLinkMsg.len);
-    }
-
-   // uart serial read
+    // uart serial read and write
     mavlink_message_t msg;
     mavlink_status_t status;
-    while(Serial2.available()>0){
-      uint8_t c=Serial2.read();
+    while(Serial.available()>0){
+      uint8_t c=Serial.read();
       if (mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-        MavLinkMsg.len=mavlink_msg_to_send_buffer(MavLinkMsg.buf,&msg);
+        sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
       }
     }
-    static unsigned long lastHeartbeatTime=0;
-    if (millis()-lastHeartbeatTime>1000) {
-      lastHeartbeatTime=millis();
-      mavlink_message_t heartbeatMsg;
-      mavlink_msg_heartbeat_pack(1,200,&heartbeatMsg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_ARDUPILOTMEGA,MAV_MODE_PREFLIGHT,0,MAV_STATE_STANDBY);
-      MavLinkMsg.len=mavlink_msg_to_send_buffer(MavLinkMsg.buf,&msg);
+    if(rcvxMsg.len!=oldlen&&rcvxMsg.buf!=oldbuf){
+      Serial.write(rcvxMsg.buf,rcvxMsg.len);
+      oldlen=rcvxMsg.len;
+      memcpy(oldbuf,rcvxMsg.buf,sizeof(oldbuf));
     }
-
+    
     // ---------- process data ----------
 
     // raw data
@@ -541,7 +529,7 @@ void Task1code(void*pvParameters){
     pRoll=mapPercent(Roll);
     mapMode(Mode);
 
-    // ---------- in n out line divider ----------
+    // ---------- in and out line divider ----------
 
     // ---------- out data ----------
 
@@ -552,8 +540,6 @@ void Task1code(void*pvParameters){
     sndxMsg.roll=Roll;
     sndxMsg.mode=Mode;
     sndxMsg.loop1=loop1;
-    sndxMsg.len=MavLinkMsg.len;
-    memcpy(sndxMsg.buf,MavLinkMsg.buf,sizeof(MavLinkMsg.buf));
     // ---------- debug data ----------
 
     // oled screen
@@ -564,7 +550,7 @@ void Task1code(void*pvParameters){
     else if(togSW3State==LOW)oledScreen1();
 
     // serial debug
-    if(loop1==0||loop1==20||loop1==40||loop1==60||loop1==80)serialDebug(); // enable this for long debug
+    //if(loop1==0||loop1==20||loop1==40||loop1==60||loop1==80)serialDebug(); // enable this for long debug
     //serialDebug(); // enable this for short debug if delay != 1000 = fast
 
     // delay
@@ -602,7 +588,6 @@ void setup(){
   // put your setup code here, to run once:
   // Initialize Serial Monitor
   Serial.begin(115200);
-  Serial2.begin(115200);
 
   // initialize OLED display with I2C address 0x3C
   if(!display.begin(SSD1306_SWITCHCAPVCC,0x3C)){
