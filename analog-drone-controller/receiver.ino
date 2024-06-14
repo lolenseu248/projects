@@ -361,7 +361,6 @@ void Task1code(void*pvParameters){
     delay(10); // run delay
     //delay(100); // test delay
     //delay(1000); // debug delay
-    //delay(60000); // stop delay
   }
 }
 
@@ -384,8 +383,6 @@ void Task2code(void*pvParameters){
     // delay
     delay(10); // run delay
     //delay(100); // test delay
-    //delay(1000); // debug delay
-    //delay(60000); // stop delay
   } 
 }
 
