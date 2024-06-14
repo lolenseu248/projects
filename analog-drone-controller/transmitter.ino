@@ -414,12 +414,12 @@ void Task1code(void*pvParameters){
     MavLinkMsg.len=rcvxMsg.len;
     memcpy(MavLinkMsg.buf,rcvxMsg.buf,sizeof(rcvxMsg.buf));
 
-    // uart srial write
-    if(Serial2.availableForWrite()>=sizeof(MavLinkMsg.len)){
-      Serial2.write(MavLinkMsg.buf,sizeof(MavLinkMsg.len));
+    // uart serial write
+    if(Serial2.availableForWrite()>0){
+      Serial2.write(MavLinkMsg.buf,MavLinkMsg.len);
     }
 
-    // uart srial read
+   // uart serial read
     mavlink_message_t msg;
     mavlink_status_t status;
     while(Serial2.available()>0){

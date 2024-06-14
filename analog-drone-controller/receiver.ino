@@ -18,8 +18,7 @@
 #define TXD 17
 
 // buzzer pinout
-#define BUZZER1 18
-#define BUZZER2 22
+#define BUZZER 22
 
 // servo pinout
 #define GPIOTrottle 4
@@ -230,10 +229,12 @@ void serialDebug(){
   Serial.printf("Roll: %d%%\n",pRoll);
   Serial.printf("Mode: %s\n",Mods);
   Serial.println("");
+  /*
   Serial.println("Lost Counter");
   Serial.printf("SubCount: %d\n",subCount);
   Serial.printf("LostbCount: %d\n",lostCount);
   Serial.println("");
+  */
   Serial.println("Official Counter");
   Serial.printf("Cpu1: %d\n",loop1);
   Serial.printf("Cpu2: %d\n",loop2);
@@ -246,15 +247,12 @@ void Task1code(void*pvParameters){
   for(;;){
     // cpu1 counter and buzzer
     loop1+=1;
-    if(loop1==100)loop1=0,tone(BUZZER1,3500,250);
-
-    // led blinker
-    if(blinkCount==5)digitalWrite(LED,HIGH);
-    if(blinkCount==10)digitalWrite(LED,LOW);
-    if(blinkCount==15)digitalWrite(LED,HIGH);
-    if(blinkCount==20)digitalWrite(LED,LOW);
-    if(blinkCount==200)blinkCount=0;
-    blinkCount+=1;
+    if(loop1==100){
+      loop1=0;
+      digitalWrite(BUZZER,HIGH);
+      delay(50);
+      digitalWrite(BUZZER,LOW);
+    }
 
     // ---------- in data ----------
 
@@ -269,12 +267,12 @@ void Task1code(void*pvParameters){
     MavLinkMsg.len=rcvxMsg.len;
     memcpy(MavLinkMsg.buf,rcvxMsg.buf,sizeof(rcvxMsg.buf));
 
-    // uart srial write
-    if(Serial2.availableForWrite()>=sizeof(MavLinkMsg.len)){
-      Serial2.write(MavLinkMsg.buf,sizeof(MavLinkMsg.len));
+    // uart serial write
+    if(Serial2.availableForWrite()>0){
+      Serial2.write(MavLinkMsg.buf,MavLinkMsg.len);
     }
 
-   // uart srial read
+   // uart serial read
     mavlink_message_t msg;
     mavlink_status_t status;
     while(Serial2.available()>0){
@@ -298,7 +296,11 @@ void Task1code(void*pvParameters){
       lostCount+=1; // lost counter
       if(lostCount>=100){
         if(lostCount>=100&&lostCount<=1900){
-          if(loop1==1)tone(BUZZER2,1000,200);
+          if(loop1==1){
+            digitalWrite(BUZZER,HIGH);
+            delay(100);
+            digitalWrite(BUZZER,LOW);
+          }
         }
 
         // stay on position
@@ -311,10 +313,11 @@ void Task1code(void*pvParameters){
       if(lostCount>=2000){
 
         // buzzer warning for return to land
-        if(loop1==0||loop1==25||loop1==50||loop1==75)tone(BUZZER2,1000,200);
-
-        // led warning
-        if(loop1==76)digitalWrite(LED,HIGH);
+        if(loop1==0||loop1==25||loop1==50||loop1==75){
+          digitalWrite(BUZZER,HIGH);
+          delay(100);
+          digitalWrite(BUZZER,LOW);
+        }
 
         // Return to Land
         Mode=1690; // RTL mode
@@ -323,7 +326,11 @@ void Task1code(void*pvParameters){
         lostCount=10000;
 
         // buzzer warning for search if lost
-        if(loop1==10||loop1==35||loop1==60||loop1==85)tone(BUZZER2,200,200);
+        if(loop1==10||loop1==35||loop1==60||loop1==85){
+          digitalWrite(BUZZER,HIGH);
+          delay(100);
+          digitalWrite(BUZZER,LOW);
+        }
       }
     }
     else{
@@ -403,8 +410,7 @@ void setup(){
   pinMode(LED,OUTPUT);
 
   // buzzer
-  pinMode(BUZZER1,OUTPUT);
-  pinMode(BUZZER2,OUTPUT);
+  pinMode(BUZZER,OUTPUT);
 
   // servo
   servo1.attach(GPIOTrottle);
