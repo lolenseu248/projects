@@ -116,7 +116,7 @@ int pRoll;
 // uart buf and len
 struct MavlinkMessage {
   uint16_t len;
-  char buf[128];
+  uint8_t buf[128];
 };
 MavlinkMessage MavLinkMsg;
 
@@ -129,14 +129,14 @@ typedef struct send_message{
   int mode;
   int loop1;
   uint16_t len;
-  char buf[128];
+  uint8_t buf[128];
 };
 send_message sndxMsg;
 
 // recive_message
 typedef struct recive_message{
   uint16_t len;
-  char buf[128];
+  uint8_t buf[128];
 };
 recive_message rcvxMsg;
 
@@ -423,7 +423,7 @@ void Task1code(void*pvParameters){
     while(Serial2.available()>0){
       uint8_t c=Serial2.read();
       if (mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-        MavLinkMsg.len=mavlink_msg_to_send_buffer((uint8_t*)MavLinkMsg.buf,&msg);
+        MavLinkMsg.len=mavlink_msg_to_send_buffer(MavLinkMsg.buf,&msg);
       }
     }
     static unsigned long lastHeartbeatTime=0;
@@ -431,7 +431,7 @@ void Task1code(void*pvParameters){
       lastHeartbeatTime=millis();
       mavlink_message_t heartbeatMsg;
       mavlink_msg_heartbeat_pack(1,200,&heartbeatMsg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_ARDUPILOTMEGA,MAV_MODE_PREFLIGHT,0,MAV_STATE_STANDBY);
-      MavLinkMsg.len=mavlink_msg_to_send_buffer((uint8_t*)MavLinkMsg.buf,&msg);
+      MavLinkMsg.len=mavlink_msg_to_send_buffer(MavLinkMsg.buf,&msg);
     }
 
     // ---------- process data ----------
