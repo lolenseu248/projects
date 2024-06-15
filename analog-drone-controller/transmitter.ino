@@ -54,9 +54,9 @@ mavlink_status_t status;
 // mavlink heartbeattime
 unsigned long lastHeartbeatTime=0;
 
-// clock
-unsigned long clock1=0;
-unsigned long clock2=0;
+// counter
+int loop1=0;
+int loop2=0;
 
 // time
 unsigned long globaltime;
@@ -65,9 +65,9 @@ unsigned long startTime2;
 unsigned long elapsedTime1;
 unsigned long elapsedTime2;
 
-// counter
-int loop1=0;
-int loop2=0;
+// clock
+unsigned long clock1=0;
+unsigned long clock2=0;
 
 // raw data
 // toggle inputs
@@ -426,12 +426,12 @@ void serialDebug(){
 // -------------------- task1 --------------------
 void Task1code(void*pvParameters){
   for(;;){
-    globaltime=millis();
-    startTime1=millis();
-
     // cpu1 counter
     loop1+=1;
     if(loop1==100)loop1=0;
+
+    globaltime=millis();
+    startTime1=millis();
 
     // data procces ----------
     // raw data
@@ -561,17 +561,21 @@ void Task1code(void*pvParameters){
       clock1=millis();
       serialDebug();
     }
+
+    // delay ----------
+    delay(10); // run delay
+    //delay(100) // debug delay
   } 
 }
 
 // -------------------- task2 --------------------
 void Task2code(void*pvParameters){
   for(;;){
-    startTime2=millis();
-
     // cpu2 counter
     loop2+=1;
     if(loop2==100)loop2=0;
+
+    startTime2=millis();
 
     // serial uart
     serialuart();

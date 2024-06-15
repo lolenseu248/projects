@@ -41,9 +41,12 @@ TaskHandle_t cpu2;
 mavlink_message_t msg;
 mavlink_status_t status;
 
-// clock
-unsigned long clock1=0;
-unsigned long clock2=0;
+// mavlink heartbeattime
+unsigned long lastHeartbeatTime=0;
+
+// counter
+int loop1=0;
+int loop2=0;
 
 // time
 unsigned long globaltime;
@@ -52,9 +55,9 @@ unsigned long startTime2;
 unsigned long elapsedTime1;
 unsigned long elapsedTime2;
 
-// counter
-int loop1=0;
-int loop2=0;
+// clock
+unsigned long clock1=0;
+unsigned long clock2=0;
 
 // servo
 Servo servo1;
@@ -163,11 +166,20 @@ void serialuart(){
     Serial2.write(rcvxMsg.buf,rcvxMsg.len);
   }
 
+  // heartbeat
+  if(millis()-lastHeartbeatTime>=1000){
+    lastHeartbeatTime=millis();
+    mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
+    sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+  }
+
   // serial uart read and send
-  while(Serial2.available()>0){
-    uint8_t c=Serial2.read();
-    if (mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-      sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+  else{
+    while(Serial2.available()>0){
+      uint8_t c=Serial2.read();
+      if (mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+        sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+      }
     }
   }
 }
@@ -251,9 +263,6 @@ void serialDebug(){
 // -------------------- task1 --------------------
 void Task1code(void*pvParameters){
   for(;;){
-    globaltime=millis();
-    startTime1=millis();
-
     // cpu1 counter and buzzer
     loop1+=1;
     if(loop1==100){
@@ -262,6 +271,9 @@ void Task1code(void*pvParameters){
       delay(20);
       digitalWrite(BUZZER,LOW);
     }
+
+    globaltime=millis();
+    startTime1=millis();
 
     // process data ----------
     // rcv controls
@@ -279,7 +291,7 @@ void Task1code(void*pvParameters){
         if(lostCount>=100&&lostCount<=1900){
           if(loop1==1){
             digitalWrite(BUZZER,HIGH);
-            delay(50);
+            delay(20);
             digitalWrite(BUZZER,LOW);
           }
         }
@@ -296,7 +308,7 @@ void Task1code(void*pvParameters){
         // buzzer warning for return to land
         if(loop1==0||loop1==25||loop1==50||loop1==75){
           digitalWrite(BUZZER,HIGH);
-          delay(50);
+          delay(20);
           digitalWrite(BUZZER,LOW);
         }
 
@@ -309,7 +321,7 @@ void Task1code(void*pvParameters){
         // buzzer warning for search if lost
         if(loop1==10||loop1==35||loop1==60||loop1==85){
           digitalWrite(BUZZER,HIGH);
-          delay(50);
+          delay(20);
           digitalWrite(BUZZER,LOW);
         }
       }
@@ -342,17 +354,21 @@ void Task1code(void*pvParameters){
       clock1=millis();
       serialDebug();
     }
+
+    // delay ----------
+    delay(10); // run delay
+    //delay(100) // debug delay
   }
 }
 
 // -------------------- task2 --------------------
 void Task2code(void*pvParameters){
   for(;;){
-    startTime2=millis();
-
     // cpu2 counter
     loop2+=1;
     if(loop2==100)loop2=0;
+
+    startTime2=millis();
 
     // serial uart
     serialuart();
