@@ -30,29 +30,31 @@ uint8_t myMac[]={0x40,0x22,0xD8,0x03,0x2E,0x50};
 uint8_t targetMac[]={0x40,0x22,0xD8,0x08,0xBB,0x48};
 
 // fixvar ----------
+// peerinfo
+esp_now_peer_info_t peerInfo;
+
 // task
 TaskHandle_t cpu1;
 TaskHandle_t cpu2;
-
-// counter
-int loop1=0;
-int loop2=0;
-
-// peerinfo
-esp_now_peer_info_t peerInfo;
 
 // mavlink
 mavlink_message_t msg;
 mavlink_status_t status;
 
-//time for ping
-long int time1;
-long int time2;
-long int timePing;
+// clock
+unsigned long clock1=0;
+unsigned long clock2=0;
 
-// connection and send data espnow
-String comStatus;
-String msgStatus;
+// time
+unsigned long globaltime;
+unsigned long startTime1;
+unsigned long startTime2;
+unsigned long elapsedTime1;
+unsigned long elapsedTime2;
+
+// counter
+int loop1=0;
+int loop2=0;
 
 // servo
 Servo servo1;
@@ -88,6 +90,10 @@ int pYaw;
 int pPitch;
 int pRoll;
 
+// connection and send data espnow
+String comStatus;
+String msgStatus;
+
 // send_message
 typedef struct send_message{
   uint16_t len;
@@ -120,7 +126,7 @@ void initBoot(){
   digitalWrite(BUZZER,HIGH);
   delay(50);
   digitalWrite(BUZZER,LOW);
-  delay(1500);
+  delay(300);
 }
 
 // connection ----------
@@ -156,6 +162,7 @@ void serialuart(){
   if(Serial2.availableForWrite()>0){
     Serial2.write(rcvxMsg.buf,rcvxMsg.len);
   }
+
   // serial uart read and send
   while(Serial2.available()>0){
     uint8_t c=Serial2.read();
@@ -233,22 +240,26 @@ void serialDebug(){
   Serial.printf("LostbCount: %d\n",lostCount);
   Serial.println("");
   */
-  Serial.println("Official Counter");
-  Serial.printf("Cpu1: %d\n",loop1);
-  Serial.printf("Cpu2: %d\n",loop2);
+  Serial.println("Cpu Usage");
+  Serial.printf("Cpu1: %dms\n",elapsedTime1);
+  Serial.printf("Cpu2: %dms\n",elapsedTime2);
+  Serial.println("");
+  Serial.printf("Uptime: %d\n",globaltime/1000);
   Serial.println("-------------------- debug --------------------");
 }
 
 // -------------------- task1 --------------------
-
 void Task1code(void*pvParameters){
   for(;;){
+    globaltime=millis();
+    startTime1=millis();
+
     // cpu1 counter and buzzer
     loop1+=1;
     if(loop1==100){
       loop1=0;
       digitalWrite(BUZZER,HIGH);
-      delay(50);
+      delay(20);
       digitalWrite(BUZZER,LOW);
     }
 
@@ -322,22 +333,23 @@ void Task1code(void*pvParameters){
     pRoll=mapPercent(Roll);
     mapMode(Mode);
 
-    // debug data ----------
-    // serial debug
-    //if(loop1==0||loop1==20||loop1==40||loop1==60||loop1==80)serialDebug(); // enable this for long debug
-    //serialDebug(); // enable this for short debug if delay != 1000 = fast
+    elapsedTime1=millis()-startTime1;
 
-    // delay
-    delay(10); // run delay
-    //delay(100); // test delay
-    //delay(1000); // debug delay
+    // debug ----------
+    // serial debug
+    //serialDebug(); // enable this for fast debug
+    if(millis()-clock1>=200){
+      clock1=millis();
+      serialDebug();
+    }
   }
 }
 
 // -------------------- task2 --------------------
-
 void Task2code(void*pvParameters){
   for(;;){
+    startTime2=millis();
+
     // cpu2 counter
     loop2+=1;
     if(loop2==100)loop2=0;
@@ -350,15 +362,12 @@ void Task2code(void*pvParameters){
     result=esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg)); 
     if(result==ESP_OK)msgStatus="1";
     else msgStatus="0";
-
-    // delay
-    delay(10); // run delay
-    //delay(100); // test delay
+    
+    elapsedTime2=millis()-startTime2;
   } 
-}
+} 
 
 // -------------------- setup --------------------
-
 void setup(){
   // put your setup code here, to run once:
   // Initialize Serial Monitor
@@ -382,7 +391,7 @@ void setup(){
   initBoot();
 
   // startup delay
-  delay(300);
+  delay(200);
 
   // task handler
   xTaskCreatePinnedToCore(Task1code,"cpu1",10000,NULL,2,&cpu1,0);
@@ -390,7 +399,6 @@ void setup(){
 }
 
 // -------------------- loop --------------------
- 
 void loop(){
   // put your main code here, to run repeatedly:
   
