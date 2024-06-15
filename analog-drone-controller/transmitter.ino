@@ -3,7 +3,6 @@
 // https:github.com/lolenseu
 
 // -------------------- include and define --------------------
-
 #include <SPI.h>
 #include <WiFi.h>
 #include <Wire.h>
@@ -35,15 +34,12 @@
 Adafruit_SSD1306 display(128,64,&Wire,-1);
 
 // -------------------- variables --------------------
-
-// ---------- manualvar ----------
-
-// ESP-NOW
+// manualvar ----------
+// esp-now mymac and targetmac
 uint8_t myMac[]={0x40,0x22,0xD8,0x08,0xBB,0x48};
 uint8_t targetMac[]={0x40,0x22,0xD8,0x03,0x2E,0x50};
 
-// ---------- fixvar ----------
-
+// fixvar ----------
 // task
 TaskHandle_t cpu1;
 TaskHandle_t cpu2;
@@ -55,10 +51,18 @@ int loop2=0;
 // peerinfo
 esp_now_peer_info_t peerInfo;
 
-//time for ping
+// mavlink
+mavlink_message_t msg;
+mavlink_status_t status;
+
+// time for ping
 long int time1;
 long int time2;
 long int timePing;
+
+// connection and send data espnow
+String comStatus;
+String msgStatus;
 
 // raw data
 // toggle inputs
@@ -105,9 +109,12 @@ int Roll=1500;
 int Mode=1540;
 String Mods;
 
-// mavlink
-mavlink_message_t msg;
-mavlink_status_t status;
+// percent data
+int pSpeed;
+int pTrottle;
+int pYaw;
+int pPitch;
+int pRoll;
 
 // send_message
 typedef struct send_message{
@@ -129,21 +136,8 @@ typedef struct recive_message{
 };
 recive_message rcvxMsg;
 
-// percent data
-int pSpeed;
-int pTrottle;
-int pYaw;
-int pPitch;
-int pRoll;
-
-// connection and send data espnow
-String comStatus;
-String msgStatus;
-
 // -------------------- fuctions --------------------
-
-// ---------- startup ----------
-
+// startup ----------
 // initboot
 void initBoot(){
   Serial.println("");
@@ -159,20 +153,19 @@ void initBoot(){
   delay(1500);
 }
 
-// ---------- connection ----------
-
+// connection ----------
 // init esp-now
 void initespnow(){
   WiFi.mode(WIFI_STA);
   Serial.println("Initiating ESP-NOW ..");
 
-  // Init ESP-NOW
+  // init ESP-NOW
   if(esp_now_init()!=ESP_OK){
     Serial.println("Error Initializing ESP-NOW");
     return;
   }
 
-  // Register peer
+  // register peer
   memcpy(peerInfo.peer_addr,targetMac,6);
   peerInfo.channel=0;  
   peerInfo.encrypt=false;
@@ -181,14 +174,39 @@ void initespnow(){
     return;
   }
 
-  // Register callbacks
+  // register callbacks
   esp_now_register_send_cb(OnDataSent);
   esp_now_register_recv_cb(reinterpret_cast<esp_now_recv_cb_t>(OnDataRecv));
   delay(500);
 }
 
-// ---------- processing ----------
+// serial uart ----------
+void serialuart(){
+  // serial uart receive and write
+  if(Serial.availableForWrite()>0){
+    Serial.write(rcvxMsg.buf,rcvxMsg.len);
+  }
 
+  // heartbeat
+  static unsigned long lastHeartbeatTime=0;
+  if(millis()-lastHeartbeatTime>1000){
+    lastHeartbeatTime=millis();
+    mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
+    sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+  }
+
+  // serial uart read and send
+  else{
+    while(Serial.available()>0){
+      uint8_t c=Serial.read();
+      if (mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+        sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+      }
+    }
+  }
+}
+
+// processing ----------
 // to map value
 int setMap(int toMap){
   int subMap=map(toMap,0,4095,0,225); // fix the joystic input because joystic is not centerd to 2048
@@ -264,7 +282,7 @@ void mapMode(int toMode){
   else if(mapMode>1750&&mapMode<2000)Mods="Land";
 }
 
-// esp-now
+// esp-now ----------
 void OnDataSent(const uint8_t *mac_addr,esp_now_send_status_t status){
   if(status==ESP_NOW_SEND_SUCCESS)comStatus="ok!";
   else comStatus="bd!";
@@ -274,8 +292,7 @@ void OnDataRecv(const uint8_t *mac_addr,const uint8_t *incomingData,int data_len
   memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
 }
 
-// ---------- printing ----------
-
+// printing ----------
 // oled screen setup1
 void oledScreen1(){
   display.clearDisplay();
@@ -404,8 +421,7 @@ void Task1code(void*pvParameters){
     loop1+=1;
     if(loop1==100)loop1=0;
 
-    // ---------- process data ----------
-
+    // data procces ----------
     // raw data
     // read toglle input value
     togSW1State=digitalRead(togSW1);
@@ -516,9 +532,8 @@ void Task1code(void*pvParameters){
     pPitch=mapPercent(Pitch);
     pRoll=mapPercent(Roll);
     mapMode(Mode);
-    
-    // ---------- debug data ----------
 
+    // debug data ----------
     // oled screen
     // oleddisplay1
     if(togSW3State==HIGH)oledScreen2();
@@ -545,29 +560,14 @@ void Task2code(void*pvParameters){
     loop2+=1;
     if(loop2==100)loop2=0;
 
-    // uart serial read and send
-    while(Serial.available()>0){
-      uint8_t c=Serial.read();
-      if (mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-        sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
-      }
-    }
+    // serial uart
+    serialuart();
 
     // msg via ESP-NOW
     esp_err_t result;
     result=esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg)); 
     if(result==ESP_OK)msgStatus="1";
     else msgStatus="0";
-
-    // uart serial receive and write plus heartbeat
-    Serial.write(rcvxMsg.buf,rcvxMsg.len);
-
-    static unsigned long lastHeartbeatTime=0;
-    if(millis()-lastHeartbeatTime>1000){
-      lastHeartbeatTime=millis();
-      mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
-      sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
-    }
 
     // delay
     delay(10); // run delay
@@ -601,7 +601,8 @@ void setup(){
   pinMode(joySW1,INPUT);
   pinMode(joySW2,INPUT);
 
-  initBoot(); // boot
+  // boot
+  initBoot();
 
   // startup delay
   delay(300);
