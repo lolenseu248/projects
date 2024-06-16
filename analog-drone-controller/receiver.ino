@@ -87,13 +87,13 @@ int percentRoll;
 
 // connection and send data espnow
 String comStatus;
-unsigned long ping;
-unsigned long lossping;
+int ping;
+int lossping;
 
 // send_message
 typedef struct send_message{
-  unsigned long time;
-  unsigned long totaltime;
+  int time1;
+  int time2;
   uint16_t len;
   uint8_t buf[128];
 };
@@ -106,7 +106,8 @@ typedef struct receive_message{
   int pitch;
   int roll;
   int mode;
-  unsigned long time;
+  int time1;
+  int time2;
   uint16_t len;
   uint8_t buf[128];
 };
@@ -157,25 +158,14 @@ void initespnow(){
 // serial uart ----------
 void serialuart(){
   // serial uart receive and write
-  if(Serial2.availableForWrite()>0&&rcvxMsg.len>0){
+  if(Serial2.availableForWrite()>0){
     Serial2.write(rcvxMsg.buf,rcvxMsg.len);
-    rcvxMsg.len=0;
   }
 
-  // heartbeat
-  if(millis()-lastHeartbeatTime>=1000){
-    lastHeartbeatTime=millis();
-    mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
-    sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
-  }
-
-  // serial uart read and send
-  else{
-    while(Serial2.available()>0){
-      uint8_t c=Serial2.read();
-      if (mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-        sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
-      }
+  while(Serial2.available()>0){
+    uint8_t c=Serial2.read();
+    if (mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+      sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
     }
   }
 }
@@ -258,7 +248,7 @@ void Task1code(void*pvParameters){
     globaltime=millis()/1000;
     startTime1=millis();
 
-    // process data ----------
+    // process ----------
     // rcv controls
     Trottle=rcvxMsg.trottle;
     Yaw=rcvxMsg.yaw;
@@ -266,20 +256,23 @@ void Task1code(void*pvParameters){
     Roll=rcvxMsg.roll;
     Mode=rcvxMsg.mode;
 
+    // snd ping
+    sndxMsg.time2=millis()
+
     // rcv ping
-    if(rcvxMsg.time-millis()<0)ping=rcvxMsg.time-millis();
-    lossping==rcvxMsg.time-millis();
+    ping=rcvxMsg.time2-millis();
+    lossping=rcvxMsg.time1-millis();
 
-    // snd total ping 
-    sndxMsg.time=millis();
-    sndxMsg.totaltime=rcvxMsg.time;
+    // ping from control
+    sndxMsg.time1=rcvxMsg.time1;
 
+    // safety in case of out of signal
     if(lossping<-10){
       if(millis()-losscount1>=1000){
           losscount1=millis();
           digitalWrite(BUZZER,HIGH);
-          delay(10);
-          digitalWrite(BUZZER,HIGH);
+          delay(50);
+          digitalWrite(BUZZER,LOW);
       }
       // stay on position
       Trottle=1500;
@@ -287,13 +280,24 @@ void Task1code(void*pvParameters){
       Pitch=1500;
       Roll=1500;
       Mode=1540; // Loiter mode
+
       if(millis()-losscount2>=10000){
+        if(millis()-losscount1>=500){
+          losscount1=millis();
+          digitalWrite(BUZZER,HIGH);
+          delay(50);
+          digitalWrite(BUZZER,LOW);
+        }
         // Return to Land
         Mode=1690; // RTL mode
       }
+
       if(millis()-losscount3>=60000){
-        for(int freq=1500;freq<=1800;freq++){
-          tone(BUZZER,freq,2);
+        if(millis()-losscount1>=250){
+          losscount1=millis();
+          digitalWrite(BUZZER,HIGH);
+          delay(100);
+          digitalWrite(BUZZER,LOW);
         }
       }
     }

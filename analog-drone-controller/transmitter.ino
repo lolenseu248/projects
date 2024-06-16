@@ -123,8 +123,7 @@ int percentRoll;
 
 // connection and send data espnow
 String comStatus;
-unsigned long ping;
-unsigned long totalping;
+int ping;
 
 // send_message
 typedef struct send_message{
@@ -133,7 +132,8 @@ typedef struct send_message{
   int pitch;
   int roll;
   int mode;
-  unsigned long time;
+  int time1;
+  int time2;
   uint16_t len;
   uint8_t buf[128];
 };
@@ -141,8 +141,8 @@ send_message sndxMsg;
 
 // recive_message
 typedef struct receive_message{
-  unsigned long time;
-  unsigned long totaltime;
+  int time1
+  int time2;
   uint16_t len;
   uint8_t buf[128];
 };
@@ -195,9 +195,8 @@ void initespnow(){
 // serial uart ----------
 void serialuart(){
   // serial uart receive and write
-  if(Serial.availableForWrite()>0&&rcvxMsg.len>0){
+  if(Serial.availableForWrite()>0){
     Serial.write(rcvxMsg.buf,rcvxMsg.len);
-    rcvxMsg.len=0;
   }
 
   // heartbeat
@@ -321,43 +320,6 @@ void oledScreen1(){
   display.print("          Mode: ");
   display.print(Mods);
   display.setCursor(0,10);
-  display.print("Trottle:   ");
-  display.print(mapPercent(Trottle));
-  display.print("%");
-  display.setCursor(0,20);
-  display.print("Yaw:       ");
-  display.print(mapPercent(Yaw));
-  display.print("%");
-  display.setCursor(0,30);
-  display.print("Pitch:     ");
-  display.print(mapPercent(Pitch));
-  display.print("%");
-  display.setCursor(0,40);
-  display.print("Roll:      ");
-  display.print(mapPercent(Roll));
-  display.print("%");
-  display.setCursor(0,50);
-  display.print("Count: ");
-  display.print(loop1);
-  display.display();
-}
-
-// oled screen setup2
-void oledScreen2(){
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
-  display.setCursor(0,0);
-  display.print("ECOM: ");
-  display.println(comStatus);
-  display.setCursor(0,0);
-  display.print("          PING: ");
-  display.print(ping);
-  display.println("ms");
-  display.setCursor(0,50);
-  display.print("          Mode: ");
-  display.print(Mods);
-  display.setCursor(0,10);
   display.print("JSNo.1: ");
   display.print("X=");
   display.print(joyX1Poss);
@@ -381,6 +343,43 @@ void oledScreen2(){
   display.display();
 }
 
+// oled screen setup2
+void oledScreen2(){
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(0,0);
+  display.print("ECOM: ");
+  display.println(comStatus);
+  display.setCursor(0,0);
+  display.print("          PING: ");
+  display.print(ping);
+  display.println("ms");
+  display.setCursor(0,50);
+  display.print("          Mode: ");
+  display.print(Mods);
+  display.setCursor(0,10);
+  display.print("Trottle:   ");
+  display.print(mapPercent(Trottle));
+  display.print("%");
+  display.setCursor(0,20);
+  display.print("Yaw:       ");
+  display.print(mapPercent(Yaw));
+  display.print("%");
+  display.setCursor(0,30);
+  display.print("Pitch:     ");
+  display.print(mapPercent(Pitch));
+  display.print("%");
+  display.setCursor(0,40);
+  display.print("Roll:      ");
+  display.print(mapPercent(Roll));
+  display.print("%");
+  display.setCursor(0,50);
+  display.print("Count: ");
+  display.print(loop1);
+  display.display();
+}
+
 // serial debug
 void serialDebug(){
   Serial.println("\n");
@@ -389,7 +388,6 @@ void serialDebug(){
   Serial.printf("Com Status: ");
   Serial.println(comStatus);
   Serial.printf("ping: %dms\n",ping);
-  Serial.printf("totalping: %dms\n",totalping);
   Serial.println("");
   /*
   Serial.println("Raw Data");
@@ -439,7 +437,7 @@ void Task1code(void*pvParameters){
     globaltime=millis()/1000;
     startTime1=millis();
 
-    // data procces ----------
+    // procces ----------
     // raw data
     // read toglle input value
     togSW1State=digitalRead(togSW1);
@@ -543,11 +541,14 @@ void Task1code(void*pvParameters){
     sndxMsg.mode=Mode;
 
     // snd ping
-    sndxMsg.time=millis();
-
+    if(togSW3State==HIGH)sndxMsg.time1=0;
+    if(togSW3State==LOW)sndxMsg.time1=millis();
+    
     // rcv ping
-    if(rcvxMsg.time-millis()<0)ping=rcvxMsg.time-millis();
-    if(rcvxMsg.totaltime-millis()<0)totalping=rcvxMsg.totaltime-millis();
+    ping=rcvxMsg.time1-millis();
+
+    // ping from uav
+    sndxMsg.time2=rcvxMsg.time2;
 
     // percent data
     percentSpeed=mapPercent(potenM2Poss);
@@ -562,10 +563,10 @@ void Task1code(void*pvParameters){
     // debug ----------
     // oled screen
     // oleddisplay1
-    if(togSW3State==HIGH)oledScreen2();
+    if(togSW3State==HIGH)oledScreen1();
 
     // oleddisplay2
-    else if(togSW3State==LOW)oledScreen1();
+    else if(togSW3State==LOW)oledScreen2();
 
     // serial debug
     //serialDebug(); // enable this for fast debug
