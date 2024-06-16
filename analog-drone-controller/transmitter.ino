@@ -69,9 +69,6 @@ unsigned long elapsedTime2;
 unsigned long clock1=0;
 unsigned long clock2=0;
 
-// delay
-int toDelay=10;
-
 // raw data
 // toggle inputs
 int togSW1State;
@@ -110,7 +107,7 @@ int calcHigh;
 int currentTrottle=1720;
 
 // sending process data
-int Trottle=1720;
+int Trottle=1500;
 int Yaw=1500;
 int Pitch=1500;
 int Roll=1500;
@@ -126,7 +123,6 @@ int percentRoll;
 
 // connection and send data espnow
 String comStatus;
-String msgStatus;
 unsigned long ping;
 unsigned long totalping;
 
@@ -137,7 +133,6 @@ typedef struct send_message{
   int pitch;
   int roll;
   int mode;
-  int loop1;
   unsigned long time;
   uint16_t len;
   uint8_t buf[128];
@@ -200,8 +195,9 @@ void initespnow(){
 // serial uart ----------
 void serialuart(){
   // serial uart receive and write
-  if(Serial.availableForWrite()>0){
+  if(Serial.availableForWrite()>0&&rcvxMsg.len>0){
     Serial.write(rcvxMsg.buf,rcvxMsg.len);
+    rcvxMsg.len=0;
   }
 
   // heartbeat
@@ -315,11 +311,12 @@ void oledScreen1(){
   display.setTextSize(1);
   display.setTextColor(WHITE);
   display.setCursor(0,0);
-  display.printf("ECOM: ");
+  display.print("ECOM: ");
   display.println(comStatus);
   display.setCursor(0,0);
-  display.printf("          MSTA: ");
-  display.println(msgStatus);
+  display.print("          PING: ");
+  display.print(ping);
+  display.println("ms");
   display.setCursor(0,50);
   display.print("          Mode: ");
   display.print(Mods);
@@ -351,11 +348,12 @@ void oledScreen2(){
   display.setTextSize(1);
   display.setTextColor(WHITE);
   display.setCursor(0,0);
-  display.printf("ECOM: ");
+  display.print("ECOM: ");
   display.println(comStatus);
   display.setCursor(0,0);
-  display.printf("          MSTA: ");
-  display.println(msgStatus);
+  display.print("          PING: ");
+  display.print(ping);
+  display.println("ms");
   display.setCursor(0,50);
   display.print("          Mode: ");
   display.print(Mods);
@@ -390,8 +388,6 @@ void serialDebug(){
   Serial.println("ESP-NOW");
   Serial.printf("Com Status: ");
   Serial.println(comStatus);
-  Serial.printf("Msg Status: ");
-  Serial.println(msgStatus);
   Serial.printf("ping: %dms\n",ping);
   Serial.printf("totalping: %dms\n",totalping);
   Serial.println("");
@@ -546,9 +542,6 @@ void Task1code(void*pvParameters){
     sndxMsg.roll=Roll;
     sndxMsg.mode=Mode;
 
-    // snd con count
-    sndxMsg.loop1=loop1;
-
     // snd ping
     sndxMsg.time=millis();
 
@@ -580,9 +573,6 @@ void Task1code(void*pvParameters){
       clock1=millis();
       serialDebug();
     }
-
-    // delay ----------
-    delay(toDelay); // run delay
   } 
 }
 
@@ -599,11 +589,8 @@ void Task2code(void*pvParameters){
     serialuart();
 
     // msg via ESP-NOW
-    esp_err_t result;
-    result=esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg)); 
-    if(result==ESP_OK)msgStatus="1";
-    else msgStatus="0";
-    
+    esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg)); 
+  
     elapsedTime2=millis()-startTime2;
   } 
 }

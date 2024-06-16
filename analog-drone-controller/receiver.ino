@@ -59,17 +59,6 @@ unsigned long elapsedTime2;
 unsigned long clock1=0;
 unsigned long clock2=0;
 
-// delay and buzzer delay
-unsigned long buzzerDelay=20;
-int toDelay=10;
-
-// servo
-Servo servo1;
-Servo servo2;
-Servo servo3;
-Servo servo4;
-Servo servo5;
-
 // process data
 int Trottle;
 int Yaw;
@@ -78,10 +67,17 @@ int Roll;
 int Mode;
 String Mods;
 
+// servo
+Servo servo1;
+Servo servo2;
+Servo servo3;
+Servo servo4;
+Servo servo5;
+
 // counter incase of lost signal
-int subCount;
-int lastsubCount;
-int lostCount=0;
+unsigned long losscount1=0;
+unsigned long losscount2=0;
+unsigned long losscount3=0;
 
 // percent data
 int percentTrottle;
@@ -91,8 +87,8 @@ int percentRoll;
 
 // connection and send data espnow
 String comStatus;
-String msgStatus;
 unsigned long ping;
+unsigned long lossping;
 
 // send_message
 typedef struct send_message{
@@ -110,7 +106,6 @@ typedef struct receive_message{
   int pitch;
   int roll;
   int mode;
-  int loop1;
   unsigned long time;
   uint16_t len;
   uint8_t buf[128];
@@ -162,8 +157,9 @@ void initespnow(){
 // serial uart ----------
 void serialuart(){
   // serial uart receive and write
-  if(Serial2.availableForWrite()>0){
+  if(Serial2.availableForWrite()>0&&rcvxMsg.len>0){
     Serial2.write(rcvxMsg.buf,rcvxMsg.len);
+    rcvxMsg.len=0;
   }
 
   // heartbeat
@@ -220,8 +216,6 @@ void serialDebug(){
   Serial.println("ESP-NOW");
   Serial.printf("Com Status: ");
   Serial.println(comStatus);
-  Serial.printf("Msg Status: ");
-  Serial.println(msgStatus);
   Serial.printf("ping: %dms\n",ping);
   Serial.println("");
   /*
@@ -259,12 +253,7 @@ void Task1code(void*pvParameters){
   for(;;){
     // cpu1 counter and buzzer
     loop1+=1;
-    if(loop1==100){
-      loop1=0;
-      digitalWrite(BUZZER,HIGH);
-      delay(buzzerDelay);
-      digitalWrite(BUZZER,LOW);
-    }
+    if(loop1==100)loop1=0;
 
     globaltime=millis()/1000;
     startTime1=millis();
@@ -276,66 +265,42 @@ void Task1code(void*pvParameters){
     Pitch=rcvxMsg.pitch;
     Roll=rcvxMsg.roll;
     Mode=rcvxMsg.mode;
-    
-    // rcv con count
-    subCount=rcvxMsg.loop1;
 
     // rcv ping
     if(rcvxMsg.time-millis()<0)ping=rcvxMsg.time-millis();
+    lossping==rcvxMsg.time-millis();
 
     // snd total ping 
     sndxMsg.time=millis();
     sndxMsg.totaltime=rcvxMsg.time;
-    
-    
-    // emergency servo protocol auto land
-    if(subCount==lastsubCount){
-      lostCount+=1; // lost counter
-      if(lostCount>=100){
-        if(lostCount>=100&&lostCount<=1900){
-          if(loop1==1){
-            digitalWrite(BUZZER,HIGH);
-            delay(buzzerDelay);
-            digitalWrite(BUZZER,LOW);
-            startTime1=startTime1-buzzerDelay;
-          }
-        }
 
-        // stay on position
-        Trottle=1720; // increase hight by 20%
-        Yaw=1500;
-        Pitch=1500;
-        Roll=1500;
-        Mode=1540; // Loiter mode
-      }
-      if(lostCount>=2000){
-
-        // buzzer warning for return to land
-        if(loop1==0||loop1==25||loop1==50||loop1==75){
+    if(lossping<-10){
+      if(millis()-losscount1>=1000){
+          losscount1=millis();
           digitalWrite(BUZZER,HIGH);
-          delay(buzzerDelay);
-          digitalWrite(BUZZER,LOW);
-          startTime1=startTime1-buzzerDelay;
-        }
-
+          delay(10);
+          digitalWrite(BUZZER,HIGH);
+      }
+      // stay on position
+      Trottle=1500;
+      Yaw=1500;
+      Pitch=1500;
+      Roll=1500;
+      Mode=1540; // Loiter mode
+      if(millis()-losscount2>=10000){
         // Return to Land
         Mode=1690; // RTL mode
       }
-      if(lostCount>=10000){
-        lostCount=10000;
-
-        // buzzer warning for search if lost
-        if(loop1==10||loop1==35||loop1==60||loop1==85){
-          digitalWrite(BUZZER,HIGH);
-          delay(buzzerDelay);
-          digitalWrite(BUZZER,LOW);
-          startTime1=startTime1-buzzerDelay;
+      if(millis()-losscount3>=60000){
+        for(int freq=1500;freq<=1800;freq++){
+          tone(BUZZER,freq,2);
         }
       }
     }
     else{
-      lastsubCount=subCount;
-      lostCount=0;
+      losscount1=millis();
+      losscount2=millis();
+      losscount3=millis();
     }
 
     // write servo
@@ -361,9 +326,6 @@ void Task1code(void*pvParameters){
       clock1=millis();
       serialDebug();
     }
-
-    // delay ----------
-    delay(toDelay); // run delay
   }
 }
 
@@ -380,10 +342,7 @@ void Task2code(void*pvParameters){
     serialuart();
 
     // msg via ESP-NOW
-    esp_err_t result;
-    result=esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg)); 
-    if(result==ESP_OK)msgStatus="1";
-    else msgStatus="0";
+    esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg)); 
     
     elapsedTime2=millis()-startTime2;
   } 
