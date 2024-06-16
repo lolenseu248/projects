@@ -141,7 +141,7 @@ send_message sndxMsg;
 
 // recive_message
 typedef struct receive_message{
-  int time1
+  int time1;
   int time2;
   uint16_t len;
   uint8_t buf[128];

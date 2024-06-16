@@ -257,7 +257,7 @@ void Task1code(void*pvParameters){
     Mode=rcvxMsg.mode;
 
     // snd ping
-    sndxMsg.time2=millis()
+    sndxMsg.time2=millis();
 
     // rcv ping
     ping=rcvxMsg.time2-millis();
