@@ -8,6 +8,7 @@
 #include <Wire.h>
 #include <MAVLink.h>
 #include <esp_now.h>
+#include <WebServer.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
@@ -30,11 +31,23 @@
 #define potenMeter1 36
 #define potenMeter2 39
 
+// websoket
+WebServer server(80);
+
 // screen initiation
 Adafruit_SSD1306 display(128,64,&Wire,-1);
 
 // -------------------- variables --------------------
 // manualvar ----------
+// ssdid and pass of wifi
+const char* ssid="apm2.8-hexa";
+const char* password="12345678";
+
+// static ip
+IPAddress local_IP(192,168,1,1);
+IPAddress gateway(192,168,1,1);
+IPAddress subnet(255,255,255,0);
+
 // esp-now mymac and targetmac
 uint8_t myMac[]={0x40,0x22,0xD8,0x08,0xBB,0x48};
 uint8_t targetMac[]={0x40,0x22,0xD8,0x03,0x2E,0x50};
@@ -166,9 +179,21 @@ void initBoot(){
 }
 
 // connection ----------
+// init wifi
+void initwifi(){
+  WiFi.softAPConfig(local_IP,gateway,subnet);
+  WiFi.softAP(ssid,password);
+
+  // print the IP address
+  IPAddress IP=WiFi.softAPIP();
+  Serial.print("AP IP address: ");
+  Serial.println(IP);
+  delay(500);
+}
+
 // init esp-now
 void initespnow(){
-  WiFi.mode(WIFI_STA);
+  //WiFi.mode(WIFI_STA);
   Serial.println("Initiating ESP-NOW ..");
 
   // init ESP-NOW
@@ -304,6 +329,50 @@ void OnDataRecv(const uint8_t *mac_addr,const uint8_t *incomingData,int data_len
 }
 
 // printing ----------
+// webcontent
+void handleRoot(){
+  String html = "<html><head>";
+  html += "<meta http-equiv='refresh' content='0.5'>";
+  html += "<style>";
+  html += "body { text-align: center; }";
+  html += "h1 { font-size: 60px; }";
+  html += "h2 { font-size: 50px; }";
+  html += "p { font-size: 50px; }";
+  html += ".flex-container { display: flex; justify-content: center; margin: 0 auto; padding-left: 15%; padding-right: 15% }";
+  html += ".left { flex: 1; text-align: left; font-size: 50px; }";
+  html += ".right { flex: 1; text-align: right; font-size: 50px; }";
+  html += "</style>";
+  html += "</head><body>";
+  html += "<h1>apm2.8-hexa</h1>";
+  html += "<h2>ESP-NOW</h2>";
+  html += "<div class='flex-container'>";
+  html += "<div class='left'>Com Status: " + String(comStatus) + "</div>";
+  html += "<div class='right'>ping: " + String(ping) + "ms</div>";
+  html += "</div>";
+  html += "<h2>Official Data</h2>";
+  html += "<div class='flex-container'>";
+  html += "<div class='left'>Speed: " + String(percentSpeed) + "%</div>";
+  html += "<div class='right'>Mod: " + String(Mods) + "</div>";
+  html += "</div>";
+  html += "<div class='flex-container'>";
+  html += "<div class='left'>Trottle: " + String(percentTrottle) + "%</div>";
+  html += "<div class='right'>Yaw: " + String(percentYaw) + "%</div>";
+  html += "</div>";
+  html += "<div class='flex-container'>";
+  html += "<div class='left'>Pitch: " + String(percentPitch) + "%</div>";
+  html += "<div class='right'>Roll: " + String(percentRoll) + "%</div>";
+  html += "</div>";
+  html += "<h2>Cpu Usage</h2>";
+  html += "<div class='flex-container'>";
+  html += "<div class='left'>Cpu1: " + String(elapsedTime1) + "ms</div>";
+  html += "<div class='right'>Cpu2: " + String(elapsedTime2) + "ms</div>";
+  html += "</div>";
+  html += "<p>Uptime: " + String(globaltime) + "sec</p>";
+  html += "</body></html>";
+  server.send(200, "text/html", html);
+}
+
+
 // oled screen setup1
 void oledScreen1(){
   display.clearDisplay();
@@ -317,7 +386,7 @@ void oledScreen1(){
   display.print(ping);
   display.println("ms");
   display.setCursor(0,50);
-  display.print("          Mode: ");
+  display.print("Mode: ");
   display.print(Mods);
   display.setCursor(0,10);
   display.print("JSNo.1: ");
@@ -356,7 +425,7 @@ void oledScreen2(){
   display.print(ping);
   display.println("ms");
   display.setCursor(0,50);
-  display.print("          Mode: ");
+  display.print("Mode: ");
   display.print(Mods);
   display.setCursor(0,10);
   display.print("Trottle:   ");
@@ -383,6 +452,8 @@ void oledScreen2(){
 // serial debug
 void serialDebug(){
   Serial.println("\n");
+  Serial.print("IP Address: ");
+  Serial.println(WiFi.softAPIP());
   Serial.println("-------------------- debug --------------------");
   Serial.println("ESP-NOW");
   Serial.printf("Com Status: ");
@@ -436,6 +507,9 @@ void Task1code(void*pvParameters){
 
     globaltime=millis()/1000;
     startTime1=millis();
+
+    // webserver
+    server.handleClient();
 
     // procces ----------
     // raw data
@@ -545,7 +619,8 @@ void Task1code(void*pvParameters){
     if(togSW3State==LOW)sndxMsg.time1=millis();
     
     // rcv ping
-    ping=rcvxMsg.time1-millis();
+    if(0>=rcvxMsg.time1)ping=0;
+    else ping=rcvxMsg.time1-millis();
 
     // ping from uav
     sndxMsg.time2=rcvxMsg.time2;
@@ -608,8 +683,17 @@ void setup(){
     while(1);
   }
 
-  // int ESP-NOW
+  // init wifi
+  initwifi();
+
+  // init ESP-NOW
   initespnow();
+
+  // define the root URL ("/") handler
+  server.on("/",handleRoot);
+
+  // start the server
+  server.begin();
 
   // toggle switch
   pinMode(togSW1,INPUT_PULLUP);

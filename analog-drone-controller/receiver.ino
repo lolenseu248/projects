@@ -260,7 +260,8 @@ void Task1code(void*pvParameters){
     sndxMsg.time2=millis();
 
     // rcv ping
-    ping=rcvxMsg.time2-millis();
+    if(0>=rcvxMsg.time2)ping=0;
+    else ping=rcvxMsg.time2-millis();
     lossping=rcvxMsg.time1-millis();
 
     // ping from control
