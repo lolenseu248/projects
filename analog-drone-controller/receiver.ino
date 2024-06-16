@@ -92,26 +92,30 @@ int percentRoll;
 // connection and send data espnow
 String comStatus;
 String msgStatus;
+unsigned long ping;
 
 // send_message
 typedef struct send_message{
+  unsigned long time;
+  unsigned long totaltime;
   uint16_t len;
   uint8_t buf[128];
 };
 send_message sndxMsg;
 
 // recive_message
-typedef struct recive_message{
+typedef struct receive_message{
   int trottle;
   int yaw;
   int pitch;
   int roll;
   int mode;
   int loop1;
+  unsigned long time;
   uint16_t len;
   uint8_t buf[128];
 };
-recive_message rcvxMsg;
+receive_message rcvxMsg;
 
 // -------------------- fuctions --------------------
 // startup ----------
@@ -218,6 +222,7 @@ void serialDebug(){
   Serial.println(comStatus);
   Serial.printf("Msg Status: ");
   Serial.println(msgStatus);
+  Serial.printf("ping: %dms\n",ping);
   Serial.println("");
   /*
   Serial.println("Processed Data");
@@ -245,7 +250,7 @@ void serialDebug(){
   Serial.printf("Cpu1: %dms\n",elapsedTime1);
   Serial.printf("Cpu2: %dms\n",elapsedTime2);
   Serial.println("");
-  Serial.printf("Uptime: %d\n",globaltime/1000);
+  Serial.printf("Uptime: %dsec\n",globaltime);
   Serial.println("-------------------- debug --------------------");
 }
 
@@ -261,7 +266,7 @@ void Task1code(void*pvParameters){
       digitalWrite(BUZZER,LOW);
     }
 
-    globaltime=millis();
+    globaltime=millis()/1000;
     startTime1=millis();
 
     // process data ----------
@@ -271,7 +276,17 @@ void Task1code(void*pvParameters){
     Pitch=rcvxMsg.pitch;
     Roll=rcvxMsg.roll;
     Mode=rcvxMsg.mode;
+    
+    // rcv con count
     subCount=rcvxMsg.loop1;
+
+    // rcv ping
+    if(rcvxMsg.time-millis()<0)ping=rcvxMsg.time-millis();
+
+    // snd total ping 
+    sndxMsg.time=millis();
+    sndxMsg.totaltime=rcvxMsg.time;
+    
     
     // emergency servo protocol auto land
     if(subCount==lastsubCount){

@@ -127,6 +127,8 @@ int percentRoll;
 // connection and send data espnow
 String comStatus;
 String msgStatus;
+unsigned long ping;
+unsigned long totalping;
 
 // send_message
 typedef struct send_message{
@@ -136,17 +138,20 @@ typedef struct send_message{
   int roll;
   int mode;
   int loop1;
+  unsigned long time;
   uint16_t len;
   uint8_t buf[128];
 };
 send_message sndxMsg;
 
 // recive_message
-typedef struct recive_message{
+typedef struct receive_message{
+  unsigned long time;
+  unsigned long totaltime;
   uint16_t len;
   uint8_t buf[128];
 };
-recive_message rcvxMsg;
+receive_message rcvxMsg;
 
 // -------------------- fuctions --------------------
 // startup ----------
@@ -387,6 +392,8 @@ void serialDebug(){
   Serial.println(comStatus);
   Serial.printf("Msg Status: ");
   Serial.println(msgStatus);
+  Serial.printf("ping: %dms\n",ping);
+  Serial.printf("totalping: %dms\n",totalping);
   Serial.println("");
   /*
   Serial.println("Raw Data");
@@ -422,7 +429,7 @@ void serialDebug(){
   Serial.printf("Cpu1: %dms\n",elapsedTime1);
   Serial.printf("Cpu2: %dms\n",elapsedTime2);
   Serial.println("");
-  Serial.printf("Uptime: %d\n",globaltime/1000);
+  Serial.printf("Uptime: %dsec\n",globaltime);
   Serial.println("-------------------- debug --------------------");
 }
 
@@ -433,7 +440,7 @@ void Task1code(void*pvParameters){
     loop1+=1;
     if(loop1==100)loop1=0;
 
-    globaltime=millis();
+    globaltime=millis()/1000;
     startTime1=millis();
 
     // data procces ----------
@@ -538,7 +545,16 @@ void Task1code(void*pvParameters){
     sndxMsg.pitch=Pitch;
     sndxMsg.roll=Roll;
     sndxMsg.mode=Mode;
+
+    // snd con count
     sndxMsg.loop1=loop1;
+
+    // snd ping
+    sndxMsg.time=millis();
+
+    // rcv ping
+    if(rcvxMsg.time-millis()<0)ping=rcvxMsg.time-millis();
+    if(rcvxMsg.totaltime-millis()<0)totalping=rcvxMsg.totaltime-millis();
 
     // percent data
     percentSpeed=mapPercent(potenM2Poss);
