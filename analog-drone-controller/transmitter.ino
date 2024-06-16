@@ -180,21 +180,9 @@ void initBoot(){
 }
 
 // connection ----------
-// init wifi
-void initwifi(){
-  WiFi.softAPConfig(local_IP,gateway,subnet);
-  WiFi.softAP(ssid,password);
-
-  // print the IP address
-  IPAddress IP=WiFi.softAPIP();
-  Serial.print("AP IP address: ");
-  Serial.println(IP);
-  delay(500);
-}
-
 // init esp-now
 void initespnow(){
-  //WiFi.mode(WIFI_STA);
+  WiFi.mode(WIFI_STA);
   Serial.println("Initiating ESP-NOW ..");
 
   // init ESP-NOW
@@ -215,6 +203,18 @@ void initespnow(){
   // register callbacks
   esp_now_register_send_cb(OnDataSent);
   esp_now_register_recv_cb(reinterpret_cast<esp_now_recv_cb_t>(OnDataRecv));
+  delay(500);
+}
+
+// init wifi
+void initwifi(){
+  WiFi.softAPConfig(local_IP,gateway,subnet);
+  WiFi.softAP(ssid,password);
+
+  // print the IP address
+  IPAddress IP=WiFi.softAPIP();
+  Serial.print("AP IP address: ");
+  Serial.println(IP);
   delay(500);
 }
 
@@ -665,7 +665,7 @@ void Task1code(void*pvParameters){
     
     // rcv ping
     if(0>=rcvxMsg.time1)ping=0;
-    else ping=rcvxMsg.time1-millis();
+    else ping=millis()-rcvxMsg.time1;
 
     // ping from uav
     sndxMsg.time2=rcvxMsg.time2;
@@ -728,11 +728,11 @@ void setup(){
     while(1);
   }
 
-  // init wifi
-  initwifi();
-
   // init ESP-NOW
   initespnow();
+
+  // init wifi
+  initwifi();
 
   // URL ("/") handler
   server.on("/",handleRoot);

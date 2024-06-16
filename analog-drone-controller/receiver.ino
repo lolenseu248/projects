@@ -261,14 +261,14 @@ void Task1code(void*pvParameters){
 
     // rcv ping
     if(0>=rcvxMsg.time2)ping=0;
-    else ping=rcvxMsg.time2-millis();
+    else ping=millis()-rcvxMsg.time2;
     lossping=rcvxMsg.time1-millis();
 
     // ping from control
     sndxMsg.time1=rcvxMsg.time1;
 
     // safety in case of out of signal
-    if(lossping<-10){
+    if(lossping<0){
       if(millis()-losscount1>=1000){
           losscount1=millis();
           digitalWrite(BUZZER,HIGH);
