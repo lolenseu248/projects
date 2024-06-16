@@ -69,6 +69,9 @@ unsigned long elapsedTime2;
 unsigned long clock1=0;
 unsigned long clock2=0;
 
+// delay
+int toDelay=10;
+
 // raw data
 // toggle inputs
 int togSW1State;
@@ -115,11 +118,11 @@ int Mode=1540;
 String Mods;
 
 // percent data
-int pSpeed;
-int pTrottle;
-int pYaw;
-int pPitch;
-int pRoll;
+int percentSpeed;
+int percentTrottle;
+int percentYaw;
+int percentPitch;
+int percentRoll;
 
 // connection and send data espnow
 String comStatus;
@@ -408,11 +411,11 @@ void serialDebug(){
   Serial.println("");
   */
   Serial.println("Official Data");
-  Serial.printf("Speed: %d%%\n",pSpeed);
-  Serial.printf("Trottle: %d%%\n",pTrottle);
-  Serial.printf("Yaw: %d%%\n",pYaw);
-  Serial.printf("Pitch: %d%%\n",pPitch);
-  Serial.printf("Roll: %d%%\n",pRoll);
+  Serial.printf("Speed: %d%%\n",percentSpeed);
+  Serial.printf("Trottle: %d%%\n",percentTrottle);
+  Serial.printf("Yaw: %d%%\n",percentYaw);
+  Serial.printf("Pitch: %d%%\n",percentPitch);
+  Serial.printf("Roll: %d%%\n",percentRoll);
   Serial.printf("Mode: %s\n",Mods);
   Serial.println("");
   Serial.println("Cpu Usage");
@@ -538,11 +541,11 @@ void Task1code(void*pvParameters){
     sndxMsg.loop1=loop1;
 
     // percent data
-    pSpeed=mapPercent(potenM2Poss);
-    pTrottle=mapPercent(Trottle);
-    pYaw=mapPercent(Yaw);
-    pPitch=mapPercent(Pitch);
-    pRoll=mapPercent(Roll);
+    percentSpeed=mapPercent(potenM2Poss);
+    percentTrottle=mapPercent(Trottle);
+    percentYaw=mapPercent(Yaw);
+    percentPitch=mapPercent(Pitch);
+    percentRoll=mapPercent(Roll);
     mapMode(Mode);
 
     elapsedTime1=millis()-startTime1;
@@ -563,8 +566,7 @@ void Task1code(void*pvParameters){
     }
 
     // delay ----------
-    delay(10); // run delay
-    //delay(100) // debug delay
+    delay(toDelay); // run delay
   } 
 }
 

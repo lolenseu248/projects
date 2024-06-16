@@ -59,20 +59,16 @@ unsigned long elapsedTime2;
 unsigned long clock1=0;
 unsigned long clock2=0;
 
+// delay and buzzer delay
+unsigned long buzzerDelay=20;
+int toDelay=10;
+
 // servo
 Servo servo1;
 Servo servo2;
 Servo servo3;
 Servo servo4;
 Servo servo5;
-
-// raw data
-String rTrottle;
-String rYaw;
-String rPitch;
-String rRoll;
-String rMode;
-String rCount;
 
 // process data
 int Trottle;
@@ -88,10 +84,10 @@ int lastsubCount;
 int lostCount=0;
 
 // percent data
-int pTrottle;
-int pYaw;
-int pPitch;
-int pRoll;
+int percentTrottle;
+int percentYaw;
+int percentPitch;
+int percentRoll;
 
 // connection and send data espnow
 String comStatus;
@@ -224,13 +220,6 @@ void serialDebug(){
   Serial.println(msgStatus);
   Serial.println("");
   /*
-  Serial.println("Raw Data");
-  Serial.printf("Trottle: %s\n",rTrottle);
-  Serial.printf("Yaw: %s\n",rYaw);
-  Serial.printf("Pitch: %s\n",rPitch);
-  Serial.printf("Roll: %s\n",rRoll);
-  Serial.printf("Mode: %s\n",rMode);
-  Serial.println("");
   Serial.println("Processed Data");
   Serial.printf("Trottle: %d\n",Trottle);
   Serial.printf("Yaw: %d\n",Yaw);
@@ -240,10 +229,10 @@ void serialDebug(){
   Serial.println("");
   */
   Serial.println("Official Data");
-  Serial.printf("Trottle: %d%%\n",pTrottle);
-  Serial.printf("Yaw: %d%%\n",pYaw);
-  Serial.printf("Pitch: %d%%\n",pPitch);
-  Serial.printf("Roll: %d%%\n",pRoll);
+  Serial.printf("Trottle: %d%%\n",percentTrottle);
+  Serial.printf("Yaw: %d%%\n",percentYaw);
+  Serial.printf("Pitch: %d%%\n",percentPitch);
+  Serial.printf("Roll: %d%%\n",percentRoll);
   Serial.printf("Mode: %s\n",Mods);
   Serial.println("");
   /*
@@ -268,7 +257,7 @@ void Task1code(void*pvParameters){
     if(loop1==100){
       loop1=0;
       digitalWrite(BUZZER,HIGH);
-      delay(20);
+      delay(buzzerDelay);
       digitalWrite(BUZZER,LOW);
     }
 
@@ -291,8 +280,9 @@ void Task1code(void*pvParameters){
         if(lostCount>=100&&lostCount<=1900){
           if(loop1==1){
             digitalWrite(BUZZER,HIGH);
-            delay(20);
+            delay(buzzerDelay);
             digitalWrite(BUZZER,LOW);
+            startTime1=startTime1-buzzerDelay;
           }
         }
 
@@ -308,8 +298,9 @@ void Task1code(void*pvParameters){
         // buzzer warning for return to land
         if(loop1==0||loop1==25||loop1==50||loop1==75){
           digitalWrite(BUZZER,HIGH);
-          delay(20);
+          delay(buzzerDelay);
           digitalWrite(BUZZER,LOW);
+          startTime1=startTime1-buzzerDelay;
         }
 
         // Return to Land
@@ -321,8 +312,9 @@ void Task1code(void*pvParameters){
         // buzzer warning for search if lost
         if(loop1==10||loop1==35||loop1==60||loop1==85){
           digitalWrite(BUZZER,HIGH);
-          delay(20);
+          delay(buzzerDelay);
           digitalWrite(BUZZER,LOW);
+          startTime1=startTime1-buzzerDelay;
         }
       }
     }
@@ -339,10 +331,10 @@ void Task1code(void*pvParameters){
     servo5.write(Mode);
 
     // percent data
-    pTrottle=mapPercent(Trottle);
-    pYaw=mapPercent(Yaw);
-    pPitch=mapPercent(Pitch);
-    pRoll=mapPercent(Roll);
+    percentTrottle=mapPercent(Trottle);
+    percentYaw=mapPercent(Yaw);
+    percentPitch=mapPercent(Pitch);
+    percentRoll=mapPercent(Roll);
     mapMode(Mode);
 
     elapsedTime1=millis()-startTime1;
@@ -356,8 +348,7 @@ void Task1code(void*pvParameters){
     }
 
     // delay ----------
-    delay(10); // run delay
-    //delay(100) // debug delay
+    delay(toDelay); // run delay
   }
 }
 
