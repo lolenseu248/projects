@@ -127,13 +127,13 @@ int ping;
 
 // send_message
 typedef struct send_message{
-  int trottle;
-  int yaw;
-  int pitch;
-  int roll;
-  int mode;
-  int time1;
-  int time2;
+  uint32_t trottle;
+  uint32_t yaw;
+  uint32_t pitch;
+  uint32_t roll;
+  uint32_t mode;
+  uint64_t time1;
+  uint64_t time2;
   uint16_t len;
   uint8_t buf[200];
 };
@@ -141,8 +141,8 @@ send_message sndxMsg;
 
 // recive_message
 typedef struct receive_message{
-  int time1;
-  int time2;
+  uint64_t time1;
+  uint64_t time2;
   uint16_t len;
   uint8_t buf[200];
 };
