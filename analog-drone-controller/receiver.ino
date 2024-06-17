@@ -26,8 +26,7 @@
 // -------------------- variables --------------------
 // manualvar ----------
 // esp-now mymac and targetmac
-//uint8_t myMac[]={0x40,0x22,0xD8,0x03,0x2E,0x50};
-uint8_t myMac[]={0x40,0x22,0xD8,0x05,0x68,0xB0};
+uint8_t myMac[]={0x40,0x22,0xD8,0x03,0x2E,0x50};
 uint8_t targetMac[]={0x40,0x22,0xD8,0x08,0xBB,0x48};
 
 // fixvar ----------
@@ -41,9 +40,6 @@ TaskHandle_t cpu2;
 // mavlink
 mavlink_message_t msg;
 mavlink_status_t status;
-
-// mavlink heartbeattime
-unsigned long lastHeartbeatTime=0;
 
 // counter
 int loop1=0;
@@ -95,7 +91,7 @@ typedef struct send_message{
   int time1;
   int time2;
   uint16_t len;
-  uint8_t buf[128];
+  uint8_t buf[200];
 };
 send_message sndxMsg;
 
@@ -109,7 +105,7 @@ typedef struct receive_message{
   int time1;
   int time2;
   uint16_t len;
-  uint8_t buf[128];
+  uint8_t buf[200];
 };
 receive_message rcvxMsg;
 
@@ -224,12 +220,6 @@ void serialDebug(){
   Serial.printf("Roll: %d%%\n",percentRoll);
   Serial.printf("Mode: %s\n",Mods);
   Serial.println("");
-  /*
-  Serial.println("Lost Counter");
-  Serial.printf("SubCount: %d\n",subCount);
-  Serial.printf("LostbCount: %d\n",lostCount);
-  Serial.println("");
-  */
   Serial.println("Cpu Usage");
   Serial.printf("Cpu1: %dms\n",elapsedTime1);
   Serial.printf("Cpu2: %dms\n",elapsedTime2);

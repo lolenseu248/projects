@@ -8,8 +8,6 @@
 #include <Wire.h>
 #include <MAVLink.h>
 #include <esp_now.h>
-#include <WebServer.h>
-#include <ArduinoJson.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
@@ -32,27 +30,14 @@
 #define potenMeter1 36
 #define potenMeter2 39
 
-// websoket
-WebServer server(80);
-
 // screen initiation
 Adafruit_SSD1306 display(128,64,&Wire,-1);
 
 // -------------------- variables --------------------
 // manualvar ----------
-// ssdid and pass of wifi
-const char* ssid="apm2.8-hexa";
-const char* password="12345678";
-
-// static ip
-IPAddress local_IP(192,168,1,1);
-IPAddress gateway(192,168,1,1);
-IPAddress subnet(255,255,255,0);
-
 // esp-now mymac and targetmac
 uint8_t myMac[]={0x40,0x22,0xD8,0x08,0xBB,0x48};
-//uint8_t targetMac[]={0x40,0x22,0xD8,0x03,0x2E,0x50};
-uint8_t targetMac[]={0x40,0x22,0xD8,0x05,0x68,0xB0};
+uint8_t targetMac[]={0x40,0x22,0xD8,0x03,0x2E,0x50};
 
 // fixvar ----------
 // peerinfo
@@ -150,7 +135,7 @@ typedef struct send_message{
   int time1;
   int time2;
   uint16_t len;
-  uint8_t buf[128];
+  uint8_t buf[200];
 };
 send_message sndxMsg;
 
@@ -159,7 +144,7 @@ typedef struct receive_message{
   int time1;
   int time2;
   uint16_t len;
-  uint8_t buf[128];
+  uint8_t buf[200];
 };
 receive_message rcvxMsg;
 
@@ -204,18 +189,6 @@ void initespnow(){
   // register callbacks
   esp_now_register_send_cb(OnDataSent);
   esp_now_register_recv_cb(reinterpret_cast<esp_now_recv_cb_t>(OnDataRecv));
-  delay(500);
-}
-
-// init wifi
-void initwifi(){
-  WiFi.softAPConfig(local_IP,gateway,subnet);
-  WiFi.softAP(ssid,password);
-
-  // print the IP address
-  IPAddress IP=WiFi.softAPIP();
-  Serial.print("AP IP address: ");
-  Serial.println(IP);
   delay(500);
 }
 
@@ -331,94 +304,6 @@ void OnDataRecv(const uint8_t *mac_addr,const uint8_t *incomingData,int data_len
 }
 
 // printing ----------
-// json
-void handleData(){
-  StaticJsonDocument<200> jsonDoc;
-  jsonDoc["data1"] = comStatus;
-  jsonDoc["data2"] = ping;
-  jsonDoc["data3"] = percentSpeed;
-  jsonDoc["data4"] = Mods;
-  jsonDoc["data5"] = percentTrottle;
-  jsonDoc["data6"] = percentYaw;
-  jsonDoc["data7"] = percentPitch;
-  jsonDoc["data8"] = percentRoll;
-  jsonDoc["data9"] = elapsedTime1;
-  jsonDoc["data10"] = elapsedTime2;
-  jsonDoc["data11"] = globaltime;
-  String jsonString;
-  serializeJson(jsonDoc,jsonString);
-  server.send(200, "application/json", jsonString);
-}
-
-// web
-void handleRoot(){
-  String html = "<html>";
-  html += "  <head>";
-  html += "    <style>";
-  html += "      body { text-align: center; }";
-  html += "      h1 { font-size: 60px; }";
-  html += "      h2 { font-size: 50px; }";
-  html += "      p { font-size: 50px; }";
-  html += "      .flex-container { display: flex; justify-content: center; margin: 0 auto; padding-left: 15%; padding-right: 15% }";
-  html += "      .left { flex: 1; text-align: left; font-size: 50px; }";
-  html += "      .right { flex: 1; text-align: right; font-size: 50px; }";
-  html += "    </style>";
-  html += "    <script>";
-  html += "      function refreshData() {";
-  html += "        var xhr = new XMLHttpRequest();";
-  html += "        xhr.onreadystatechange = function() {";
-  html += "          if (this.readyState == 4 && this.status == 200) {";
-  html += "            var data = JSON.parse(this.responseText);";
-  html += "            document.getElementById('data1').innerHTML = 'Com Status: ' + data.data1;";
-  html += "            document.getElementById('data2').innerHTML = 'Ping: ' + data.data2 + 'ms';";
-  html += "            document.getElementById('data3').innerHTML = 'Speed: ' + data.data3 + '%';";
-  html += "            document.getElementById('data4').innerHTML = 'Mod: ' + data.data4;";
-  html += "            document.getElementById('data5').innerHTML = 'Trottle: ' + data.data5 + '%';";
-  html += "            document.getElementById('data6').innerHTML = 'Yaw: ' + data.data6 + '%';";
-  html += "            document.getElementById('data7').innerHTML = 'Pitch: ' + data.data7 + '%';";
-  html += "            document.getElementById('data8').innerHTML = 'Roll: ' + data.data8 + '%';";
-  html += "            document.getElementById('data9').innerHTML = 'Cpu1: ' + data.data9 + 'ms';";
-  html += "            document.getElementById('data10').innerHTML = 'Cpu2: ' + data.data10 + 'ms';";
-  html += "            document.getElementById('data11').innerHTML = 'Uptime: ' + data.data11 + 'sec';";
-  html += "          }";
-  html += "        };";
-  html += "        xhr.open('GET', '/data', true);";
-  html += "        xhr.send();";
-  html += "      }";
-  html += "      setInterval(refreshData, 200);";    
-  html += "    </script>";
-  html += "  </head>";
-  html += "  <body>";
-  html += "    <h1>apm2.8-hexa</h1>";
-  html += "    <h2>ESP-NOW</h2>";
-  html += "    <div class='flex-container'>";
-  html += "      <div id='data1' class='left'>Com Status: " + String(comStatus) + "</div>";
-  html += "      <div id='data2' class='right'>ping: " + String(ping) + "ms</div>";
-  html += "    </div>";
-  html += "    <h2>Official Data</h2>";
-  html += "    <div class='flex-container'>";
-  html += "      <div id='data3' class='left'>Speed: " + String(percentSpeed) + "%</div>";
-  html += "      <div id='data4' class='right'>Mod: " + String(Mods) + "</div>";
-  html += "    </div>";
-  html += "    <div class='flex-container'>";
-  html += "      <div id='data5' class='left'>Trottle: " + String(percentTrottle) + "%</div>";
-  html += "      <div id='data6' class='right'>Yaw: " + String(percentYaw) + "%</div>";
-  html += "    </div>";
-  html += "    <div class='flex-container'>";
-  html += "      <div id='data7' class='left'>Pitch: " + String(percentPitch) + "%</div>";
-  html += "      <div id='data8' class='right'>Roll: " + String(percentRoll) + "%</div>";
-  html += "    </div>";
-  html += "    <h2>Cpu Usage</h2>";
-  html += "    <div class='flex-container'>";
-  html += "      <div id='data9' class='left'>Cpu1: " + String(elapsedTime1) + "ms</div>";
-  html += "      <div id='data10' class='right'>Cpu2: " + String(elapsedTime2) + "ms</div>";
-  html += "    </div>";
-  html += "    <p id='data11' >Uptime: " + String(globaltime) + "sec</p>";
-  html += "  </body>";
-  html += "</html>";
-  server.send(200, "text/html", html);
-}
-
 // oled screen setup1
 void oledScreen1(){
   display.clearDisplay();
@@ -498,8 +383,6 @@ void oledScreen2(){
 // serial debug
 void serialDebug(){
   Serial.println("\n");
-  Serial.print("IP Address: ");
-  //Serial.println(WiFi.softAPIP());
   Serial.println("-------------------- debug --------------------");
   Serial.println("ESP-NOW");
   Serial.printf("Com Status: ");
@@ -553,9 +436,6 @@ void Task1code(void*pvParameters){
 
     globaltime=millis()/1000;
     startTime1=millis();
-
-    // webserver
-    //server.handleClient();
 
     // procces ----------
     // raw data
@@ -731,16 +611,6 @@ void setup(){
 
   // init ESP-NOW
   initespnow();
-
-  // init wifi
-  //initwifi();
-
-  // URL ("/") handler
-  //server.on("/",handleRoot);
-  //server.on("/data",HTTP_GET,handleData);
-
-  // start the server
-  //server.begin();
 
   // toggle switch
   pinMode(togSW1,INPUT_PULLUP);
