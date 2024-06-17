@@ -3,11 +3,10 @@
 // https:github.com/lolenseu
 
 // -------------------- include and define --------------------
-#include <SPI.h>
-#include <WiFi.h>
 #include <Wire.h>
-#include <MAVLink.h>
+#include <WiFi.h>
 #include <esp_now.h>
+#include <MAVLink.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
