@@ -51,7 +51,8 @@ IPAddress subnet(255,255,255,0);
 
 // esp-now mymac and targetmac
 uint8_t myMac[]={0x40,0x22,0xD8,0x08,0xBB,0x48};
-uint8_t targetMac[]={0x40,0x22,0xD8,0x03,0x2E,0x50};
+//uint8_t targetMac[]={0x40,0x22,0xD8,0x03,0x2E,0x50};
+uint8_t targetMac[]={0x40,0x22,0xD8,0x05,0x68,0xB0};
 
 // fixvar ----------
 // peerinfo
@@ -498,7 +499,7 @@ void oledScreen2(){
 void serialDebug(){
   Serial.println("\n");
   Serial.print("IP Address: ");
-  Serial.println(WiFi.softAPIP());
+  //Serial.println(WiFi.softAPIP());
   Serial.println("-------------------- debug --------------------");
   Serial.println("ESP-NOW");
   Serial.printf("Com Status: ");
@@ -554,7 +555,7 @@ void Task1code(void*pvParameters){
     startTime1=millis();
 
     // webserver
-    server.handleClient();
+    //server.handleClient();
 
     // procces ----------
     // raw data
@@ -659,16 +660,16 @@ void Task1code(void*pvParameters){
     sndxMsg.roll=Roll;
     sndxMsg.mode=Mode;
 
+    // ping from uav
+    if(togSW3State==HIGH)sndxMsg.time2=rcvxMsg.time2-3000;
+    else if(togSW3State==LOW)sndxMsg.time2=rcvxMsg.time2;
+
     // snd ping
-    if(togSW3State==HIGH)sndxMsg.time1=0;
-    if(togSW3State==LOW)sndxMsg.time1=millis();
+    sndxMsg.time1=millis();
     
     // rcv ping
-    if(0>=rcvxMsg.time1)ping=0;
+    if(rcvxMsg.time1<=0)ping=0;
     else ping=millis()-rcvxMsg.time1;
-
-    // ping from uav
-    sndxMsg.time2=rcvxMsg.time2;
 
     // percent data
     percentSpeed=mapPercent(potenM2Poss);
@@ -732,14 +733,14 @@ void setup(){
   initespnow();
 
   // init wifi
-  initwifi();
+  //initwifi();
 
   // URL ("/") handler
-  server.on("/",handleRoot);
-  server.on("/data",HTTP_GET,handleData);
+  //server.on("/",handleRoot);
+  //server.on("/data",HTTP_GET,handleData);
 
   // start the server
-  server.begin();
+  //server.begin();
 
   // toggle switch
   pinMode(togSW1,INPUT_PULLUP);

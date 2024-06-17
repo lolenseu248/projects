@@ -26,7 +26,8 @@
 // -------------------- variables --------------------
 // manualvar ----------
 // esp-now mymac and targetmac
-uint8_t myMac[]={0x40,0x22,0xD8,0x03,0x2E,0x50};
+//uint8_t myMac[]={0x40,0x22,0xD8,0x03,0x2E,0x50};
+uint8_t myMac[]={0x40,0x22,0xD8,0x05,0x68,0xB0};
 uint8_t targetMac[]={0x40,0x22,0xD8,0x08,0xBB,0x48};
 
 // fixvar ----------
@@ -88,7 +89,6 @@ int percentRoll;
 // connection and send data espnow
 String comStatus;
 int ping;
-int lossping;
 
 // send_message
 typedef struct send_message{
@@ -256,19 +256,18 @@ void Task1code(void*pvParameters){
     Roll=rcvxMsg.roll;
     Mode=rcvxMsg.mode;
 
+    // ping from control
+    sndxMsg.time1=rcvxMsg.time1;
+
     // snd ping
     sndxMsg.time2=millis();
 
     // rcv ping
-    if(0>=rcvxMsg.time2)ping=0;
+    if(rcvxMsg.time2<=0)ping=0;
     else ping=millis()-rcvxMsg.time2;
-    lossping=rcvxMsg.time1-millis();
-
-    // ping from control
-    sndxMsg.time1=rcvxMsg.time1;
 
     // safety in case of out of signal
-    if(lossping<0){
+    if(ping>=3000){
       if(millis()-losscount1>=1000){
           losscount1=millis();
           digitalWrite(BUZZER,HIGH);
