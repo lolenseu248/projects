@@ -237,7 +237,7 @@ void serialuart(){
   else{
     while(Serial.available()>0){
       uint8_t c=Serial.read();
-      if (mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+      if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
         sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
       }
     }
