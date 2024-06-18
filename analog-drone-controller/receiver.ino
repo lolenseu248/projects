@@ -71,6 +71,7 @@ Servo servo4;
 Servo servo5;
 
 // counter incase of lost signal
+bool buzzerState=LOW;
 unsigned long losscount1=0;
 unsigned long losscount2=0;
 unsigned long losscount3=0;
@@ -258,35 +259,49 @@ void Task1code(void*pvParameters){
 
     // safety in case of out of signal
     if(ping>=3000){
-      if(millis()-losscount1>=1000){
-          losscount1=millis();
-          digitalWrite(BUZZER,HIGH);
-          delay(50);
-          digitalWrite(BUZZER,LOW);
-      }
       // stay on position
       Trottle=1500;
       Yaw=1500;
       Pitch=1500;
       Roll=1500;
       Mode=1540; // Loiter mode
+      
+      if(buzzerState==LOW&&millis()-losscount1>=1000){
+        buzzerState=HIGH;
+        losscount1=millis();
+        digitalWrite(BUZZER,HIGH);
+      }
+      if(buzzerState==HIGH&&millis()-losscount1>=50){
+        buzzerState=LOW;
+        losscount1=millis();
+        digitalWrite(BUZZER,LOW);
+      }
 
       if(millis()-losscount2>=10000){
-        if(millis()-losscount1>=500){
-          losscount1=millis();
-          digitalWrite(BUZZER,HIGH);
-          delay(50);
-          digitalWrite(BUZZER,LOW);
-        }
         // Return to Land
         Mode=1690; // RTL mode
+
+        if(buzzerState==LOW&&millis()-losscount1>=500){
+          buzzerState=HIGH;
+          losscount1=millis();
+          digitalWrite(BUZZER,HIGH);
+        }
+        if(buzzerState==HIGH&&millis()-losscount1>=50){
+          buzzerState=LOW;
+          losscount1=millis();
+          digitalWrite(BUZZER,LOW);
+        }
       }
 
       if(millis()-losscount3>=60000){
-        if(millis()-losscount1>=250){
+        if(buzzerState==LOW&&millis()-losscount1>=250){
+          buzzerState=HIGH;
           losscount1=millis();
           digitalWrite(BUZZER,HIGH);
-          delay(100);
+        }
+        if(buzzerState==HIGH&&millis()-losscount1>=50){
+          buzzerState=LOW;
+          losscount1=millis();
           digitalWrite(BUZZER,LOW);
         }
       }
