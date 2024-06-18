@@ -153,8 +153,9 @@ void initespnow(){
 // serial uart ----------
 void serialuart(){
   // serial uart receive and write
-  if(Serial2.availableForWrite()>0){
+  if(Serial2.availableForWrite()>0&&rcvxMsg.len>0){
     Serial2.write(rcvxMsg.buf,rcvxMsg.len);
+    rcvxMsg.len=0;
   }
 
   while(Serial2.available()>0){

@@ -194,8 +194,9 @@ void initespnow(){
 // serial uart ----------
 void serialuart(){
   // serial uart receive and write
-  if(Serial.availableForWrite()>0){
+  if(Serial.availableForWrite()>0&&rcvxMsg.len>0){
     Serial.write(rcvxMsg.buf,rcvxMsg.len);
+    rcvxMsg.len=0;
   }
 
   // heartbeat
