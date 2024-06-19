@@ -23,7 +23,7 @@
 #define GPIOMode 23
 
 // maxbuffer
-#define MAXBUFFER 64
+#define BUFFER 64
 
 // -------------------- variables --------------------
 // manualvar ----------
@@ -94,7 +94,7 @@ typedef struct send_message{
   uint64_t time1;
   uint64_t time2;
   uint16_t len;
-  uint8_t buf[MAXBUFFER];
+  uint8_t buf[BUFFER];
 };
 send_message sndxMsg;
 
@@ -108,7 +108,7 @@ typedef struct receive_message{
   uint64_t time1;
   uint64_t time2;
   uint16_t len;
-  uint8_t buf[MAXBUFFER];
+  uint8_t buf[BUFFER];
 };
 receive_message rcvxMsg;
 
