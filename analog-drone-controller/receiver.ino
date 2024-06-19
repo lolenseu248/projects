@@ -340,12 +340,13 @@ void Task2code(void*pvParameters){
     startTime2=millis();
 
     // serial uart ----------
-    // serial uart receive and write
+    // receive and write
     if(Serial2.availableForWrite()>0&&rcvxMsg.len>0){
       Serial2.write(rcvxMsg.buf,rcvxMsg.len);
       rcvxMsg.len=0;
     }
 
+    // read and send
     while(Serial2.available()>0){
       uint8_t c=Serial2.read();
       if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
