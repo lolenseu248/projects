@@ -105,6 +105,9 @@ int potenM2Poss;
 int calcLow;
 int calcHigh;
 
+// capture trottle
+int captureTrottle=1500;
+
 // current trottle
 int currentTrottle=1720;
 
@@ -479,6 +482,17 @@ void Task1code(void*pvParameters){
         }
         else if(togSW4State==LOW){
           Trottle=currentTrottle;
+
+          // return trottle
+          if(joySW1State==LOW){
+            Trottle=captureTrottle;
+          }
+
+          // capture trottle
+          if(joySW2State==LOW){
+            captureTrottle=setTrottle(joyX1Poss);
+          }
+          
           currentTrottle=setTrottle(joyX1Poss); // setTrottle only on knob or stab
           Mode=potenM1Poss; // Fix by knob
         }
@@ -625,8 +639,8 @@ void setup(){
   pinMode(togSW4,INPUT_PULLUP);
   
   // joystick switch
-  pinMode(joySW1,INPUT);
-  pinMode(joySW2,INPUT);
+  pinMode(joySW1,INPUT_PULLUP);
+  pinMode(joySW2,INPUT_PULLUP);
 
   // boot
   initBoot();
