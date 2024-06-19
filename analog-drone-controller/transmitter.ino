@@ -573,7 +573,7 @@ void Task2code(void*pvParameters){
     // receive and write
     if(Serial.availableForWrite()>0&&rcvxMsg.len>0){
       Serial.write(rcvxMsg.buf,rcvxMsg.len);
-      rcvxMsg.len=0;
+      rcvxMsg.len=0; // reset to zero
     }
 
     sndxMsg.len=0; // reset to zero
