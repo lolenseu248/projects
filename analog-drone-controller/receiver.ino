@@ -235,7 +235,7 @@ void serialDebug(){
 // -------------------- task1 --------------------
 void Task1code(void*pvParameters){
   for(;;){
-    // cpu1 counter and buzzer
+    // cpu1 counter
     loop1+=1;
     if(loop1==100)loop1=0;
 
