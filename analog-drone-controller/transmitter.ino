@@ -194,32 +194,6 @@ void initespnow(){
   delay(500);
 }
 
-// serial uart ----------
-void serialuart(){
-  // serial uart receive and write
-  if(Serial.availableForWrite()>0&&rcvxMsg.len>0){
-    Serial.write(rcvxMsg.buf,rcvxMsg.len);
-    rcvxMsg.len=0;
-  }
-
-  // heartbeat
-  if(millis()-lastHeartbeatTime>=1000){
-    lastHeartbeatTime=millis();
-    mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
-    sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
-  }
-
-  // serial uart read and send
-  else{
-    while(Serial.available()>0){
-      uint8_t c=Serial.read();
-      if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-        sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
-      }
-    }
-  }
-}
-
 // processing ----------
 // to map value
 int setMap(int toMap){
@@ -595,8 +569,29 @@ void Task2code(void*pvParameters){
     // cpu2 load start
     startTime2=millis();
 
-    // serial uart
-    serialuart();
+    // serial uart ----------
+    // serial uart receive and write
+    if(Serial.availableForWrite()>0&&rcvxMsg.len>0){
+      Serial.write(rcvxMsg.buf,rcvxMsg.len);
+      rcvxMsg.len=0;
+    }
+
+    // heartbeat
+    if(millis()-lastHeartbeatTime>=1000){
+      lastHeartbeatTime=millis();
+      mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
+      sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+    }
+
+    // serial uart read and send
+    else{
+      while(Serial.available()>0){
+        uint8_t c=Serial.read();
+        if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+          sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+        }
+      }
+    }
 
     // msg via ESP-NOW
     esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg)); 
