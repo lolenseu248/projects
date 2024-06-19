@@ -347,6 +347,7 @@ void Task2code(void*pvParameters){
     }
 
     // read and send
+    sndxMsg.len=0;
     while(Serial2.available()>0){
       uint8_t c=Serial2.read();
       if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){

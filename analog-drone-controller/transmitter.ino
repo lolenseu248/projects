@@ -214,8 +214,8 @@ void mapSpeed(int toSpeed){
 // to set official data
 // settrottle
 int setTrottle(int toTrottle){
-  if(toTrottle<=1200)Trottle=Trottle-=5;
-  if(toTrottle>=1800)Trottle=Trottle+=5;
+  if(toTrottle<=1200)Trottle=Trottle-=2;
+  if(toTrottle>=1800)Trottle=Trottle+=2;
   if(Trottle<=1000)Trottle=1000;
   if(Trottle>=2000)Trottle=1800;
   return Trottle;
@@ -575,6 +575,8 @@ void Task2code(void*pvParameters){
       Serial.write(rcvxMsg.buf,rcvxMsg.len);
       rcvxMsg.len=0;
     }
+
+    sndxMsg.len=0; // reset to zero
 
     // heartbeat
     if(millis()-lastHeartbeatTime>=1000){
