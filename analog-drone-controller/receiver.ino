@@ -22,6 +22,9 @@
 #define GPIORoll 21
 #define GPIOMode 23
 
+// maxbuffer
+#define MAXBUFFER 64
+
 // -------------------- variables --------------------
 // manualvar ----------
 // esp-now mymac and targetmac
@@ -91,7 +94,7 @@ typedef struct send_message{
   uint64_t time1;
   uint64_t time2;
   uint16_t len;
-  uint8_t buf[200];
+  uint8_t buf[MAXBUFFER];
 };
 send_message sndxMsg;
 
@@ -105,7 +108,7 @@ typedef struct receive_message{
   uint64_t time1;
   uint64_t time2;
   uint16_t len;
-  uint8_t buf[200];
+  uint8_t buf[MAXBUFFER];
 };
 receive_message rcvxMsg;
 
@@ -236,7 +239,10 @@ void Task1code(void*pvParameters){
     loop1+=1;
     if(loop1==100)loop1=0;
 
+    // uptime
     globaltime=millis()/1000;
+
+    // cpu1 load start
     startTime1=millis();
 
     // process ----------
@@ -326,6 +332,7 @@ void Task1code(void*pvParameters){
     percentRoll=mapPercent(Roll);
     mapMode(Mode);
 
+    // cpu1 load end
     elapsedTime1=millis()-startTime1;
 
     // debug ----------
@@ -345,6 +352,7 @@ void Task2code(void*pvParameters){
     loop2+=1;
     if(loop2==100)loop2=0;
 
+    // cpu2 load start
     startTime2=millis();
 
     // serial uart
@@ -353,6 +361,7 @@ void Task2code(void*pvParameters){
     // msg via ESP-NOW
     esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg)); 
     
+    // cpu2 load end
     elapsedTime2=millis()-startTime2;
   } 
 } 
