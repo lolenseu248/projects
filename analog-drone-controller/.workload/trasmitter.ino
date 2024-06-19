@@ -589,9 +589,6 @@ void Task1code(void*pvParameters){
     sndxCon.roll=Roll;
     sndxCon.mode=Mode;
 
-
-    sndxMsg.datatype=1;
-
     // ping from uav
     if(togSW3State==HIGH)sndxMsg.time2=rcvxMsg.time2-3000;
     else if(togSW3State==LOW)sndxMsg.time2=rcvxMsg.time2;
@@ -610,9 +607,6 @@ void Task1code(void*pvParameters){
     percentPitch=mapPercent(Pitch);
     percentRoll=mapPercent(Roll);
     mapMode(Mode);
-
-    // msg via ESP-NOW
-    esp_now_send(targetMac,(uint8_t*)&sndxCon,sizeof(sndxCon));
 
     // cpu1 load end
     elapsedTime1=millis()-startTime1;
@@ -648,6 +642,7 @@ void Task2code(void*pvParameters){
     serialuart();
 
     // msg via ESP-NOW
+    esp_now_send(targetMac,(uint8_t*)&sndxCon,sizeof(sndxCon));
     esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg)); 
 
     // cpu2 load end 

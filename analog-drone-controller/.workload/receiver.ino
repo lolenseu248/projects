@@ -327,10 +327,7 @@ void Task1code(void*pvParameters){
     percentYaw=mapPercent(Yaw);
     percentPitch=mapPercent(Pitch);
     percentRoll=mapPercent(Roll);
-    mapMode(Mode);
-
-    // msg via ESP-NOW
-    esp_now_send(targetMac,(uint8_t*)&sndxC,sizeof(sndxMsg)); 
+    mapMode(Mode); 
 
     // cpu1 load end
     elapsedTime1=millis()-startTime1;
@@ -359,6 +356,7 @@ void Task2code(void*pvParameters){
     serialuart();
 
     // msg via ESP-NOW
+    esp_now_send(targetMac,(uint8_t*)&sndxC,sizeof(sndxMsg))
     esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg)); 
     
     // cpu2 load end 
