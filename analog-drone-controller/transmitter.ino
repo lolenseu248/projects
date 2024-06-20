@@ -144,7 +144,7 @@ typedef struct send_message{
 };
 send_message sndxMsg;
 
-// recive_message
+// receive_message
 typedef struct receive_message{
   uint64_t time1;
   uint64_t time2;

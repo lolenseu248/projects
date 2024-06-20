@@ -116,7 +116,22 @@ percent_yaw = 0
 percent_pitch = 0
 percent_roll = 0
 
-buffer = 200
+# send message
+sthrottle = 1500
+syaw = 1500
+spitch = 1500
+sroll = 1500
+smode = 1540
+stime1 = 1234567890
+stime2 = 9876543210
+sbuf = b'0'
+
+# receive message
+rtime1 = 1234567890
+rtime2 = 9876543210
+rbuf = b'0'
+
+buffer = 128
 
 
 # fuctions ----------------------------------------
@@ -128,6 +143,8 @@ def initboot():
 # connection ----------
 # init espnow
 def init_espnow():
+    global e
+    
     # set wi-fi to station
     sta = network.WLAN(network.STA_IF)
     sta.active(True)
@@ -217,10 +234,10 @@ def map_mode(to_mode):
     elif map_mode > 1750 and map_mode < 2000: mods = "Land"
     
 # espnow callback ----------
+def on_data_sent(target_mac, data):
+    e.send(target_mac, data)
 
-        
-
-
+def on_data_recv(target_mac, data):pass
 
 
 # debug ----------
@@ -371,7 +388,7 @@ def core0_task():
         yaw = map(yaw, 1000, 2000, 2000, 1000);
         
         # snd controls
-        
+       
         
         
         # ping from uav
