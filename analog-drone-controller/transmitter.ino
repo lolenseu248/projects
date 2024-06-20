@@ -217,7 +217,7 @@ void mapSpeed(int toSpeed){
 // to set official data
 // settrottle
 int setTrottle(int toTrottle){
-  if(Trottle<=1500||Trottle>=1750){
+  if(Trottle<=1500||Trottle>=1800){
     if(toTrottle<=1200)Trottle=Trottle-=5;
     if(toTrottle>=1800)Trottle=Trottle+=5;
   }
@@ -226,7 +226,7 @@ int setTrottle(int toTrottle){
     if(toTrottle>=1800)Trottle=Trottle+=2;
   }
   if(Trottle<=1000)Trottle=1000;
-  if(Trottle>=2000)Trottle=1750;
+  if(Trottle>=2000)Trottle=1700;
   return Trottle;
 }
 
