@@ -49,6 +49,7 @@ def core1_task():
         core1_elapsed=time.ticks_ms()-core1_start
         # debug ----------
         if debug_time>=200:
+            debug_time=time.ticks_ms()
             debug()
         
         
