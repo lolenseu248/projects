@@ -42,7 +42,7 @@ pin_joystick_y2 = 35
 pin_potentiometer1 = 36
 pin_potentiometer2 = 39
 
-# variables ----------
+# define variables ----------
 # counter
 loop1 = 0
 loop2 = 0
@@ -108,6 +108,13 @@ pitch = 1500
 roll = 1500
 mode = 1540
 mods = ''
+
+# percent data
+percent_speed = 0
+percent_trottle = 0
+percent_yaw = 0
+percent_pitch = 0
+percent_roll = 0
 
 buffer = 200
 
@@ -230,7 +237,7 @@ def debug():
     print(f"Switch\nJoystic no. 1= {joystick_switch1_state}\nJoystic no. 2= {joystick_switch2_state}\nToggle no. 1= {toggle_switch1_state}\nToggle no. 2= {toggle_switch2_state}\nToggle no. 3= {toggle_switch3_state}\nToggle no. 4= {toggle_switch4_state}\n")
     print("\n")
     """
-    print(f"Official Data\nSpeed: {1}\nTrottle: {1}\nYaw: {1}\nPitch: {1}\nRoll: {1}\nMode: {1}")
+    print(f"Official Data\nSpeed: {percent_speed}\nTrottle: {percent_trottle}\nYaw: {percent_yaw}\nPitch: {percent_pitch}\nRoll: {percent_roll}\nMode: {mods}")
     print("\n")
     print(f"Cpu Usage\ncpu0: {core0_elapse}ms\ncpu1: {core1_elapsed}ms")
     print("-------------------- debug --------------------")
@@ -246,6 +253,7 @@ def core0_task():
     global joystick_x1_position, joystick_y1_position, joystick_x2_position, joystick_y2_position
     global potentiometer1_position, potentiometer2_position
     global current_trottle, capture_trottle
+    global percent_speed, percent_trottle, percent_yaw, percent_pitch, percent_roll
     
     # out global
     global core0_elapse
@@ -255,7 +263,7 @@ def core0_task():
     global potentiometer1_positions, potentiometer2_positions
     global joystick_x1_positionss, joystick_y1_positionss, joystick_x2_positionss, joystick_y2_positionss
     global potentiometer1_positionss, potentiometer2_positionss
-    global trottle, yaw, pitch, roll, mode, modes 
+    global trottle, yaw, pitch, roll, mode
     
     while True:
         # core0 counter
@@ -367,8 +375,16 @@ def core0_task():
         
         
         # ping from uav
-        if toggle_switch3_state == True:
-        elif toggle_switch3_state == False:
+        if toggle_switch3_state == True: pass
+        elif toggle_switch3_state == False: pass
+            
+        # percent data
+        percent_speed = map_percent(potentiometer2_positionss)
+        percent_trottle = map_percent(trottle)
+        percent_yaw = map_percent(yaw)
+        percent_pitch = map_percent(pitch)
+        percent_roll = map_percent(roll)
+        map_mode(mode)
         
         utime.sleep_ms(10)
         # core0 load end
