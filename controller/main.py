@@ -200,6 +200,7 @@ def map_percent(to_map_percent):
 
 # map mode
 def map_mode(to_mode):
+    global mods
     map_mode = map(to_mode, 1000, 2000, 1000, 2000)
     if map_mode > 1000 and map_mode < 1230: mods = "Stab"
     elif map_mode > 1231 and map_mode < 1360: mods = "PosH"
@@ -222,7 +223,7 @@ def debug():
     print(f"ESP-NOW\nCom Status: {1}\nping: {1}")
     print("\n")
     """
-    print(f"Raw Data\nJoystick no.1 X= {joystick_x1_positions}, Y= {joystick_y1_positions}, Sw= {joystick_switch1_state}\nJoystick no.2 X= {joystick_x2_positions}, Y= {joystick_y2_positions}, Sw= {joystick_switch2_state}\nPotentiometer no.1= {1}\nPotentiometer no.2= {1}")
+    print(f"Raw Data\nJoystick no.1 X= {joystick_x1_positions}, Y= {joystick_y1_positions}, Sw= {joystick_switch1_state}\nJoystick no.2 X= {joystick_x2_positions}, Y= {joystick_y2_positions}, Sw= {joystick_switch2_state}\nPotentiometer no.1= {potentiometer1_position}\nPotentiometer no.2= {potentiometer2_position}")
     print("\n")
     print(f"Mapped Data\nJoystick no.1 X= {joystick_x1_positionss}, Y= {joystick_y1_positionss}, Sw= {joystick_switch1_state}\nJoystick no.2 X= {joystick_x2_positionss}, Y= {joystick_y2_positionss}, Sw= {joystick_switch2_state}\nPotentiometer no.1= {potentiometer1_positionss}\nPotentiometer no.2= {potentiometer2_positionss}")
     print("\n")
@@ -244,6 +245,7 @@ def core0_task():
     global joystick_switch1, joystick_switch2
     global joystick_x1_position, joystick_y1_position, joystick_x2_position, joystick_y2_position
     global potentiometer1_position, potentiometer2_position
+    global current_trottle, capture_trottle
     
     # out global
     global core0_elapse
@@ -253,6 +255,7 @@ def core0_task():
     global potentiometer1_positions, potentiometer2_positions
     global joystick_x1_positionss, joystick_y1_positionss, joystick_x2_positionss, joystick_y2_positionss
     global potentiometer1_positionss, potentiometer2_positionss
+    global trottle, yaw, pitch, roll, mode, modes 
     
     while True:
         # core0 counter
@@ -299,6 +302,73 @@ def core0_task():
         
         # map mode to string
         map_speed(potentiometer2_positionss);
+        
+        #  prepare for send message
+        if toggle_switch2_state == True:
+            yaw = set_yaw(joystick_y1_positionss)
+            pitch = set_yaw(joystick_x2_positionss)
+            roll = set_yaw(joystick_y2_positionss)
+            
+            # for the modes
+            if toggle_switch1_state == True:
+                if toggle_switch4_state == True:
+                    trottle = set_trottle_in_mode(joystick_x1_positionss)
+                    mode = 1550 # loiter
+                
+                elif toggle_switch4_state == False:
+                    trottle = set_trottle_in_mode(joystick_x1_positionss)
+                    mode = 1400 # alt hold
+                
+            elif toggle_switch1_state == False:
+                if toggle_switch4_state == True:
+                    trottle = set_trottle_in_mode(joystick_x1_positionss)
+                    mode = 1820 # land
+                    
+                elif toggle_switch4_state == False:
+                    trottle = current_trottle
+                    
+                    # return trottle
+                    if joystick_switch1_state == False:
+                        trottle = capture_trottle
+                        
+                    # capture trottle
+                    if joystick_switch2_state == False:
+                        capture_trottle = set_trottle(joystick_x1_positionss)
+                        
+                    current_trottle = set_trottle(joystick_x1_positionss) # set trottle only on knob or stab
+                    mode = potentiometer1_positionss # fix by knob 
+        
+        elif toggle_switch2_state == False:
+            current_trottle = joystick_x1_positionss
+            trottle = current_trottle
+            yaw = joystick_y1_positionss
+            pitch = joystick_x2_positionss
+            roll = joystick_y2_positionss
+            
+            if toggle_switch1_state == True:
+                if toggle_switch4_state == True:
+                    mode = 1550 # loiter
+                    
+                elif toggle_switch4_state == False:
+                    mode = 1400 # alt hold
+                    
+            elif toggle_switch1_state == False:
+                if toggle_switch4_state == True:
+                    mode = 1820 # land
+                    
+                elif toggle_switch4_state == False:
+                    mode = 1100 # fix stabilize
+            
+        # fix yaw position 
+        yaw = map(yaw, 1000, 2000, 2000, 1000);
+        
+        # snd controls
+        
+        
+        
+        # ping from uav
+        if toggle_switch3_state == True:
+        elif toggle_switch3_state == False:
         
         utime.sleep_ms(10)
         # core0 load end
