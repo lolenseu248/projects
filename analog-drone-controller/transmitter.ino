@@ -10,7 +10,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-//toggle pinout
+// toggle pinout
 #define togSW1 19
 #define togSW2 18
 #define togSW3 2
@@ -453,7 +453,7 @@ void Task1code(void*pvParameters){
     joyX1Poss=setMap(joyX1Pos);
     joyY1Poss=setMap(joyY1Pos);
 
-    // mapped joystic values of joystic no.1
+    // mapped joystic values of joystic no.2
     joyX2Poss=setMap(joyX2Pos);
     joyY2Poss=setMap(joyY2Pos);
 

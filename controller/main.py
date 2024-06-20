@@ -1,76 +1,412 @@
+# Transmitter
+# @lolenseu
+# https:github.com/lolenseu
 
-
-# import --------------------
+# import ----------------------------------------
 import _thread
-import time
-import sys
+import utime
+import network
+import espnow
+import machine
 
 
-# file import --------------------
+# file import ----------------------------------------
 
 
 
-# variables --------------------
-running = True
+# variables ----------------------------------------
+# manual variable --------------------
+# esp-now mymac and targetmac
+my_mac = b'\x40\x22\xD8\x08\xBB\x48'
+target_mac = b'\x40\x22\xD8\x03\x2E\x50'
+
+# fix variable --------------------
+# define pinout ----------
+pin_toggle_switch1 = 19 
+pin_toggle_switch1 = 18
+pin_toggle_switch1 = 2
+pin_toggle_switch1 = 15
+
+# joystick pinout
+# joystick1
+pin_joystick_switch1 = 25
+pin_joystick_x1 = 33
+pin_joystick_y1 = 32
+
+# joystick2
+pin_joystick_switch2 = 26
+pin_joystick_x2 = 34
+pin_joystick_y2 = 35
+
+# potentiometer pinout
+pin_potentiometer1 = 36
+pin_potentiometer2 = 39
+
+# variables ----------
+# counter
+loop1 = 0
+loop2 = 0
+
+# cpuusage
+core0_elapse = 0
+core1_elapse = 0
+
+# raw data
+# toggle inputs
+toggle_switch1_state = 0
+toggle_switch2_state = 0
+toggle_switch3_state = 0
+toggle_switch4_state = 0
+
+# joystic input
+joystick_switch1_state = 0
+joystick_switch1_state = 0
+joystick_x1_position = 0
+joystick_y1_position = 0
+joystick_x2_position = 0
+joystick_y2_position = 0
+
+# joystic prefix
+joystick_x1_positions = 0
+joystick_y1_positions = 0
+joystick_x2_positions = 0
+joystick_y2_positions = 0
+
+# potentiometer inputs
+potentiometer1_position = 0
+potentiometer2_position = 0
+
+# potentiometer prefix
+potentiometer1_positions = 0
+potentiometer2_positions = 0
+
+# mapped data
+# joystic map
+joystick_x1_positionss = 0
+joystick_y1_positionss = 0
+joystick_x2_positionss = 0
+joystick_y2_positionss = 0
+
+# potentiometer map
+potentiometer1_positionss = 0
+potentiometer2_positionss = 0
+
+# joystic2 speed ajust
+calc_low = 1500
+calc_high = 1500
+
+# capture trottle
+capture_trottle = 1500
+
+# current trottle
+current_trottle = 1720
+
+# sending process data
+trottle = 1500
+yaw = 1500
+pitch = 1500
+roll = 1500
+mode = 1540
+mods = ''
+
+buffer = 200
 
 
-# fuctions --------------------
+# fuctions ----------------------------------------
 # initboot ----------  
 def initboot():
     print("\nbooting ...\n") 
-    time.sleep(.500)
+    utime.sleep_ms(500)
+    
+# connection ----------
+# init espnow
+def init_espnow():
+    # set wi-fi to station
+    sta = network.WLAN(network.STA_IF)
+    sta.active(True)
+    sta.disconnect()
+    
+    # init espnow
+    e = espnow.ESPNow()
+    e.active(True)
+    e.add_peer(target_mac)
+    
+# process ----------
+# mapper
+def map(x, in_min, in_max, out_min, out_max):
+    mapped = int((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
+    return mapped
+
+# to map value
+def set_map(to_map):
+    sub_map = map(to_map, 0, 1023, 0, 255) # fix the joystic input because joystic is not centerd to 511
+    map_value = map(to_map,0, 1023, 1000, 2225 - sub_map)
+    
+    # default mapping if the joystic centerd to 2048
+    #map_value = map(to_map, 0, 1023, 1000, 2000)
+    return map_value
+
+# map speed
+def map_speed(to_speed):
+    global calc_low, calc_high
+    calc_low = 1500 - map(to_speed, 1000,2000, 0, 500)
+    calc_high = 1500 + map(to_speed, 1000, 2000, 0, 500)
      
+# to set official  data
+# set trottle
+def set_trottle(to_trottle):
+    if trottle <= 1500 or trottle >= 1800:
+        if to_trottle <= 1200: trottle -= 5
+        if to_trottle >= 1800: trottle += 5
+    else:
+        if to_trottle <= 1200: trottle -= 2
+        if to_trottle >= 1800: trottle += 2
+    if trottle <= 1000: trottle = 1000
+    if trottle >= 2000: trottle = 1700
+    return trottle
+
+# set trottle in mode
+def set_trottle_in_mode(to_trottle):
+    torttle=1500
+    if trottle <= 1200: trottle = 1350
+    if trottle >= 1800: trottle = 1650
+    return trottle
+
+# set yaw
+def set_yaw(to_yaw):
+    if to_yaw == 1500 or (1450 <= to_yaw <= 1550): yaw = 1500
+    if to_yaw <= 1200: yaw = calc_low
+    if to_yaw >= 1800: yaw = calc_high
+    return yaw
+
+# set pitch
+def set_yaw(to_pitch):
+    if to_pitch == 1500 or (1450 <= to_pitch <= 1550): pitch = 1500
+    if to_pitch <= 1200: pitch = calc_low
+    if to_pitch >= 1800: yapitchw = calc_high
+    return pitch
+
+# set roll
+def set_yaw(to_roll):
+    if to_roll == 1500 or (1450 <= to_roll <= 1550): roll = 1500
+    if to_roll <= 1200: roll = calc_low
+    if to_roll >= 1800: roll = calc_high
+    return yaw
+
+# map to percent
+def map_percent(to_map_percent):
+    map_value_percent = map(to_map_percent, 1000, 2000, 0, 100)
+    return map_value_percent
+
+# map mode
+def map_mode(to_mode):
+    map_mode = map(to_mode, 1000, 2000, 1000, 2000)
+    if map_mode > 1000 and map_mode < 1230: mods = "Stab"
+    elif map_mode > 1231 and map_mode < 1360: mods = "PosH"
+    elif map_mode > 1361 and map_mode < 1490: mods = "AltH"
+    elif map_mode > 1491 and map_mode < 1621: mods = "Loit"
+    elif map_mode > 1621 and map_mode < 1749: mods = "RTL "
+    elif map_mode > 1750 and map_mode < 2000: mods = "Land"
+    
+# espnow callback ----------
+
+        
+
+
+
+
 # debug ----------
 def debug():
-    print(f"Cpu Usage\ncpu0: {core0_end}ms\ncpu1: {core1_elapsed}ms")
+    print("\n")
+    print("-------------------- debug --------------------")
+    print(f"ESP-NOW\nCom Status: {1}\nping: {1}")
+    print("\n")
+    """
+    print(f"Raw Data\nJoystick no.1 X= {joystick_x1_positions}, Y= {joystick_y1_positions}, Sw= {joystick_switch1_state}\nJoystick no.2 X= {joystick_x2_positions}, Y= {joystick_y2_positions}, Sw= {joystick_switch2_state}\nPotentiometer no.1= {1}\nPotentiometer no.2= {1}")
+    print("\n")
+    print(f"Mapped Data\nJoystick no.1 X= {joystick_x1_positionss}, Y= {joystick_y1_positionss}, Sw= {joystick_switch1_state}\nJoystick no.2 X= {joystick_x2_positionss}, Y= {joystick_y2_positionss}, Sw= {joystick_switch2_state}\nPotentiometer no.1= {potentiometer1_positionss}\nPotentiometer no.2= {potentiometer2_positionss}")
+    print("\n")
+    print(f"Switch\nJoystic no. 1= {joystick_switch1_state}\nJoystic no. 2= {joystick_switch2_state}\nToggle no. 1= {toggle_switch1_state}\nToggle no. 2= {toggle_switch2_state}\nToggle no. 3= {toggle_switch3_state}\nToggle no. 4= {toggle_switch4_state}\n")
+    print("\n")
+    """
+    print(f"Official Data\nSpeed: {1}\nTrottle: {1}\nYaw: {1}\nPitch: {1}\nRoll: {1}\nMode: {1}")
+    print("\n")
+    print(f"Cpu Usage\ncpu0: {core0_elapse}ms\ncpu1: {core1_elapsed}ms")
+    print("-------------------- debug --------------------")
+    print("\n")
 
-
+# loop ----------------------------------------
 # core0 --------------------
 def core0_task():
-    global core0_end
+    # in global
+    global loop1
+    global toggle_switch1, toggle_switch2, toggle_switch3, toggle_switch4
+    global joystick_switch1, joystick_switch2
+    global joystick_x1_position, joystick_y1_position, joystick_x2_position, joystick_y2_position
+    global potentiometer1_position, potentiometer2_position
     
-    while running:
-        core0_start=time.ticks_ms()
-        time.sleep(1)
-        core0_end=time.ticks_ms()-core0_start
+    # out global
+    global core0_elapse
+    global toggle_switch1_state, toggle_switch2_state, toggle_switch3_state, toggle_switch4_state
+    global joystick_switch1_state, joystick_switch2_state
+    global joystick_x1_positions, joystick_y1_positions, joystick_x2_positions, joystick_y2_positions
+    global potentiometer1_positions, potentiometer2_positions
+    global joystick_x1_positionss, joystick_y1_positionss, joystick_x2_positionss, joystick_y2_positionss
+    global potentiometer1_positionss, potentiometer2_positionss
+    
+    while True:
+        # core0 counter
+        loop1 += 1
+        if loop1 == 100: loop1 = 0
         
+        # core0 load start
+        core0_start = utime.ticks_ms()
+        
+        # procces ----------
+        # raw data
+        # read toglle input value
+        toggle_switch1_state = toggle_switch1.value()
+        toggle_switch2_state = toggle_switch2.value()
+        toggle_switch3_state = toggle_switch3.value()
+        toggle_switch4_state = toggle_switch4.value()
+        
+        # read X,Y and SW analog values of joystic no.1
+        joystick_switch1_state = joystick_switch1.value()
+        joystick_x1_positions = joystick_x1_position.read()
+        joystick_y1_positions = joystick_y1_position.read()
+        
+        # read X,Y and SW analog values of joystic no.2
+        joystick_switch2_state = joystick_switch2.value()
+        joystick_x2_positions = joystick_x2_position.read()
+        joystick_y2_positions = joystick_y2_position.read()
+        
+        # read potentiometer analog values
+        potentiometer1_positions = potentiometer1_position.read()
+        potentiometer2_positions = potentiometer2_position.read()
+        
+        # mapped data
+        # mapped joystic values of joystic no.1
+        joystick_x1_positionss = set_map(joystick_x1_positions)
+        joystick_y1_positionss = set_map(joystick_y1_positions)
+        
+        # mapped joystic values of joystic no.2
+        joystick_x2_positionss = set_map(joystick_x2_positions)
+        joystick_y2_positionss = set_map(joystick_y2_positions)
+        
+        # mapped potentiometer
+        potentiometer1_positionss = set_map(potentiometer1_positions)
+        potentiometer2_positionss = set_map(potentiometer2_positions)
+        
+        # map mode to string
+        map_speed(potentiometer2_positionss);
+        
+        utime.sleep_ms(10)
+        # core0 load end
+        core0_elapse = utime.ticks_ms() - core0_start
         
 
 
 # core1 --------------------
 def core1_task():
+    # in global
+    global loop2
+    
+    # out global
     global core1_elapsed
     
-    while running:
-        core1_start=time.ticks_ms()
+    # start and debug time
+    debug_time = utime.ticks_ms()
+    
+    while True:
+        # core1 counter
+        loop2 += 1
+        if loop2 == 100: loop2 = 0
+        
+         # core1 load start
+        core1_start = utime.ticks_ms()
+        
+        for i in range(1000):
+            pass
+        
+        utime.sleep_ms(10)
+        # core1 load end
+        core1_elapsed = utime.ticks_ms() - core1_start
         
         
-        
-        core1_elapsed=time.ticks_ms()-core1_start
         # debug ----------
-        if debug_time>=200:
-            debug_time=time.ticks_ms()
+        if utime.ticks_ms() - debug_time >= 200:
+            debug_time = utime.ticks_ms()
             debug()
-        
-        
-# setup --------------------
+            
+
+
+# setup ----------------------------------------
 def main():
-    global debug_time
+    # in global
+    global pin_toggle_switch1, pin_toggle_switch1, pin_toggle_switch1, pin_toggle_switch1
+    global pin_joystick_switch1, pin_joystick_switch2
+    global pin_joystick_x1, pin_joystick_y1, pin_joystick_x2, pin_joystick_y2
+    global pin_potentiometer1, pin_potentiometer2
+    
+    # out global
+    global toggle_switch1, toggle_switch2, toggle_switch3, toggle_switch4
+    global joystick_switch1, joystick_switch2
+    global joystick_x1_position, joystick_y1_position, joystick_x2_position, joystick_y2_position
+    global potentiometer1_position, potentiometer2_position
+    
+    # init toggle switch
+    toggle_switch1 = machine.Pin(pin_toggle_switch1, machine.Pin.IN, machine.Pin.PULL_UP)
+    toggle_switch2 = machine.Pin(pin_toggle_switch1, machine.Pin.IN, machine.Pin.PULL_UP)
+    toggle_switch3 = machine.Pin(pin_toggle_switch1, machine.Pin.IN, machine.Pin.PULL_UP)
+    toggle_switch4 = machine.Pin(pin_toggle_switch1, machine.Pin.IN, machine.Pin.PULL_UP)
+    
+    # init joystick switch
+    joystick_switch1 = machine.Pin(pin_joystick_switch1, machine.Pin.IN, machine.Pin.PULL_UP)
+    joystick_switch2 = machine.Pin(pin_joystick_switch2, machine.Pin.IN, machine.Pin.PULL_UP)
+    
+    # init joystick position
+    joystick_x1_position = machine.ADC(machine.Pin(pin_joystick_x1))
+    joystick_y1_position = machine.ADC(machine.Pin(pin_joystick_y1))
+    joystick_x2_position = machine.ADC(machine.Pin(pin_joystick_x2))
+    joystick_y2_position = machine.ADC(machine.Pin(pin_joystick_y2))
+    
+    # init potentiometer position
+    potentiometer1_position = machine.ADC(machine.Pin(pin_potentiometer1))
+    potentiometer2_position = machine.ADC(machine.Pin(pin_potentiometer2))
+    
+    # init adc value
+    joystick_x1_position.width(machine.ADC.WIDTH_10BIT)
+    joystick_y1_position.width(machine.ADC.WIDTH_10BIT)
+    joystick_x2_position.width(machine.ADC.WIDTH_10BIT)
+    joystick_y2_position.width(machine.ADC.WIDTH_10BIT)
+    potentiometer1_position.width(machine.ADC.WIDTH_10BIT)
+    potentiometer2_position.width(machine.ADC.WIDTH_10BIT)
+    
+    joystick_x1_position.atten(machine.ADC.ATTN_11DB)
+    joystick_y1_position.atten(machine.ADC.ATTN_11DB)
+    joystick_x2_position.atten(machine.ADC.ATTN_11DB)
+    joystick_y2_position.atten(machine.ADC.ATTN_11DB)
+    potentiometer1_position.atten(machine.ADC.ATTN_11DB)
+    potentiometer2_position.atten(machine.ADC.ATTN_11DB)
+    
+    #init espnow
+    init_espnow()
     
     # initboot
     initboot()
     
     # sleep startup
-    time.sleep(.200)
-    debug_time=time.ticks_ms()
+    utime.sleep_ms(200)
     
     # threads
     _thread.start_new_thread(core0_task, ())
-    _thread.start_new_thread(core1_task, ())
+    core1_task()
+    
 
 
-
-# startup --------------------
+# startup ----------------------------------------
 if __name__ == '__main__':
     main()
     
+
+
