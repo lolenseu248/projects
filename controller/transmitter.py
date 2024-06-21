@@ -104,7 +104,7 @@ capture_trottle = 1500
 # current trottle
 current_trottle = 1720
 
-# sending process data
+# process data
 trottle = 1500
 yaw = 1500
 pitch = 1500

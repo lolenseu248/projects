@@ -29,8 +29,8 @@
 #define potenMeter1 36
 #define potenMeter2 39
 
-// maxbuffer
-#define BUFFER 200
+// buffer
+#define BUFFER 256
 
 // screen initiation
 Adafruit_SSD1306 display(128,64,&Wire,-1);
@@ -111,7 +111,7 @@ int captureTrottle=1500;
 // current trottle
 int currentTrottle=1720;
 
-// sending process data
+// process data
 int Trottle=1500;
 int Yaw=1500;
 int Pitch=1500;
@@ -130,7 +130,7 @@ int percentRoll;
 String comStatus;
 int ping;
 
-// send_message
+// send message
 typedef struct send_message{
   uint32_t trottle;
   uint32_t yaw;
@@ -139,19 +139,30 @@ typedef struct send_message{
   uint32_t mode;
   uint64_t time1;
   uint64_t time2;
-  uint16_t len;
-  uint8_t buf[BUFFER];
 };
 send_message sndxMsg;
 
-// receive_message
+// receive message
 typedef struct receive_message{
   uint64_t time1;
   uint64_t time2;
+};
+receive_message rcvxMsg;
+
+// send data 
+typedef struct send_data {
   uint16_t len;
   uint8_t buf[BUFFER];
 };
-receive_message rcvxMsg;
+send_data sndxData;
+
+// receive data
+typedef struct receive_data{
+  uint16_t len;
+  uint8_t buf[BUFFER];
+};
+receive_data rcvxData;
+
 
 // -------------------- fuctions --------------------
 // startup ----------
@@ -286,6 +297,10 @@ void OnDataSent(const uint8_t *mac_addr,esp_now_send_status_t status){
 }
 
 void OnDataRecv(const uint8_t *mac_addr,const uint8_t *incomingData,int data_len){
+  if(rcvxData.len>0){
+    rcvxData.len=0;
+    memcpy(&rcvxData,incomingData,sizeof(rcvxData));
+  }
   memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
 }
 
@@ -591,18 +606,16 @@ void Task2code(void*pvParameters){
 
     // serial uart ----------
     // receive and write
-    if(Serial.availableForWrite()>0&&rcvxMsg.len>0){
-      Serial.write(rcvxMsg.buf,rcvxMsg.len);
-      rcvxMsg.len=0; // reset to zero
+    if(Serial.availableForWrite()>0){
+      Serial.write(rcvxData.buf,rcvxData.len);
     }
-
-    sndxMsg.len=0; // reset to zero
 
     // heartbeat
     if(millis()-lastHeartbeatTime>=1000){
       lastHeartbeatTime=millis();
       mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
-      sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+      sndxData.len=mavlink_msg_to_send_buffer(sndxData.buf,&msg);
+      esp_now_send(targetMac,(uint8_t*)&sndxData,sizeof(sndxData)); 
     }
 
     // read and send
@@ -610,7 +623,8 @@ void Task2code(void*pvParameters){
       while(Serial.available()>0){
         uint8_t c=Serial.read();
         if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-          sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+          sndxData.len=mavlink_msg_to_send_buffer(sndxData.buf,&msg);
+          esp_now_send(targetMac,(uint8_t*)&sndxData,sizeof(sndxData));  
         }
       }
     }

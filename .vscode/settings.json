@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "*.ino": "cpp",
-        "cstdint": "cpp"
+        "cstdint": "cpp",
+        "compare": "cpp"
     }
 }

@@ -22,8 +22,19 @@ target_mac = b'\x40\x22\xD8\x08\xBB\x48'
 
 # fix variable --------------------
 # define pinout ----------
+# serial pinout
+RXD = 16
+TXD = 17
 
+# buzzer pinout
+BUZZER = 22
 
+# servo pinout
+GPIO_trottle = 4
+GPIO_yaw = 5
+GPIO_pitch = 15
+GPIO_roll = 21 
+GPIO_mode = 23 
 
 # define variables ----------
 # uptime
@@ -37,7 +48,20 @@ loop2 = 0
 core0_elapse = 0
 core1_elapse = 0
 
+# process data
+trottle = 1500
+yaw = 1500
+pitch = 1500
+roll = 1500
+mode = 1540
+mods = ''
 
+# percent data
+percent_speed = 0
+percent_trottle = 0
+percent_yaw = 0
+percent_pitch = 0
+percent_roll = 0
 
 # time for ping
 time1 = 1234567890
