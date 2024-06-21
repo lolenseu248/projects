@@ -23,7 +23,7 @@
 #define GPIOMode 23
 
 // buffer
-#define BUFFER 248
+#define BUFFER 200
 
 // -------------------- variables --------------------
 // manualvar ----------
@@ -93,6 +93,8 @@ int ping;
 typedef struct send_message{
   uint64_t time1;
   uint64_t time2;
+  uint16_t len;
+  uint8_t buf[BUFFER];
 };
 send_message sndxMsg;
 
@@ -105,22 +107,10 @@ typedef struct receive_message{
   uint32_t mode;
   uint64_t time1;
   uint64_t time2;
+  uint16_t len;
+  uint8_t buf[BUFFER];
 };
 receive_message rcvxMsg;
-
-// send data 
-typedef struct send_data {
-  uint16_t len;
-  uint8_t buf[BUFFER];
-};
-send_data sndxData;
-
-// receive data
-typedef struct receive_data{
-  uint16_t len;
-  uint8_t buf[BUFFER];
-};
-receive_data rcvxData;
 
 // -------------------- fuctions --------------------
 // startup ----------
@@ -190,7 +180,6 @@ void OnDataSent(const uint8_t *mac_addr,esp_now_send_status_t status){
 
 void OnDataRecv(const uint8_t *mac_addr,const uint8_t *incomingData,int data_len){
   memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
-  memcpy(&rcvxData,incomingData,sizeof(rcvxData));
 }
 
 // printing ----------
@@ -352,17 +341,16 @@ void Task2code(void*pvParameters){
 
     // serial uart ----------
     // receive and write
-    if(Serial2.availableForWrite()>0&&rcvxData.len>0){
-      Serial2.write(rcvxData.buf,rcvxData.len);
-      rcvxData.len=0; // reset to zero
+    if(Serial2.availableForWrite()>0&&rcvxMsg.len>0){
+      Serial2.write(rcvxMsg.buf,rcvxMsg.len);
+      rcvxMsg.len=0; // reset to zero
     }
-    
+
     // read and send
     while(Serial2.available()>0){
       uint8_t c=Serial2.read();
       if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-        sndxData.len=mavlink_msg_to_send_buffer(sndxData.buf,&msg);
-        esp_now_send(targetMac,(uint8_t*)&sndxData,sizeof(sndxData)); 
+        sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
       }
     }
 
