@@ -47,6 +47,9 @@ pin_potentiometer2 = 39
 loop1 = 0
 loop2 = 0
 
+# uptime
+time = 0
+
 # cpuusage
 core0_elapse = 0
 core1_elapse = 0
@@ -262,9 +265,11 @@ def debug():
     #print("\n")
     #print(f"Switch\nJoystic no. 1= {joystick_switch1_state}\nJoystic no. 2= {joystick_switch2_state}\nToggle no. 1= {toggle_switch1_state}\nToggle no. 2= {toggle_switch2_state}\nToggle no. 3= {toggle_switch3_state}\nToggle no. 4= {toggle_switch4_state}\n")
     #print("\n")
-    print(f"Official Data\nSpeed: {percent_speed}\nTrottle: {percent_trottle}\nYaw: {percent_yaw}\nPitch: {percent_pitch}\nRoll: {percent_roll}\nMode: {mods}")
+    print(f"Official Data\nSpeed: {percent_speed}%\nTrottle: {percent_trottle}%\nYaw: {percent_yaw}%\nPitch: {percent_pitch}%\nRoll: {percent_roll}%\nMode: {mods}")
     print("\n")
     print(f"Cpu Usage\ncpu0: {core0_elapse}ms\ncpu1: {core1_elapsed}ms")
+    print("\n")
+    print(f"Uptime: {time}sec")
     print("-------------------- debug --------------------")
     print("\n")
     
@@ -272,7 +277,7 @@ def debug():
 # core0 --------------------
 def core0_task():
     # in global
-    global loop1
+    global loop1, time
     global toggle_switch1, toggle_switch2, toggle_switch3, toggle_switch4
     global joystick_switch1, joystick_switch2
     global joystick_x1_position, joystick_y1_position, joystick_x2_position, joystick_y2_position
@@ -289,6 +294,9 @@ def core0_task():
     global potentiometer1_positionss, potentiometer2_positionss
     global trottle, yaw, pitch, roll, mode
     global percent_speed, percent_trottle, percent_yaw, percent_pitch, percent_roll
+     
+    # start clock
+    start_clock = utime.ticks_ms()
     
     while True:
         # core0 counter
@@ -297,6 +305,12 @@ def core0_task():
         
         # core0 load start
         core0_start = utime.ticks_ms()
+        
+        # clock
+        current_time = utime.ticks_ms()
+        if utime.ticks_diff(current_time, start_clock) >= 1000:
+            start_clock = current_time
+            time += 1
         
         # procces ----------
         # raw data
@@ -396,7 +410,7 @@ def core0_task():
         yaw = map(yaw, 1000, 2000, 2000, 1000);
         
         # rcv msg
-        e.on_recv(on_data_recv())
+        #e.on_recv(on_data_recv())
         
         # rcv ping
         
@@ -406,7 +420,7 @@ def core0_task():
         elif toggle_switch3_state == False: pass
         
         # ping
-        time1 = utime.tick_ms()
+        time1 = utime.ticks_ms()
         
         # snd msg
         data_to_send = {
@@ -429,7 +443,9 @@ def core0_task():
         percent_roll = map_percent(roll)
         map_mode(mode)
         
+        # sleep prevent cpu load
         utime.sleep_ms(10)
+        
         # core0 load end
         core0_elapse = utime.ticks_ms() - core0_start
         
@@ -453,18 +469,18 @@ def core1_task():
          # core1 load start
         core1_start = utime.ticks_ms()
 
+        # debug ----------
+        current_debug_time = utime.ticks_ms()
+        if utime.ticks_diff(current_debug_time, debug_time) >= 250:
+            debug_time = current_debug_time
+            debug()
         
-        
+        # sleep prevent cpu load
         utime.sleep_ms(10)
+        
         # core1 load end
         core1_elapsed = utime.ticks_ms() - core1_start
         
-        
-        # debug ----------
-        if utime.ticks_ms() - debug_time >= 200:
-            debug_time = utime.ticks_ms()
-            debug()
-            
 
 # setup ----------------------------------------
 def main():
