@@ -297,11 +297,8 @@ void OnDataSent(const uint8_t *mac_addr,esp_now_send_status_t status){
 }
 
 void OnDataRecv(const uint8_t *mac_addr,const uint8_t *incomingData,int data_len){
-  if(rcvxData.len>0){
-    rcvxData.len=0;
-    memcpy(&rcvxData,incomingData,sizeof(rcvxData));
-  }
   memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
+  memcpy(&rcvxData,incomingData,sizeof(rcvxData));
 }
 
 // printing ----------
@@ -606,8 +603,9 @@ void Task2code(void*pvParameters){
 
     // serial uart ----------
     // receive and write
-    if(Serial.availableForWrite()>0){
+    if(Serial.availableForWrite()>0&&rcvxData.len>0){
       Serial.write(rcvxData.buf,rcvxData.len);
+      rcvxData.len=0; // reset to zero
     }
 
     // heartbeat
