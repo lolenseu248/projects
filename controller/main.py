@@ -163,7 +163,7 @@ def map(x, in_min, in_max, out_min, out_max):
 
 # to map value
 def set_map(to_map):
-    sub_map = map(to_map, 0, 1023, 0, 255) # fix the joystic input because joystic is not centerd to 511
+    sub_map = map(to_map, 0, 1023, 0, 225) # fix the joystic input because joystic is not centerd to 511
     map_value = map(to_map,0, 1023, 1000, 2225 - sub_map)
     
     # default mapping if the joystic centerd to 2048
@@ -251,7 +251,7 @@ def debug():
     print("-------------------- debug --------------------")
     print(f"ESP-NOW\nCom Status: {1}\nping: {1}")
     print("\n")
-    #print(f"Raw Data\nJoystick no.1 X= {joystick_x1_positions}, Y= {joystick_y1_positions}, Sw= {joystick_switch1_state}\nJoystick no.2 X= {joystick_x2_positions}, Y= {joystick_y2_positions}, Sw= {joystick_switch2_state}\nPotentiometer no.1= {potentiometer1_position}\nPotentiometer no.2= {potentiometer2_position}")
+    #print(f"Raw Data\nJoystick no.1 X= {joystick_x1_positions}, Y= {joystick_y1_positions}, Sw= {joystick_switch1_state}\nJoystick no.2 X= {joystick_x2_positions}, Y= {joystick_y2_positions}, Sw= {joystick_switch2_state}\nPotentiometer no.1= {potentiometer1_positions}\nPotentiometer no.2= {potentiometer2_positions}")
     #print("\n")
     #print(f"Mapped Data\nJoystick no.1 X= {joystick_x1_positionss}, Y= {joystick_y1_positionss}, Sw= {joystick_switch1_state}\nJoystick no.2 X= {joystick_x2_positionss}, Y= {joystick_y2_positionss}, Sw= {joystick_switch2_state}\nPotentiometer no.1= {potentiometer1_positionss}\nPotentiometer no.2= {potentiometer2_positionss}")
     #print("\n")
@@ -429,9 +429,8 @@ def core1_task():
         
          # core1 load start
         core1_start = utime.ticks_ms()
+
         
-        for i in range(1000):
-            pass
         
         utime.sleep_ms(10)
         # core1 load end
