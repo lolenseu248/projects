@@ -23,9 +23,9 @@ target_mac = b'\x40\x22\xD8\x03\x2E\x50'
 # fix variable --------------------
 # define pinout ----------
 pin_toggle_switch1 = 19 
-pin_toggle_switch1 = 18
-pin_toggle_switch1 = 2
-pin_toggle_switch1 = 15
+pin_toggle_switch2 = 18
+pin_toggle_switch3 = 2
+pin_toggle_switch4 = 15
 
 # joystick pinout
 # joystick1
@@ -179,6 +179,7 @@ def map_speed(to_speed):
 # to set official  data
 # set trottle
 def set_trottle(to_trottle):
+    global trottle
     if trottle <= 1500 or trottle >= 1800:
         if to_trottle <= 1200: trottle -= 5
         if to_trottle >= 1800: trottle += 5
@@ -191,31 +192,35 @@ def set_trottle(to_trottle):
 
 # set trottle in mode
 def set_trottle_in_mode(to_trottle):
-    torttle=1500
-    if trottle <= 1200: trottle = 1350
-    if trottle >= 1800: trottle = 1650
+    global trottle
+    trottle=1500
+    if to_trottle <= 1200: trottle = 1350
+    if to_trottle >= 1800: trottle = 1650
     return trottle
 
 # set yaw
 def set_yaw(to_yaw):
+    global yaw
     if to_yaw == 1500 or (1450 <= to_yaw <= 1550): yaw = 1500
     if to_yaw <= 1200: yaw = calc_low
     if to_yaw >= 1800: yaw = calc_high
     return yaw
 
 # set pitch
-def set_yaw(to_pitch):
+def set_pitch(to_pitch):
+    global pitch
     if to_pitch == 1500 or (1450 <= to_pitch <= 1550): pitch = 1500
     if to_pitch <= 1200: pitch = calc_low
-    if to_pitch >= 1800: yapitchw = calc_high
+    if to_pitch >= 1800: pitch = calc_high
     return pitch
 
 # set roll
-def set_yaw(to_roll):
+def set_roll(to_roll):
+    global roll
     if to_roll == 1500 or (1450 <= to_roll <= 1550): roll = 1500
     if to_roll <= 1200: roll = calc_low
     if to_roll >= 1800: roll = calc_high
-    return yaw
+    return roll
 
 # map to percent
 def map_percent(to_map_percent):
@@ -246,14 +251,12 @@ def debug():
     print("-------------------- debug --------------------")
     print(f"ESP-NOW\nCom Status: {1}\nping: {1}")
     print("\n")
-    """
-    print(f"Raw Data\nJoystick no.1 X= {joystick_x1_positions}, Y= {joystick_y1_positions}, Sw= {joystick_switch1_state}\nJoystick no.2 X= {joystick_x2_positions}, Y= {joystick_y2_positions}, Sw= {joystick_switch2_state}\nPotentiometer no.1= {potentiometer1_position}\nPotentiometer no.2= {potentiometer2_position}")
-    print("\n")
-    print(f"Mapped Data\nJoystick no.1 X= {joystick_x1_positionss}, Y= {joystick_y1_positionss}, Sw= {joystick_switch1_state}\nJoystick no.2 X= {joystick_x2_positionss}, Y= {joystick_y2_positionss}, Sw= {joystick_switch2_state}\nPotentiometer no.1= {potentiometer1_positionss}\nPotentiometer no.2= {potentiometer2_positionss}")
-    print("\n")
+    #print(f"Raw Data\nJoystick no.1 X= {joystick_x1_positions}, Y= {joystick_y1_positions}, Sw= {joystick_switch1_state}\nJoystick no.2 X= {joystick_x2_positions}, Y= {joystick_y2_positions}, Sw= {joystick_switch2_state}\nPotentiometer no.1= {potentiometer1_position}\nPotentiometer no.2= {potentiometer2_position}")
+    #print("\n")
+    #print(f"Mapped Data\nJoystick no.1 X= {joystick_x1_positionss}, Y= {joystick_y1_positionss}, Sw= {joystick_switch1_state}\nJoystick no.2 X= {joystick_x2_positionss}, Y= {joystick_y2_positionss}, Sw= {joystick_switch2_state}\nPotentiometer no.1= {potentiometer1_positionss}\nPotentiometer no.2= {potentiometer2_positionss}")
+    #print("\n")
     print(f"Switch\nJoystic no. 1= {joystick_switch1_state}\nJoystic no. 2= {joystick_switch2_state}\nToggle no. 1= {toggle_switch1_state}\nToggle no. 2= {toggle_switch2_state}\nToggle no. 3= {toggle_switch3_state}\nToggle no. 4= {toggle_switch4_state}\n")
     print("\n")
-    """
     print(f"Official Data\nSpeed: {percent_speed}\nTrottle: {percent_trottle}\nYaw: {percent_yaw}\nPitch: {percent_pitch}\nRoll: {percent_roll}\nMode: {mods}")
     print("\n")
     print(f"Cpu Usage\ncpu0: {core0_elapse}ms\ncpu1: {core1_elapsed}ms")
@@ -331,8 +334,8 @@ def core0_task():
         #  prepare for send message
         if toggle_switch2_state == True:
             yaw = set_yaw(joystick_y1_positionss)
-            pitch = set_yaw(joystick_x2_positionss)
-            roll = set_yaw(joystick_y2_positionss)
+            pitch = set_pitch(joystick_x2_positionss)
+            roll = set_roll(joystick_y2_positionss)
             
             # for the modes
             if toggle_switch1_state == True:
@@ -388,7 +391,6 @@ def core0_task():
         yaw = map(yaw, 1000, 2000, 2000, 1000);
         
         # snd controls
-       
         
         
         # ping from uav
@@ -446,7 +448,7 @@ def core1_task():
 # setup ----------------------------------------
 def main():
     # in global
-    global pin_toggle_switch1, pin_toggle_switch1, pin_toggle_switch1, pin_toggle_switch1
+    global pin_toggle_switch1, pin_toggle_switch2, pin_toggle_switch3, pin_toggle_switch4
     global pin_joystick_switch1, pin_joystick_switch2
     global pin_joystick_x1, pin_joystick_y1, pin_joystick_x2, pin_joystick_y2
     global pin_potentiometer1, pin_potentiometer2
@@ -459,9 +461,9 @@ def main():
     
     # init toggle switch
     toggle_switch1 = machine.Pin(pin_toggle_switch1, machine.Pin.IN, machine.Pin.PULL_UP)
-    toggle_switch2 = machine.Pin(pin_toggle_switch1, machine.Pin.IN, machine.Pin.PULL_UP)
-    toggle_switch3 = machine.Pin(pin_toggle_switch1, machine.Pin.IN, machine.Pin.PULL_UP)
-    toggle_switch4 = machine.Pin(pin_toggle_switch1, machine.Pin.IN, machine.Pin.PULL_UP)
+    toggle_switch2 = machine.Pin(pin_toggle_switch2, machine.Pin.IN, machine.Pin.PULL_UP)
+    toggle_switch3 = machine.Pin(pin_toggle_switch3, machine.Pin.IN, machine.Pin.PULL_UP)
+    toggle_switch4 = machine.Pin(pin_toggle_switch4, machine.Pin.IN, machine.Pin.PULL_UP)
     
     # init joystick switch
     joystick_switch1 = machine.Pin(pin_joystick_switch1, machine.Pin.IN, machine.Pin.PULL_UP)
