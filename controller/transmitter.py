@@ -43,12 +43,12 @@ pin_potentiometer1 = 36
 pin_potentiometer2 = 39
 
 # define variables ----------
+# uptime
+time = 0
+
 # counter
 loop1 = 0
 loop2 = 0
-
-# uptime
-time = 0
 
 # cpuusage
 core0_elapse = 0
@@ -257,7 +257,7 @@ def on_data_recv(target_mac, data):pass
 def debug():
     print("\n")
     print("-------------------- debug --------------------")
-    print(f"ESP-NOW\nCom Status: {1}\nping: {1}")
+    print(f"ESP-NOW\nCom Status: {1}\nping: {1}ms")
     print("\n")
     #print(f"Raw Data\nJoystick no.1 X= {joystick_x1_positions}, Y= {joystick_y1_positions}, Sw= {joystick_switch1_state}\nJoystick no.2 X= {joystick_x2_positions}, Y= {joystick_y2_positions}, Sw= {joystick_switch2_state}\nPotentiometer no.1= {potentiometer1_positions}\nPotentiometer no.2= {potentiometer2_positions}")
     #print("\n")
