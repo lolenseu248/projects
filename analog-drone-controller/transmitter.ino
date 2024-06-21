@@ -30,7 +30,7 @@
 #define potenMeter2 39
 
 // buffer
-#define BUFFER 256
+#define BUFFER 248
 
 // screen initiation
 Adafruit_SSD1306 display(128,64,&Wire,-1);

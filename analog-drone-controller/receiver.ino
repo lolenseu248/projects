@@ -23,7 +23,7 @@
 #define GPIOMode 23
 
 // buffer
-#define BUFFER 256
+#define BUFFER 248
 
 // -------------------- variables --------------------
 // manualvar ----------
