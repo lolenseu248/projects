@@ -116,23 +116,32 @@ percent_yaw = 0
 percent_pitch = 0
 percent_roll = 0
 
-# send message
-sthrottle = 1500
-syaw = 1500
-spitch = 1500
-sroll = 1500
-smode = 1540
-stime1 = 1234567890
-stime2 = 9876543210
-sbuf = b'0'
+# time for ping
+time1 = 1234567890
 
-# receive message
-rtime1 = 1234567890
-rtime2 = 9876543210
-rbuf = b'0'
-
+# buffer
 buffer = 128
 
+# send message
+send_massage = {
+    'sthrottle': 1500,
+    'syaw': 1500,
+    'spitch': 1500,
+    'sroll': 1500,
+    'smode': 1500,
+    'stime1': 1234567890,
+    'stime2': 9876543210,
+    'slen': 128,
+    'sbuf': ''
+}
+
+# receive message
+receive_massage = {
+    'rtime1': 1234567890,
+    'rtime2': 9876543210,
+    'rlen': 128,
+    'rbuf': ''
+}
 
 # fuctions ----------------------------------------
 # initboot ----------  
@@ -179,13 +188,9 @@ def map_speed(to_speed):
 # to set official  data
 # set trottle
 def set_trottle(to_trottle):
-    global trottle
-    if trottle <= 1500 or trottle >= 1800:
-        if to_trottle <= 1200: trottle -= 5
-        if to_trottle >= 1800: trottle += 5
-    else:
-        if to_trottle <= 1200: trottle -= 2
-        if to_trottle >= 1800: trottle += 2
+    global trottle 
+    if to_trottle <= 1200: trottle -= 5
+    if to_trottle >= 1800: trottle += 5
     if trottle <= 1000: trottle = 1000
     if trottle >= 2000: trottle = 1700
     return trottle
@@ -255,14 +260,14 @@ def debug():
     #print("\n")
     #print(f"Mapped Data\nJoystick no.1 X= {joystick_x1_positionss}, Y= {joystick_y1_positionss}, Sw= {joystick_switch1_state}\nJoystick no.2 X= {joystick_x2_positionss}, Y= {joystick_y2_positionss}, Sw= {joystick_switch2_state}\nPotentiometer no.1= {potentiometer1_positionss}\nPotentiometer no.2= {potentiometer2_positionss}")
     #print("\n")
-    print(f"Switch\nJoystic no. 1= {joystick_switch1_state}\nJoystic no. 2= {joystick_switch2_state}\nToggle no. 1= {toggle_switch1_state}\nToggle no. 2= {toggle_switch2_state}\nToggle no. 3= {toggle_switch3_state}\nToggle no. 4= {toggle_switch4_state}\n")
-    print("\n")
+    #print(f"Switch\nJoystic no. 1= {joystick_switch1_state}\nJoystic no. 2= {joystick_switch2_state}\nToggle no. 1= {toggle_switch1_state}\nToggle no. 2= {toggle_switch2_state}\nToggle no. 3= {toggle_switch3_state}\nToggle no. 4= {toggle_switch4_state}\n")
+    #print("\n")
     print(f"Official Data\nSpeed: {percent_speed}\nTrottle: {percent_trottle}\nYaw: {percent_yaw}\nPitch: {percent_pitch}\nRoll: {percent_roll}\nMode: {mods}")
     print("\n")
     print(f"Cpu Usage\ncpu0: {core0_elapse}ms\ncpu1: {core1_elapsed}ms")
     print("-------------------- debug --------------------")
     print("\n")
-
+    
 # loop ----------------------------------------
 # core0 --------------------
 def core0_task():
@@ -273,7 +278,6 @@ def core0_task():
     global joystick_x1_position, joystick_y1_position, joystick_x2_position, joystick_y2_position
     global potentiometer1_position, potentiometer2_position
     global current_trottle, capture_trottle
-    global percent_speed, percent_trottle, percent_yaw, percent_pitch, percent_roll
     
     # out global
     global core0_elapse
@@ -284,6 +288,7 @@ def core0_task():
     global joystick_x1_positionss, joystick_y1_positionss, joystick_x2_positionss, joystick_y2_positionss
     global potentiometer1_positionss, potentiometer2_positionss
     global trottle, yaw, pitch, roll, mode
+    global percent_speed, percent_trottle, percent_yaw, percent_pitch, percent_roll
     
     while True:
         # core0 counter
@@ -390,12 +395,31 @@ def core0_task():
         # fix yaw position 
         yaw = map(yaw, 1000, 2000, 2000, 1000);
         
-        # snd controls
+        # rcv msg
+        e.on_recv(on_data_recv())
+        
+        # rcv ping
         
         
         # ping from uav
         if toggle_switch3_state == True: pass
         elif toggle_switch3_state == False: pass
+        
+        # ping
+        time1 = utime.tick_ms()
+        
+        # snd msg
+        data_to_send = {
+            'sthrottle': trottle,
+            'syaw': yaw,
+            'spitch': pitch,
+            'sroll': roll,
+            'smode': mode,
+            'stime1': time1,
+            'stime2': 9876543210,
+            'slen': 20,
+            'sbuf': ''
+        }
             
         # percent data
         percent_speed = map_percent(potentiometer2_positionss)
@@ -409,7 +433,6 @@ def core0_task():
         # core0 load end
         core0_elapse = utime.ticks_ms() - core0_start
         
-
 
 # core1 --------------------
 def core1_task():
@@ -442,7 +465,6 @@ def core1_task():
             debug_time = utime.ticks_ms()
             debug()
             
-
 
 # setup ----------------------------------------
 def main():
@@ -507,10 +529,7 @@ def main():
     core1_task()
     
 
-
 # startup ----------------------------------------
 if __name__ == '__main__':
     main()
     
-
-
