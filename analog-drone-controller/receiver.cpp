@@ -135,9 +135,9 @@ void initBoot(){
   Serial.println("Botting ...");
   Serial.println("");
 
-  //Startup tone
-  for(int i=0;i<3;i++){
-    tone(BUZZER,notes[i],200);
+  // Startup tone
+  for (int i=0;i<3;i++){
+    playNote(notes[i],200);
   }
 }
 
@@ -169,6 +169,18 @@ void initespnow(){
 }
 
 // processing ----------
+void playNote(int frequency,int duration){
+  int period=1000000/frequency;
+  int cycles=(duration*1000)/period;
+
+  for (int i=0;i<cycles;i++){
+    digitalWrite(BUZZER,HIGH);
+    delayMicroseconds(period/2);
+    digitalWrite(BUZZER,LOW);
+    delayMicroseconds(period/2);
+  }
+}
+
 // map to percent
 int mapPercent(int toMapPercent){
   int mapValuePercent=map(toMapPercent,1000,2000,0,100);
