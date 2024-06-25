@@ -168,7 +168,7 @@ void initBoot(){
   display.setTextColor(WHITE);
   display.setCursor(20,20);
   display.print(" Botting ...");
-  delay(300);
+  delay(600);
 }
 
 // connection ----------

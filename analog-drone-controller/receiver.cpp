@@ -71,7 +71,7 @@ unsigned long clock1=0;
 unsigned long clock2=0;
 
 // dji tone
-const int notes[]={261,329,392}; // C4,E4,G4
+const int notes[]={1046,1318,1568}; // C6, E6, G6
 
 // process data
 int Trottle;
@@ -137,10 +137,8 @@ void initBoot(){
 
   //Startup tone
   for(int i=0;i<3;i++){
-    tone(BUZZER,notes[i],250);
-    delay(300);
+    tone(BUZZER,notes[i],200);
   }
-  delay(300);
 }
 
 // connection ----------
@@ -360,7 +358,7 @@ void Task2code(void*pvParameters){
 
     // serial uart ----------
     // uart usb
-    if(uartSwitchState==HIGH){
+    if(uartSwitchState==LOW){
       // heartbeat
       if(millis()-lastHeartbeatTime>=1000){
         lastHeartbeatTime=millis();
