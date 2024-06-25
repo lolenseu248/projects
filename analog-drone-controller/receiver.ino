@@ -124,7 +124,7 @@ void initBoot(){
   Serial.println("");
 
   //Startup tone
-  for(int i=0;i<3;i++) {
+  for(int i=0;i<3;i++){
     tone(BUZZER,notes[i],250);
     delay(300);
   }
