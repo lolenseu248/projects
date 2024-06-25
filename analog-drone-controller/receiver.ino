@@ -58,6 +58,9 @@ unsigned long elapsedTime2;
 unsigned long clock1=0;
 unsigned long clock2=0;
 
+// dji tone
+const int notes[]={261,329,392}; // C4,E4,G4
+
 // process data
 int Trottle;
 int Yaw;
@@ -121,9 +124,10 @@ void initBoot(){
   Serial.println("");
 
   //Startup tone
-  digitalWrite(BUZZER,HIGH);
-  delay(50);
-  digitalWrite(BUZZER,LOW);
+  for(int i=0;i<3;i++) {
+    tone(BUZZER,notes[i],250);
+    delay(300);
+  }
   delay(300);
 }
 
