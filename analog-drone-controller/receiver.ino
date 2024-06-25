@@ -52,7 +52,7 @@ uint16_t len;
 // mavlink heartbeattime
 unsigned long lastHeartbeatTime=0;
 
-// mavlink switch state
+// uart switch state
 int uartSwitchState;
 
 // counter
