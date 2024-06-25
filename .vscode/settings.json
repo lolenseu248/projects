@@ -2,6 +2,7 @@
     "files.associations": {
         "*.ino": "cpp",
         "cstdint": "cpp",
-        "compare": "cpp"
+        "compare": "cpp",
+        "*.tcc": "cpp"
     }
 }

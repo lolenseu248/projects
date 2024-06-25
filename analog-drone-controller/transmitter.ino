@@ -50,6 +50,7 @@ TaskHandle_t cpu1;
 TaskHandle_t cpu2;
 
 // mavlink
+uint8_t c;
 mavlink_message_t msg;
 mavlink_status_t status;
 
@@ -606,7 +607,7 @@ void Task2code(void*pvParameters){
     // read and send
     else{
       while(Serial.available()>0){
-        uint8_t c=Serial.read();
+        c=Serial.read();
         if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
           sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
         }

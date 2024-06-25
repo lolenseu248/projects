@@ -8,6 +8,9 @@
 #include <MAVLink.h>
 #include <ESP32Servo.h>
 
+// uart switch pinout
+#define UARTSWITCH 13
+
 // serial pinout
 #define RXD 16
 #define TXD 17
@@ -40,8 +43,17 @@ TaskHandle_t cpu1;
 TaskHandle_t cpu2;
 
 // mavlink
+uint8_t c;
 mavlink_message_t msg;
 mavlink_status_t status;
+uint8_t buf[MAVLINK_MAX_PACKET_LEN];
+uint16_t len;
+
+// mavlink heartbeattime
+unsigned long lastHeartbeatTime=0;
+
+// mavlink switch state
+int uartSwitchState;
 
 // counter
 int loop1=0;
@@ -343,18 +355,61 @@ void Task2code(void*pvParameters){
     // cpu2 load start
     startTime2=millis();
 
+    // uart switch read state
+    uartSwitchState=digitalRead(UARTSWITCH);
+
     // serial uart ----------
-    // receive and write
-    if(Serial2.availableForWrite()>0&&rcvxMsg.len>0){
-      Serial2.write(rcvxMsg.buf,rcvxMsg.len);
-      rcvxMsg.len=0; // reset to zero
+    // uart usb
+    if(uartSwitchState==HIGH){
+      // heartbeat
+      if(millis()-lastHeartbeatTime>=1000){
+        lastHeartbeatTime=millis();
+        mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
+        len=mavlink_msg_to_send_buffer(buf,&msg);
+        if(Serial2.availableForWrite()>0){
+          Serial2.write(buf,len);
+        }
+      }
+
+      // read serial and write serial2
+      else{
+        while(Serial.available()>0){
+          c=Serial.read();
+          if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+            len=mavlink_msg_to_send_buffer(buf,&msg);
+            if(Serial2.availableForWrite()>0){
+              Serial2.write(buf,len);
+            }
+          }
+        }
+      }
+      
+      // read serial2 and write serial
+      while(Serial2.available()>0){
+        c=Serial2.read();
+        if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+          len=mavlink_msg_to_send_buffer(buf,&msg);
+          if(Serial.availableForWrite()>0){
+            Serial.write(buf,len);
+          }
+        }
+      }
     }
 
-    // read and send
-    while(Serial2.available()>0){
-      uint8_t c=Serial2.read();
-      if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-        sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+    // espnow
+    else{
+      // receive and write
+      if(Serial2.availableForWrite()>0&&rcvxMsg.len>0){
+        Serial2.write(rcvxMsg.buf,rcvxMsg.len);
+        rcvxMsg.len=0; // reset to zero
+      }
+
+      // read and send
+      while(Serial2.available()>0){
+        c=Serial2.read();
+        if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+          sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+        }
       }
     }
 
@@ -375,6 +430,9 @@ void setup(){
 
   // int ESP-NOW
   initespnow();
+
+  // uart switch
+  pinMode(UARTSWITCH,INPUT_PULLUP);
 
   // buzzer
   pinMode(BUZZER,OUTPUT);
