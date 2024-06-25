@@ -2,5 +2,5 @@
     "port": "/dev/ttyUSB0",
     "board": "esp32:esp32:esp32_family",
     "programmer": "esptool",
-    "sketch": "analog-drone-controller/.workload/examples/emegecy.ino"
+    "sketch": "analog-drone-controller/transmitter.cpp"
 }

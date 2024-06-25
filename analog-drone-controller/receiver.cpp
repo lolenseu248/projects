@@ -9,7 +9,7 @@
 #include <ESP32Servo.h>
 
 // uart switch pinout
-#define UARTSWITCH 13
+#define UARTSWITCH 15
 
 // serial pinout
 #define RXD 16
