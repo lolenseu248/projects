@@ -128,46 +128,6 @@ typedef struct receive_message{
 receive_message rcvxMsg;
 
 // -------------------- fuctions --------------------
-// startup ----------
-// initBoot
-void initBoot(){
-  Serial.println("");
-  Serial.println("Botting ...");
-  Serial.println("");
-
-  // Startup tone
-  for (int i=0;i<3;i++){
-    playNote(notes[i],200);
-  }
-}
-
-// connection ----------
-// init esp-now
-void initespnow(){
-  WiFi.mode(WIFI_STA);
-  Serial.println("Initiating ESP-NOW ..");
-
-  // init ESP-NOW
-  if(esp_now_init()!=ESP_OK){
-    Serial.println("Error Initializing ESP-NOW");
-    return;
-  }
-
-  // register peer
-  memcpy(peerInfo.peer_addr,targetMac,6);
-  peerInfo.channel=0;  
-  peerInfo.encrypt=false;
-  if(esp_now_add_peer(&peerInfo)!=ESP_OK){
-    Serial.println("Failed to add peer");
-    return;
-  }
-
-  // register callbacks
-  esp_now_register_send_cb(OnDataSent);
-  esp_now_register_recv_cb(reinterpret_cast<esp_now_recv_cb_t>(OnDataRecv));
-  delay(500);
-}
-
 // processing ----------
 void playNote(int frequency,int duration){
   int period=1000000/frequency;
@@ -206,6 +166,46 @@ void OnDataSent(const uint8_t *mac_addr,esp_now_send_status_t status){
 
 void OnDataRecv(const uint8_t *mac_addr,const uint8_t *incomingData,int data_len){
   memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
+}
+
+// startup ----------
+// initBoot
+void initBoot(){
+  Serial.println("");
+  Serial.println("Botting ...");
+  Serial.println("");
+
+  // Startup tone
+  for (int i=0;i<3;i++){
+    playNote(notes[i],200);
+  }
+}
+
+// connection ----------
+// init esp-now
+void initespnow(){
+  WiFi.mode(WIFI_STA);
+  Serial.println("Initiating ESP-NOW ..");
+
+  // init ESP-NOW
+  if(esp_now_init()!=ESP_OK){
+    Serial.println("Error Initializing ESP-NOW");
+    return;
+  }
+
+  // register peer
+  memcpy(peerInfo.peer_addr,targetMac,6);
+  peerInfo.channel=0;  
+  peerInfo.encrypt=false;
+  if(esp_now_add_peer(&peerInfo)!=ESP_OK){
+    Serial.println("Failed to add peer");
+    return;
+  }
+
+  // register callbacks
+  esp_now_register_send_cb(OnDataSent);
+  esp_now_register_recv_cb(reinterpret_cast<esp_now_recv_cb_t>(OnDataRecv));
+  delay(500);
 }
 
 // printing ----------
