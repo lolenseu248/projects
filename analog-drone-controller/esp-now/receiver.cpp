@@ -273,8 +273,8 @@ void serialDebug(){
   Serial.printf("Mode: %s\n",Mods);
   Serial.println("");
   Serial.println("Cpu Usage");
-  Serial.printf("core0: %dms\n",elapsedTime1);
-  Serial.printf("core1: %dms\n",elapsedTime2);
+  Serial.printf("Core0: %dms\n",elapsedTime1);
+  Serial.printf("Core1: %dms\n",elapsedTime2);
   Serial.println("");
   Serial.printf("Uptime: %dsec\n",globaltime);
   Serial.println("-------------------- debug --------------------");
