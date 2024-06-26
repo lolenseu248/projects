@@ -33,8 +33,8 @@ uint8_t targetMac[]={0x40,0x22,0xD8,0x08,0xBB,0x48};
 esp_now_peer_info_t peerInfo;
 
 // task
-TaskHandle_t cpu1;
-TaskHandle_t cpu2;
+TaskHandle_t core0;
+TaskHandle_t core1;
 
 // mavlink
 mavlink_message_t msg;
@@ -222,8 +222,8 @@ void serialDebug(){
   Serial.printf("Mode: %s\n",Mods);
   Serial.println("");
   Serial.println("Cpu Usage");
-  Serial.printf("Cpu1: %dms\n",elapsedTime1);
-  Serial.printf("Cpu2: %dms\n",elapsedTime2);
+  Serial.printf("core0: %dms\n",elapsedTime1);
+  Serial.printf("core1: %dms\n",elapsedTime2);
   Serial.println("");
   Serial.printf("Uptime: %dsec\n",globaltime);
   Serial.println("-------------------- debug --------------------");
@@ -232,14 +232,14 @@ void serialDebug(){
 // -------------------- task1 --------------------
 void Task1code(void*pvParameters){
   for(;;){
-    // cpu1 counter and buzzer
+    // core0 counter and buzzer
     loop1+=1;
     if(loop1==100)loop1=0;
 
     // uptime
     globaltime=millis()/1000;
 
-    // cpu1 load start
+    // core0 load start
     startTime1=millis();
 
     // process ----------
@@ -329,7 +329,7 @@ void Task1code(void*pvParameters){
     percentRoll=mapPercent(Roll);
     mapMode(Mode); 
 
-    // cpu1 load end
+    // core0 load end
     elapsedTime1=millis()-startTime1;
 
     // debug ----------
@@ -345,11 +345,11 @@ void Task1code(void*pvParameters){
 // -------------------- task2 --------------------
 void Task2code(void*pvParameters){
   for(;;){
-    // cpu2 counter
+    // core1 counter
     loop2+=1;
     if(loop2==100)loop2=0;
 
-    // cpu2 load start
+    // core1 load start
     startTime2=millis();
 
     // serial uart
@@ -359,7 +359,7 @@ void Task2code(void*pvParameters){
     esp_now_send(targetMac,(uint8_t*)&sndxC,sizeof(sndxMsg))
     esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg)); 
     
-    // cpu2 load end 
+    // core1 load end 
     elapsedTime2=millis()-startTime2;
   } 
 } 
@@ -391,8 +391,8 @@ void setup(){
   delay(200);
 
   // task handler
-  xTaskCreatePinnedToCore(Task1code,"cpu1",10000,NULL,2,&cpu1,0);
-  xTaskCreatePinnedToCore(Task2code,"cpu2",10000,NULL,1,&cpu2,1);
+  xTaskCreatePinnedToCore(Task1code,"core0",10000,NULL,2,&core0,0);
+  xTaskCreatePinnedToCore(Task2code,"core1",10000,NULL,1,&core1,1);
 }
 
 // -------------------- loop --------------------

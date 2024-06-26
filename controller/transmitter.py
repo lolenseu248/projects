@@ -267,7 +267,7 @@ def debug():
     #print("\n")
     print(f"Official Data\nSpeed: {percent_speed}%\nTrottle: {percent_trottle}%\nYaw: {percent_yaw}%\nPitch: {percent_pitch}%\nRoll: {percent_roll}%\nMode: {mods}")
     print("\n")
-    print(f"Cpu Usage\ncpu0: {core0_elapse}ms\ncpu1: {core1_elapsed}ms")
+    print(f"Cpu Usage\ncpu0: {core0_elapse}ms\ncore0: {core1_elapsed}ms")
     print("\n")
     print(f"Uptime: {time}sec")
     print("-------------------- debug --------------------")
