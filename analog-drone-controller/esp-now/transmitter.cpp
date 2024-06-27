@@ -142,7 +142,6 @@ typedef struct send_message{
   uint64_t time2;
   uint16_t len;
   uint8_t buf[BUFFER];
-  uint8_t status;
 };
 send_message sndxMsg;
 
@@ -152,7 +151,6 @@ typedef struct receive_message{
   uint64_t time2;
   uint16_t len;
   uint8_t buf[BUFFER];
-  uint8_t status;
 };
 receive_message rcvxMsg;
 
