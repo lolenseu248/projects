@@ -600,6 +600,8 @@ void Task1code(void*pvParameters){
     percentRoll=mapPercent(Roll);
     mapMode(Mode);
 
+    delay(10); // run delay
+
     // core0 load end
     elapsedTime1=millis()-startTime1;
 
@@ -617,8 +619,6 @@ void Task1code(void*pvParameters){
       clock1=millis();
       serialDebug();
     }
-
-    delay(10); // run delay
   } 
 }
 
@@ -688,11 +688,11 @@ void Task2code(void*pvParameters){
     else{
       nonfragmentedMsg();
     }
+
+    delay(10); // run delay
   
     // core1 load end
     elapsedTime2=millis()-startTime2;
-
-    delay(10); // run delay
   } 
 }
 
