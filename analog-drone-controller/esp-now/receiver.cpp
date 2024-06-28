@@ -386,7 +386,7 @@ void Task2code(void*pvParameters){
       }
 
       // read serial and write serial2
-      else{
+      else if(Serial.available()>0){
         while(Serial.available()>0){
           c=Serial.read();
           if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
@@ -399,12 +399,14 @@ void Task2code(void*pvParameters){
       }
       
       // read serial2 and write serial
-      while(Serial2.available()>0){
-        c=Serial2.read();
-        if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-          len=mavlink_msg_to_send_buffer(buf,&msg);
-          if(Serial.availableForWrite()>0){
-            Serial.write(buf,len);
+      if(Serial2.available()>0){
+        while(Serial2.available()>0){
+          c=Serial2.read();
+          if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+            len=mavlink_msg_to_send_buffer(buf,&msg);
+            if(Serial.availableForWrite()>0){
+              Serial.write(buf,len);
+            }
           }
         }
       }
@@ -419,11 +421,19 @@ void Task2code(void*pvParameters){
       }
 
       // read and send
-      while(Serial2.available()>0){
-        c=Serial2.read();
-        if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-          sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+      if((Serial2.available()>0)){
+        while(Serial2.available()>0){
+          c=Serial2.read();
+          if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+            sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+          }
         }
+      }
+
+      // reset to zero
+      else{ 
+        memset(sndxMsg.buf,0,BUFFER);
+        sndxMsg.len=0;
       }
     }
 

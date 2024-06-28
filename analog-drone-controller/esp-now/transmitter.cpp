@@ -493,7 +493,6 @@ void Task1code(void*pvParameters){
       }
       else if(togSW1State==LOW){
         if(togSW4State==HIGH){
-          Trottle=setTrottleInMode(joyX1Poss);
           Mode=1820; // Land
         }
         else if(togSW4State==LOW){
@@ -609,13 +608,19 @@ void Task2code(void*pvParameters){
     }
 
     // read and send
-    else{
+    else if(Serial.available()>0){
       while(Serial.available()>0){
         c=Serial.read();
         if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
           sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
         }
       }
+    }
+
+    // reset to zero
+    else{ 
+      memset(sndxMsg.buf,0,BUFFER);
+      sndxMsg.len=0;
     }
 
     // sending msg ----------
