@@ -617,12 +617,6 @@ void Task2code(void*pvParameters){
       }
     }
 
-    // reset to zero
-    else{ 
-      memset(sndxMsg.buf,0,BUFFER);
-      sndxMsg.len=0;
-    }
-
     // sending msg ----------
     // snd msg via ESP-NOW
     esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg));

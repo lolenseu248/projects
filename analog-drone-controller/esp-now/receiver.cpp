@@ -429,12 +429,6 @@ void Task2code(void*pvParameters){
           }
         }
       }
-
-      // reset to zero
-      else{ 
-        memset(sndxMsg.buf,0,BUFFER);
-        sndxMsg.len=0;
-      }
     }
 
     // sending msg ----------
