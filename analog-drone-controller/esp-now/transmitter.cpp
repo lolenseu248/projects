@@ -54,17 +54,6 @@ uint8_t c;
 mavlink_message_t msg;
 mavlink_status_t status;
 
-// snd buf and len
-uint8_t sbuf[MAVLINK_MAX_PACKET_LEN];
-uint16_t slen;
-
-// rcv buf len
-size_t rbuflen=0;
-
-// rcv buf and len
-uint8_t rbuf[MAVLINK_MAX_PACKET_LEN];
-uint16_t rlen;
-
 // mavlink heartbeattime
 unsigned long lastHeartbeatTime=0;
 
@@ -153,7 +142,6 @@ typedef struct send_message{
   uint64_t time2;
   uint16_t len;
   uint8_t buf[BUFFER];
-  uint8_t status;
 };
 send_message sndxMsg;
 
@@ -163,7 +151,6 @@ typedef struct receive_message{
   uint64_t time2;
   uint16_t len;
   uint8_t buf[BUFFER];
-  uint8_t status;
 };
 receive_message rcvxMsg;
 
@@ -248,31 +235,6 @@ void mapMode(int toMode){
   else if(mapMode>1491&&mapMode<1621)Mods="Loit";
   else if(mapMode>1621&&mapMode<1749)Mods="RTL ";
   else if(mapMode>1750&&mapMode<2000)Mods="Land";
-}
-
-// fragmeted and non fragmented msg ----------
-// fragmented msg
-void fragmentedMsg(){
-  size_t offset=0;
-  uint16_t len=sizeof(sbuf);
-  while(offset<len){ 
-    size_t chunkSize=min(sizeof(sndxMsg.buf),len-offset); 
-    memcpy(sndxMsg.buf,sbuf+offset,chunkSize);
-    sndxMsg.status=1;
-
-    // snd msg via ESP-NOW
-    esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg));
-    offset+=chunkSize;
-  }
-}
-
-// non fragmented msg
-void nonfragmentedMsg(){
-  memcpy(sndxMsg.buf,sbuf,slen);
-  sndxMsg.status=0;
-
-  // snd msg via ESP-NOW
-  esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg));
 }
 
 // esp-now ----------
@@ -634,37 +596,16 @@ void Task2code(void*pvParameters){
 
     // serial uart ----------
     // receive and write
-    // write with fragmented
-    if(rcvxMsg.status==1){
-      size_t chunkSize=min(sizeof(rcvxMsg.buf),sizeof(rcvxMsg.buf)-rbuflen);
-      if(rbuflen+chunkSize<=sizeof(rbuf)){
-        memcpy(rbuf+rbuflen,rcvxMsg.buf,chunkSize);
-        rbuflen+=chunkSize;
-        if(rbuflen>=rcvxMsg.len){
-          rlen=rcvxMsg.len;
-          if(Serial.availableForWrite()>0&&rcvxMsg.len>0){
-            Serial.write(rbuf,rlen);
-            rcvxMsg.len=0;  // reset to zero
-            rbuflen=0;
-          }
-        }
-      }
-    }
-
-    // write with nonfragmented
-    else{
-      if(Serial.availableForWrite()>0&&rcvxMsg.len>0){
+    if(Serial.availableForWrite()>0&&rcvxMsg.len>0){
       Serial.write(rcvxMsg.buf,rcvxMsg.len);
       rcvxMsg.len=0; // reset to zero
-      }
     }
     
     // heartbeat
     if(millis()-lastHeartbeatTime>=1000){
       lastHeartbeatTime=millis();
       mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
-      slen=mavlink_msg_to_send_buffer(sbuf,&msg);
-      sndxMsg.len=slen;
+      sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
     }
 
     // read and send
@@ -672,25 +613,17 @@ void Task2code(void*pvParameters){
       while(Serial.available()>0){
         c=Serial.read();
         if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-          slen=mavlink_msg_to_send_buffer(sbuf,&msg);
-          sndxMsg.len=slen;
+          sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
         }
       }
     }
 
     // sending msg ----------
-    // send via fragmented msg
-    if(slen>BUFFER){
-      fragmentedMsg();
-    }
-
-    // send via nonfragmented msg
-    else{
-      nonfragmentedMsg();
-    }
+    // snd msg via ESP-NOW
+    esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg));
 
     delay(10); // run delay
-  
+
     // core1 load end
     elapsedTime2=millis()-startTime2;
   } 
