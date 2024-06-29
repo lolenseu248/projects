@@ -493,6 +493,7 @@ void Task1code(void*pvParameters){
       }
       else if(togSW1State==LOW){
         if(togSW4State==HIGH){
+          Trottle=setTrottleInMode(joyX1Poss);
           Mode=1820; // Land
         }
         else if(togSW4State==LOW){
