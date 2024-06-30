@@ -256,10 +256,11 @@ void initwifi(){
       wifiEnabled=false;
     }
   }
+  delay(500);
 }
 
 // disable wifi
-void disableWiFi(){
+void disablewifi(){
   if(wifiEnabled){
     WiFi.softAPdisconnect(true);
     wifiEnabled=false;
@@ -469,7 +470,7 @@ void Task2code(void*pvParameters){
     else{
       if(wifiEnabled){
         //disable wifi
-        disableWiFi();
+        disablewifi();
       }
 
       if(!espnowEnabled){
