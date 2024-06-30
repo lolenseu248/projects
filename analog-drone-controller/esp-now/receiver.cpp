@@ -200,9 +200,9 @@ void initBoot(){
 // connection ----------
 // init esp-now
 void initespnow(){
-WiFi.disconnect();
-WiFi.mode(WIFI_STA);
   if(!espnowEnabled){
+    WiFi.mode(WIFI_STA);
+    
     // init ESP-NOW
     Serial.println("Initiating ESP-NOW ..");
 
@@ -263,6 +263,7 @@ void initwifi(){
 void disablewifi(){
   if(wifiEnabled){
     WiFi.softAPdisconnect(true);
+    WiFi.disconnect();
     wifiEnabled=false;
     Serial.println("WiFi AP disabled.");
   }
