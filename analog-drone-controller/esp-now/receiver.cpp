@@ -451,16 +451,24 @@ void Task2code(void*pvParameters){
       WiFiClient client=server.available();
       if(client){
         if(client.connected()){
-          // sending to client
-          if(Serial.available()){
-            uint8_t data=Serial.read();
-            client.write(data);
-          }
-
           // sending to apm
-          if(client.available()){
-            uint8_t data=client.read();
-            Serial.write(data);
+          if(client.available()>0){
+            c=client.read();
+            if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+            len=mavlink_msg_to_send_buffer(buf,&msg);
+            if(Serial2.availableForWrite()>0){
+              Serial2.write(buf,len);
+            }
+          }
+    
+          // sending to client
+          if(Serial2.available()>0){
+            c=Serial.read();
+            if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+            len=mavlink_msg_to_send_buffer(buf,&msg);
+            if(client.availableForWrite()>0){
+              client.write(buf,len);
+            }
           }
         }
         else client.stop();
