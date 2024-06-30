@@ -8,6 +8,9 @@
 #include <MAVLink.h>
 #include <ESP32Servo.h>
 
+// wifi switch pinout
+#define WIFISWITCH 2
+
 // uart switch pinout
 #define UARTSWITCH 15
 
@@ -30,11 +33,21 @@
 
 // -------------------- variables --------------------
 // manualvar ----------
+// wifi softap credentials
+const char* ssid="apm2.8-hexa";
+const char* password="12345678";
+
 // esp-now mymac and targetmac
 uint8_t myMac[]={0x40,0x22,0xD8,0x03,0x2E,0x50};
 uint8_t targetMac[]={0x40,0x22,0xD8,0x08,0xBB,0x48};
 
 // fixvar ----------
+bool espnowEnabled=false;
+bool wifiEnabled=false;
+
+// server port
+WiFiServer server(14550);
+
 // peerinfo
 esp_now_peer_info_t peerInfo;
 
@@ -51,6 +64,9 @@ uint16_t len;
 
 // mavlink heartbeattime
 unsigned long lastHeartbeatTime=0;
+
+// wifi switch state
+int wifiSwitchState;
 
 // uart switch state
 int uartSwitchState;
@@ -184,28 +200,71 @@ void initBoot(){
 // connection ----------
 // init esp-now
 void initespnow(){
-  WiFi.mode(WIFI_STA);
-  Serial.println("Initiating ESP-NOW ..");
+WiFi.disconnect();
+WiFi.mode(WIFI_STA);
+  if(!espnowEnabled){
+    // init ESP-NOW
+    Serial.println("Initiating ESP-NOW ..");
 
-  // init ESP-NOW
-  if(esp_now_init()!=ESP_OK){
-    Serial.println("Error Initializing ESP-NOW");
-    return;
+    if(esp_now_init()!=ESP_OK){
+      Serial.println("Error Initializing ESP-NOW");
+      espnowEnabled=false;
+      return;
+    }
+
+    // register peer
+    memcpy(peerInfo.peer_addr,targetMac,6);
+    peerInfo.channel=0;  
+    peerInfo.encrypt=false;
+
+    if(esp_now_add_peer(&peerInfo)!=ESP_OK){
+      Serial.println("Failed to add peer");
+      return;
+    }
+    
+    // register callbacks
+    esp_now_register_send_cb(OnDataSent);
+    esp_now_register_recv_cb(reinterpret_cast<esp_now_recv_cb_t>(OnDataRecv));
+
+    espnowEnabled=true;
   }
-
-  // register peer
-  memcpy(peerInfo.peer_addr,targetMac,6);
-  peerInfo.channel=0;  
-  peerInfo.encrypt=false;
-  if(esp_now_add_peer(&peerInfo)!=ESP_OK){
-    Serial.println("Failed to add peer");
-    return;
-  }
-
-  // register callbacks
-  esp_now_register_send_cb(OnDataSent);
-  esp_now_register_recv_cb(reinterpret_cast<esp_now_recv_cb_t>(OnDataRecv));
   delay(500);
+}
+
+// disable espnow
+void disableespnow(){
+  if(espnowEnabled){
+    esp_now_deinit();
+    espnowEnabled=false;
+    Serial.println("ESP-NOW disabled.");
+  }
+}
+
+// init wifi
+void initwifi(){
+  if(!wifiEnabled){
+    // init WiFi
+    Serial.println("Initiating WiFi AP ..");
+
+    bool success=WiFi.softAP(ssid,password);
+    if(success){
+      server.begin();
+      wifiEnabled=true;
+    }
+    else{
+      Serial.println("Error initializing WiFi AP.");
+      wifiEnabled=false;
+    }
+  }
+}
+
+// disable wifi
+void disableWiFi(){
+  if(wifiEnabled){
+    WiFi.softAPdisconnect(true);
+    wifiEnabled=false;
+    Serial.println("WiFi AP disabled.");
+  }
 }
 
 // printing ----------
@@ -369,10 +428,56 @@ void Task2code(void*pvParameters){
     // core1 load start
     startTime2=millis();
 
+    // wifi switch read state
+    wifiSwitchState=digitalRead(WIFISWITCH);
+
     // uart switch read state
     uartSwitchState=digitalRead(UARTSWITCH);
 
     // serial uart ----------
+    // uart wifi
+    if(wifiSwitchState==LOW){
+      if(espnowEnabled){
+        // disable espnow
+        disableespnow();
+      }
+      
+      if(!wifiEnabled){
+        // init wifi
+        initwifi();
+      }
+      
+      WiFiClient client=server.available();
+      if(client){
+        if(client.connected()){
+          // sending to client
+          if(Serial.available()){
+            uint8_t data=Serial.read();
+            client.write(data);
+          }
+
+          // sending to apm
+          if(client.available()){
+            uint8_t data=client.read();
+            Serial.write(data);
+          }
+        }
+        else client.stop();
+      }
+    }
+
+    else{
+      if(wifiEnabled){
+        //disable wifi
+        disableWiFi();
+      }
+
+      if(!espnowEnabled){
+        // init espnow
+        initespnow();
+      }
+    }
+
     // uart usb
     if(uartSwitchState==LOW){
       // heartbeat
@@ -451,6 +556,9 @@ void setup(){
 
   // int ESP-NOW
   initespnow();
+
+  // wifi switch
+  pinMode(WIFISWITCH,INPUT_PULLUP);
 
   // uart switch
   pinMode(UARTSWITCH,INPUT_PULLUP);

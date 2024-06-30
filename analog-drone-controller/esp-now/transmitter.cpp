@@ -42,6 +42,8 @@ uint8_t myMac[]={0x40,0x22,0xD8,0x08,0xBB,0x48};
 uint8_t targetMac[]={0x40,0x22,0xD8,0x03,0x2E,0x50};
 
 // fixvar ----------
+bool espnowEnabled=false;
+
 // peerinfo
 esp_now_peer_info_t peerInfo;
 
@@ -266,27 +268,34 @@ void initBoot(){
 // connection ----------
 // init esp-now
 void initespnow(){
-  WiFi.mode(WIFI_STA);
-  Serial.println("Initiating ESP-NOW ..");
+WiFi.disconnect();
+WiFi.mode(WIFI_STA);
+  if(!espnowEnabled){
+    // init ESP-NOW
+    Serial.println("Initiating ESP-NOW ..");
 
-  // init ESP-NOW
-  if(esp_now_init()!=ESP_OK){
-    Serial.println("Error Initializing ESP-NOW");
-    return;
+    if(esp_now_init()!=ESP_OK){
+      Serial.println("Error Initializing ESP-NOW");
+      espnowEnabled=false;
+      return;
+    }
+
+    // register peer
+    memcpy(peerInfo.peer_addr,targetMac,6);
+    peerInfo.channel=0;  
+    peerInfo.encrypt=false;
+
+    if(esp_now_add_peer(&peerInfo)!=ESP_OK){
+      Serial.println("Failed to add peer");
+      return;
+    }
+    
+    // register callbacks
+    esp_now_register_send_cb(OnDataSent);
+    esp_now_register_recv_cb(reinterpret_cast<esp_now_recv_cb_t>(OnDataRecv));
+
+    espnowEnabled=true;
   }
-
-  // register peer
-  memcpy(peerInfo.peer_addr,targetMac,6);
-  peerInfo.channel=0;  
-  peerInfo.encrypt=false;
-  if(esp_now_add_peer(&peerInfo)!=ESP_OK){
-    Serial.println("Failed to add peer");
-    return;
-  }
-
-  // register callbacks
-  esp_now_register_send_cb(OnDataSent);
-  esp_now_register_recv_cb(reinterpret_cast<esp_now_recv_cb_t>(OnDataRecv));
   delay(500);
 }
 
