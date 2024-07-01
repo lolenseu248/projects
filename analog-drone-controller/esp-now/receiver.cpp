@@ -406,7 +406,7 @@ void Task1code(void*pvParameters){
     percentRoll=mapPercent(Roll);
     mapMode(Mode);
 
-    delay(10); // run delay
+    delay(5); // run delay
 
     // core0 load end
     elapsedTime1=millis()-startTime1;
@@ -457,26 +457,32 @@ void Task2code(void*pvParameters){
           lastHeartbeatTime=millis();
           mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
           len=mavlink_msg_to_send_buffer(buf,&msg);
-          Serial2.write(buf,len);
+          if(Serial2.availableForWrite()>0){
+            Serial2.write(buf,len);
+          }
         }
 
         // read and writing to serial2
-        else{
-          while(client.available()){
+        else if(client.available()>0){
+          while(client.available()>0){
             c=client.read();
             if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
               len=mavlink_msg_to_send_buffer(buf,&msg);
-              Serial2.write(buf,len);
+              if(Serial2.availableForWrite()>0){
+                Serial2.write(buf,len);
+              }
             }
           }
         }
 
         // sending to client
-        while(Serial2.available()){
-          c=Serial2.read();
-          if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-            len=mavlink_msg_to_send_buffer(buf,&msg);
-            client.write(buf,len);
+        if(Serial2.available()>0){
+          while(Serial2.available()>0){
+            c=Serial2.read();
+            if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+              len=mavlink_msg_to_send_buffer(buf,&msg);
+              client.write(buf,len);
+            }
           }
         }
       }
@@ -484,31 +490,49 @@ void Task2code(void*pvParameters){
 
     // uart usb
     else if(uartSwitchState==LOW){
+      if(wifiEnabled){
+        //disable wifi
+        disablewifi();
+      }
+
+      if(!espnowEnabled){
+        // init espnow
+        initespnow();
+      }
+
       // heartbeat
       if(millis()-lastHeartbeatTime>=1000){
         lastHeartbeatTime=millis();
         mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
         len=mavlink_msg_to_send_buffer(buf,&msg);
-        Serial2.write(buf,len);
+        if(Serial2.availableForWrite()>0){
+          Serial2.write(buf,len);
+        }
       }
 
       // read serial and write serial2
-      else{
-        while(Serial.available()){
+      else if(Serial.available()>0){
+        while(Serial.available()>0){
           c=Serial.read();
           if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
             len=mavlink_msg_to_send_buffer(buf,&msg);
-            Serial2.write(buf,len);
+            if(Serial2.availableForWrite()>0){
+              Serial2.write(buf,len);
+            }
           }
         }
       }
       
       // read serial2 and write serial
-      while(Serial2.available()){
-        c=Serial2.read();
-        if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-          len=mavlink_msg_to_send_buffer(buf,&msg);
-          Serial.write(buf,len);
+      if(Serial2.available()>0){
+        while(Serial2.available()>0){
+          c=Serial2.read();
+          if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+            len=mavlink_msg_to_send_buffer(buf,&msg);
+            if(Serial.availableForWrite()>0){
+              Serial.write(buf,len);
+            }
+          }
         }
       }
     }
@@ -526,25 +550,21 @@ void Task2code(void*pvParameters){
       }
 
       // receive and write
-      if(rcvxMsg.len>0){
+      if(Serial2.availableForWrite()>0&&rcvxMsg.len>0){
         Serial2.write(rcvxMsg.buf,rcvxMsg.len);
         rcvxMsg.len=0; // reset to zero
       }
 
       // read and send
-      while(Serial2.available()){
-        c=Serial2.read();
-        if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-          len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+      if((Serial2.available()>0)){
+        while(Serial2.available()>0){
+          c=Serial2.read();
+          if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+            sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+          }
         }
       }
     }
-
-    if(len>0){
-      sndxMsg.len=len;
-      len=0;
-    }
-    else sndxMsg.len=0;
 
     // sending msg ----------
     // snd msg via ESP-NOW
@@ -552,7 +572,7 @@ void Task2code(void*pvParameters){
       esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg));
     }
 
-    delay(10); // run delay
+    delay(5); // run delay
     
     // core1 load end
     elapsedTime2=millis()-startTime2;

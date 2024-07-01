@@ -534,7 +534,7 @@ void Task1code(void*pvParameters){
     percentRoll=mapPercent(Roll);
     mapMode(Mode);
 
-    delay(10); // run delay
+    delay(5); // run delay
 
     // core0 load end
     elapsedTime1=millis()-startTime1;
@@ -564,7 +564,7 @@ void Task2code(void*pvParameters){
 
     // serial uart ----------
     // receive and write
-    if(rcvxMsg.len>0){
+    if(Serial.availableForWrite()>0&&rcvxMsg.len>0){
       Serial.write(rcvxMsg.buf,rcvxMsg.len);
       rcvxMsg.len=0; // reset to zero
     }
@@ -577,26 +577,20 @@ void Task2code(void*pvParameters){
     }
 
     // read and send
-    else{
-      while(Serial.available()){
+    else if(Serial.available()>0){
+      while(Serial.available()>0){
         c=Serial.read();
         if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-          len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+          sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
         }
       }
     }
-
-    if(len>0){
-      sndxMsg.len=len;
-      len=0;
-    }
-    else sndxMsg.len=0;
 
     // sending msg ----------
     // snd msg via ESP-NOW
     esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg));
 
-    delay(10); // run delay
+    delay(5); // run delay
 
     // core1 load end
     elapsedTime2=millis()-startTime2;
