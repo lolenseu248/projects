@@ -564,7 +564,7 @@ void Task2code(void*pvParameters){
 
     // serial uart ----------
     // receive and write
-    if(Serial.availableForWrite()>0&&rcvxMsg.len>0){
+    if(rcvxMsg.len>0){
       Serial.write(rcvxMsg.buf,rcvxMsg.len);
       rcvxMsg.len=0; // reset to zero
     }
@@ -577,8 +577,8 @@ void Task2code(void*pvParameters){
     }
 
     // read and send
-    else if(Serial.available()>0){
-      while(Serial.available()>0){
+    else{
+      while(Serial.available()){
         c=Serial.read();
         if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
           sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
