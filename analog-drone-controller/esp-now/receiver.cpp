@@ -45,8 +45,9 @@ uint8_t targetMac[]={0x40,0x22,0xD8,0x08,0xBB,0x48};
 bool espnowEnabled=false;
 bool wifiEnabled=false;
 
-// server port
-WiFiServer server(14550);
+// wifi server
+WiFiServer server(5760);
+WiFiClient client;
 
 // peerinfo
 esp_now_peer_info_t peerInfo;
@@ -448,40 +449,71 @@ void Task2code(void*pvParameters){
         // init wifi
         initwifi();
       }
-      
-      WiFiClient client=server.available();
-      if(client){
-        if(client.connected()){
-          // sending to apm
-          if(client.available()>0){
-            while(client.available()>0){
-              c=client.read();
-              if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-                len=mavlink_msg_to_send_buffer(buf,&msg);
-                if(Serial2.availableForWrite()>0){
-                  Serial2.write(buf,len);
-                }
-              }
-            }
-          }
-    
-          // sending to client
-          if(Serial2.available()>0){
-            while((Serial2.available()>0)){
-              c=Serial2.read();
-              if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-                len=mavlink_msg_to_send_buffer(buf,&msg);
-                if(client.availableForWrite()>0){
-                  client.write(buf,len);
-                }
-              }
+
+      client=server.available();
+      while(client.connected()){
+        // heartbeat
+        if(millis()-lastHeartbeatTime>=1000){
+          lastHeartbeatTime=millis();
+          mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
+          len=mavlink_msg_to_send_buffer(buf,&msg);
+          Serial2.write(buf,len);
+        }
+
+        // read and writing to serial2
+        else{
+          while(client.available()){
+            c=client.read();
+            if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+              len=mavlink_msg_to_send_buffer(buf,&msg);
+              Serial2.write(buf,len);
             }
           }
         }
-        else client.stop();
+
+        // sending to client
+        while(Serial2.available()){
+          c=Serial2.read();
+          if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+            len=mavlink_msg_to_send_buffer(buf,&msg);
+            client.write(buf,len);
+          }
+        }
       }
     }
 
+    // uart usb
+    else if(uartSwitchState==LOW){
+      // heartbeat
+      if(millis()-lastHeartbeatTime>=1000){
+        lastHeartbeatTime=millis();
+        mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
+        len=mavlink_msg_to_send_buffer(buf,&msg);
+        Serial2.write(buf,len);
+      }
+
+      // read serial and write serial2
+      else{
+        while(Serial.available()){
+          c=Serial.read();
+          if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+            len=mavlink_msg_to_send_buffer(buf,&msg);
+            Serial2.write(buf,len);
+          }
+        }
+      }
+      
+      // read serial2 and write serial
+      while(Serial2.available()){
+        c=Serial2.read();
+        if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+          len=mavlink_msg_to_send_buffer(buf,&msg);
+          Serial.write(buf,len);
+        }
+      }
+    }
+
+    // espnow
     else{
       if(wifiEnabled){
         //disable wifi
@@ -492,69 +524,33 @@ void Task2code(void*pvParameters){
         // init espnow
         initespnow();
       }
-    }
 
-    // uart usb
-    if(uartSwitchState==LOW){
-      // heartbeat
-      if(millis()-lastHeartbeatTime>=1000){
-        lastHeartbeatTime=millis();
-        mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
-        len=mavlink_msg_to_send_buffer(buf,&msg);
-        if(Serial2.availableForWrite()>0){
-          Serial2.write(buf,len);
-        }
-      }
-
-      // read serial and write serial2
-      else if(Serial.available()>0){
-        while(Serial.available()>0){
-          c=Serial.read();
-          if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-            len=mavlink_msg_to_send_buffer(buf,&msg);
-            if(Serial2.availableForWrite()>0){
-              Serial2.write(buf,len);
-            }
-          }
-        }
-      }
-      
-      // read serial2 and write serial
-      if(Serial2.available()>0){
-        while(Serial2.available()>0){
-          c=Serial2.read();
-          if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-            len=mavlink_msg_to_send_buffer(buf,&msg);
-            if(Serial.availableForWrite()>0){
-              Serial.write(buf,len);
-            }
-          }
-        }
-      }
-    }
-
-    // espnow
-    else{
       // receive and write
-      if(Serial2.availableForWrite()>0&&rcvxMsg.len>0){
+      if(rcvxMsg.len>0){
         Serial2.write(rcvxMsg.buf,rcvxMsg.len);
         rcvxMsg.len=0; // reset to zero
       }
 
       // read and send
-      if((Serial2.available()>0)){
-        while(Serial2.available()>0){
-          c=Serial2.read();
-          if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-            sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
-          }
+      while(Serial2.available()){
+        c=Serial2.read();
+        if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+          len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
         }
       }
     }
 
+    if(len>0){
+      sndxMsg.len=len;
+      len=0;
+    }
+    else sndxMsg.len=0;
+
     // sending msg ----------
     // snd msg via ESP-NOW
-    esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg));
+    if(wifiSwitchState==HIGH){
+      esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg));
+    }
 
     delay(10); // run delay
     

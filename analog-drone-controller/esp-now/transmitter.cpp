@@ -55,6 +55,8 @@ TaskHandle_t core1;
 uint8_t c;
 mavlink_message_t msg;
 mavlink_status_t status;
+uint8_t buf[MAVLINK_MAX_PACKET_LEN];
+uint16_t len;
 
 // mavlink heartbeattime
 unsigned long lastHeartbeatTime=0;
@@ -300,47 +302,8 @@ void initespnow(){
 }
 
 // printing ----------
-// oled screen setup1
-void oledScreen1(){
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
-  display.setCursor(0,0);
-  display.print("ECOM: ");
-  display.println(comStatus);
-  display.setCursor(0,0);
-  display.print("          PING: ");
-  display.print(ping);
-  display.println("ms");
-  display.setCursor(0,50);
-  display.print("Mode: ");
-  display.print(Mods);
-  display.setCursor(0,10);
-  display.print("JSNo.1: ");
-  display.print("X=");
-  display.print(joyX1Poss);
-  display.print("\tY=");
-  display.print(joyY1Poss);
-  display.setCursor(0,20);
-  display.print("JSNo.2: ");
-  display.print("X=");
-  display.print(joyX2Poss);
-  display.print("\tY=");
-  display.print(joyY2Poss);
-  display.setCursor(0,30);
-  display.print("PMNo.1: ");
-  display.print(potenM1Poss);
-  display.setCursor(0,40);
-  display.print("PMNo.2: ");
-  display.print(potenM2Poss);  
-  display.setCursor(0,50);
-  display.print("Count: ");
-  display.print(loop1);
-  display.display();
-}
-
-// oled screen setup2
-void oledScreen2(){
+// oled screen
+void oledScreen(){
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
@@ -578,11 +541,7 @@ void Task1code(void*pvParameters){
 
     // debug ----------
     // oled screen
-    // oleddisplay1
-    if(togSW3State==HIGH)oledScreen1();
-
-    // oleddisplay2
-    else if(togSW3State==LOW)oledScreen2();
+    oledScreen();
 
     // serial debug
     //serialDebug(); // enable this for fast debug
@@ -605,7 +564,7 @@ void Task2code(void*pvParameters){
 
     // serial uart ----------
     // receive and write
-    if(Serial.availableForWrite()>0&&rcvxMsg.len>0){
+    if(rcvxMsg.len>0){
       Serial.write(rcvxMsg.buf,rcvxMsg.len);
       rcvxMsg.len=0; // reset to zero
     }
@@ -618,14 +577,20 @@ void Task2code(void*pvParameters){
     }
 
     // read and send
-    else if(Serial.available()>0){
-      while(Serial.available()>0){
+    else{
+      while(Serial.available()){
         c=Serial.read();
         if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-          sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+          len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
         }
       }
     }
+
+    if(len>0){
+      sndxMsg.len=len;
+      len=0;
+    }
+    else sndxMsg.len=0;
 
     // sending msg ----------
     // snd msg via ESP-NOW
