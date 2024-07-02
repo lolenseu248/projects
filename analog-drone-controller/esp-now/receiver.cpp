@@ -571,7 +571,7 @@ void Task2code(void*pvParameters){
         roffset=0;
         rpacketStatus=0;
 
-        Serial.write(rbuf,rlen);
+        Serial2.write(rbuf,rlen);
         memset(rbuf,0,sizeof(rbuf));
       }
 
@@ -586,8 +586,8 @@ void Task2code(void*pvParameters){
 
         // read
         else{
-          while(Serial.available()){
-            c=Serial.read();
+          while(Serial2.available()){
+            c=Serial2.read();
             if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
               slen=mavlink_msg_to_send_buffer(sbuf,&msg);
             }
