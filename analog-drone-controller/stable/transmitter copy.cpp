@@ -179,9 +179,9 @@ void mapSpeed(int toSpeed){
 // to set official data
 // settrottle
 int setTrottle(int toTrottle){
-  if(Trottle<=1500||Trottle>=1800){
-    if(toTrottle<=1200)Trottle=Trottle-=5;
-    if(toTrottle>=1800)Trottle=Trottle+=5;
+  if(Trottle<=1500||Trottle>=1700){
+    if(toTrottle<=1200)Trottle=Trottle-=10;
+    if(toTrottle>=1800)Trottle=Trottle+=10;
   }
   else {
     if(toTrottle<=1200)Trottle=Trottle-=2;
@@ -456,17 +456,51 @@ void Task1code(void*pvParameters){
       if(togSW1State==HIGH){
         if(togSW4State==HIGH){
           Trottle=setTrottleInMode(joyX1Poss);
-          Mode=1550; // Loiter
+          currentTrottle=Trottle;
+          Mode=1555; // Loiter
         }
         else if(togSW4State==LOW){
           Trottle=setTrottleInMode(joyX1Poss);
-          Mode=1400; // Alt Hold
+          currentTrottle=Trottle;
+          Mode=1425; // Alt Hold
         }
       }
       else if(togSW1State==LOW){
         if(togSW4State==HIGH){
           Trottle=setTrottleInMode(joyX1Poss);
-          Mode=1820; // Land
+          currentTrottle=Trottle;
+          Mode=1875; // Land
+        }
+        else if(togSW4State==LOW){
+          Trottle=setTrottleInMode(joyX1Poss);
+          currentTrottle=Trottle;
+          Mode=1295; // Pos Hold
+        }
+      }
+    }
+    else if(togSW2State==LOW){
+      Yaw=joyY1Poss;
+      Pitch=setPitch(joyX2Poss);
+      Roll=setRoll(joyY2Poss);
+
+      // for the modes
+      if(togSW1State==HIGH){
+        if(togSW4State==HIGH){
+          Trottle=setTrottleInMode(joyX1Poss);
+          currentTrottle=Trottle;
+          Mode=1555; // Loiter
+        }
+        else if(togSW4State==LOW){
+          Trottle=setTrottleInMode(joyX1Poss);
+          currentTrottle=Trottle;
+          Mode=1425; // Alt Hold
+        }
+      }
+      else if(togSW1State==LOW){
+        if(togSW4State==HIGH){
+          Trottle=setTrottleInMode(joyX1Poss);
+          currentTrottle=Trottle;
+          Mode=1875; // Land
         }
         else if(togSW4State==LOW){
           Trottle=currentTrottle;
@@ -483,31 +517,6 @@ void Task1code(void*pvParameters){
           
           currentTrottle=setTrottle(joyX1Poss); // setTrottle only on knob or stab
           Mode=potenM1Poss; // Fix by knob
-        }
-      }
-    }
-    else if(togSW2State==LOW){
-      currentTrottle=joyX1Poss;
-      Trottle=currentTrottle;
-      Yaw=joyY1Poss;
-      Pitch=joyX2Poss;
-      Roll=joyY2Poss;
-
-      // for the modes
-      if(togSW1State==HIGH){
-        if(togSW4State==HIGH){
-          Mode=1550; // Loiter
-        }
-        else if(togSW4State==LOW){
-          Mode=1400; // Alt Hold
-        }
-      }
-      else if(togSW1State==LOW){
-        if(togSW4State==HIGH){
-          Mode=1820; // Land
-        }
-        else if(togSW4State==LOW){
-          Mode=1100; // Fix Stabilize
         }
       }
     }
