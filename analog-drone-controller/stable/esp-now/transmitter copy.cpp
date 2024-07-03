@@ -467,7 +467,7 @@ void Task1code(void*pvParameters){
       }
       else if(togSW1State==LOW){
         if(togSW4State==HIGH){
-          Trottle=setTrottleInMode(joyX1Poss);
+          Trottle=setTrottle(joyX1Poss);
           currentTrottle=Trottle;
           Mode=1875; // Land
         }
@@ -498,7 +498,7 @@ void Task1code(void*pvParameters){
       }
       else if(togSW1State==LOW){
         if(togSW4State==HIGH){
-          Trottle=setTrottleInMode(joyX1Poss);
+          Trottle=setTrottle(joyX1Poss);
           currentTrottle=Trottle;
           Mode=1875; // Land
         }
