@@ -58,24 +58,6 @@ mavlink_status_t status;
 uint8_t buf[MAVLINK_MAX_PACKET_LEN];
 uint16_t len;
 
-// container send buf
-uint8_t sbuf[MAVLINK_MAX_PACKET_LEN];
-uint16_t slen;
-
-// send packet and status
-size_t sbuflen=0;
-size_t soffset=0;
-uint8_t spacketStatus=0;
-
-// container receive buf
-uint8_t rbuf[MAVLINK_MAX_PACKET_LEN];
-uint16_t rlen;
-
-// receive packet and status
-size_t rbuflen=0;
-size_t roffset=0;
-uint8_t rpacketStatus=0;
-
 // mavlink heartbeattime
 unsigned long lastHeartbeatTime=0;
 
@@ -164,7 +146,6 @@ typedef struct send_message{
   uint64_t time2;
   uint16_t len;
   uint8_t buf[BUFFER];
-  uint8_t status;
 };
 send_message sndxMsg;
 
@@ -174,7 +155,6 @@ typedef struct receive_message{
   uint64_t time2;
   uint16_t len;
   uint8_t buf[BUFFER];
-  uint8_t status;
 };
 receive_message rcvxMsg;
 
@@ -583,62 +563,30 @@ void Task2code(void*pvParameters){
     startTime2=millis();
 
     // serial uart ----------
-    // receive msg ----------
-    if(rcvxMsg.status>rpacketStatus){
-      rpacketStatus=rcvxMsg.status;
-      rbuflen=sizeof(rcvxMsg.buf);
-      size_t chunkSize=min(sizeof(rcvxMsg.buf),rbuflen-roffset);
-      memcpy(rbuf+roffset,rcvxMsg.buf,chunkSize);
-      roffset+=chunkSize;
+    // receive and write
+    if(Serial.availableForWrite()>0&&rcvxMsg.len>0){
+      Serial.write(rcvxMsg.buf,rcvxMsg.len);
+      rcvxMsg.len=0; // reset to zero
     }
-    else if(rcvxMsg.status==0){
-      rlen=rcvxMsg.len;
+    
+    // heartbeat
+    if(millis()-lastHeartbeatTime>=1000){
+      lastHeartbeatTime=millis();
+      mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
+      sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+    }
 
-      // reset to zero
-      rbuflen=0;
-      roffset=0;
-      rpacketStatus=0;
-
-      Serial.write(rbuf,rlen);
-      memset(rbuf,0,sizeof(rbuf));
+    // read and send
+    else if(Serial.available()>0){
+      while(Serial.available()>0){
+        c=Serial.read();
+        if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+          sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+        }
+      }
     }
 
     // sending msg ----------
-    if(sbuflen==0){
-      // heartbeat
-      if(millis()-lastHeartbeatTime>=1000){
-        lastHeartbeatTime=millis();
-        mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
-        slen=mavlink_msg_to_send_buffer(sbuf,&msg);
-      }
-
-      // read
-      else{
-        while(Serial.available()){
-          c=Serial.read();
-          if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-            slen=mavlink_msg_to_send_buffer(sbuf,&msg);
-          }
-        }
-      }
-
-      sbuflen=slen;
-    }
-    if(soffset<sbuflen){
-      size_t chunkSize=min(sizeof(sndxMsg.buf),sbuflen-soffset);
-      memcpy(sndxMsg.buf,buf+soffset,chunkSize);
-      soffset+=chunkSize;
-      sndxMsg.status+=1;
-    }
-    else{
-      sndxMsg.len=slen;
-
-      // reset to zero
-      sbuflen=0;
-      soffset=0;
-      sndxMsg.status=0;
-    }
-
     // snd msg via ESP-NOW
     esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg));
 
