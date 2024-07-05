@@ -182,7 +182,7 @@ int setTrottleInMode(int toTrottle){
   if(toTrottle<=1200)Trottle=Trottle-=5;
   if(toTrottle>=1800)Trottle=Trottle+=5;
   if(Trottle<=1000)Trottle=1000;
-  if(Trottle>=2000)Trottle=1700;
+  if(Trottle>=2000)Trottle=1800;
   return Trottle;
 }
 
