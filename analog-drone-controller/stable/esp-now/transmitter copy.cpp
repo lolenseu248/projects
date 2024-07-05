@@ -179,15 +179,8 @@ void mapSpeed(int toSpeed){
 // to set official data
 // settrottleinmode
 int setTrottleInMode(int toTrottle){
-  
-  if(Trottle<=1500||Trottle>=1700){
-    if(toTrottle<=1200)Trottle=Trottle-=10;
-    if(toTrottle>=1800)Trottle=Trottle+=10;
-  }
-  else {
-    if(toTrottle<=1200)Trottle=Trottle-=2;
-    if(toTrottle>=1800)Trottle=Trottle+=2;
-  }
+  if(toTrottle<=1200)Trottle=Trottle-=5;
+  if(toTrottle>=1800)Trottle=Trottle+=5;
   if(Trottle<=1000)Trottle=1000;
   if(Trottle>=2000)Trottle=1700;
   return Trottle;
@@ -195,33 +188,33 @@ int setTrottleInMode(int toTrottle){
 
 // settrottle
 int setTrottle(int toTrottle){
+  Trottle=1500;
   if(toTrottle<=1200)Trottle=calcLow;
-  else if(toTrottle>=1800)Trottle=calcHigh;
-  else Trottle=1500;
+  if(toTrottle>=1800)Trottle=calcHigh;
   return Trottle;
 }
 
 // setyaw
 int setYaw(int toYaw){
+  Yaw=1500;
   if(toYaw<=1200)Yaw=calcLow;
-  else if(toYaw>=1800)Yaw=calcHigh;
-  else Yaw=1500;
+  if(toYaw>=1800)Yaw=calcHigh;
   return Yaw;
 }
 
 // setpitch
 int setPitch(int toPitch){
+  Pitch=1500;
   if(toPitch<=1200)Pitch=calcLow;
-  else if(toPitch>=1800)Pitch=calcHigh;
-  else Pitch=1500;
+  if(toPitch>=1800)Pitch=calcHigh;
   return Pitch;
 }
 
 // setroll
 int setRoll(int toRoll){
+  Roll=1500;
   if(toRoll<=1200)Roll=calcLow;
-  else if(toRoll>=1800)Roll=calcHigh;
-  else Roll=1500;
+  if(toRoll>=1800)Roll=calcHigh;
   return Roll;
 }
 
