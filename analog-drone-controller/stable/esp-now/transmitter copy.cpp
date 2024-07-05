@@ -462,6 +462,7 @@ void Task1code(void*pvParameters){
       else if(togSW1State==LOW){
         if(togSW4State==HIGH){
           Trottle=setTrottleInMode(joyX1Poss);
+          if(joySW1State==LOW)Trottle=captureTrottle; // return trottle
           currentTrottle=Trottle;
           Mode=1875; // Land
         }
@@ -473,7 +474,7 @@ void Task1code(void*pvParameters){
       }
     }
     else if(togSW2State==LOW){
-      Yaw=joyY1Poss;
+      Yaw=setYaw(joyY1Poss);
       Pitch=setPitch(joyX2Poss);
       Roll=setRoll(joyY2Poss);
 
@@ -493,22 +494,15 @@ void Task1code(void*pvParameters){
       else if(togSW1State==LOW){
         if(togSW4State==HIGH){
           Trottle=setTrottleInMode(joyX1Poss);
+          if(joySW1State==LOW)Trottle=captureTrottle; // return trottle
           currentTrottle=Trottle;
           Mode=1875; // Land
         }
         else if(togSW4State==LOW){
           Trottle=currentTrottle;
-
-          // return trottle
-          if(joySW1State==LOW){
-            Trottle=captureTrottle;
-          }
-
-          // capture trottle
-          if(joySW2State==LOW){
-            captureTrottle=setTrottleInMode(joyX1Poss);
-          }
-          
+          if(Trottle<=1100)Yaw=joyY1Poss; // Arming and Disarming
+          if(joySW1State==LOW)Trottle=captureTrottle; // return trottle
+          if(joySW2State==LOW)captureTrottle=setTrottleInMode(joyX1Poss); // capture trottle
           currentTrottle=setTrottleInMode(joyX1Poss); // setTrottle only on knob or stab
           Mode=potenM1Poss; // Fix by knob
         }
