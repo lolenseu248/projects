@@ -195,7 +195,7 @@ int setTrottleInMode(int toTrottle){
 
 // settrottle
 int setTrottle(int toTrottle){
-  if(toTrottle<=1200)Trottle=calcHigh;
+  if(toTrottle<=1200)Trottle=calcLow;
   else if(toTrottle>=1800)Trottle=calcHigh;
   else Trottle=1500;
   return Trottle;
