@@ -174,7 +174,7 @@ int setMap(int toMap){
 }
 
 // maptrottle
-void mapTrottle{int toTrottleMap}{
+void mapTrottle(int toTrottleMap){
   calcTrottle=map(toTrottleMap,1000,2000,1,10);
 }
 
