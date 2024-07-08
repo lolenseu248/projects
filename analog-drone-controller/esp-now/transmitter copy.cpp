@@ -581,7 +581,6 @@ void Task2code(void*pvParameters){
       }
     }
     
-    
     // heartbeat
     if(millis()-lastHeartbeatTime>=1000){
       lastHeartbeatTime=millis();
