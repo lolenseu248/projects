@@ -574,10 +574,13 @@ void Task2code(void*pvParameters){
 
     // serial uart ----------
     // receive and write
-    if(Serial.availableForWrite()>0&&rcvxMsg.len>0){
-      Serial.write(rcvxMsg.buf,rcvxMsg.len);
-      rcvxMsg.len=0; // reset to zero
+    if(rcvxMsg.len>0){
+      if(Serial.availableForWrite()>0){
+        Serial.write(rcvxMsg.buf,rcvxMsg.len);
+        rcvxMsg.len=0; // reset to zero
+      }
     }
+    
     
     // heartbeat
     if(millis()-lastHeartbeatTime>=1000){
