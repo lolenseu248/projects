@@ -16,7 +16,7 @@
 #define togSW3 2
 #define togSW4 15
 
-// joystic pinout
+// joystick pinout
 #define joySW1 25
 #define joyX1 33
 #define joyY1 32
@@ -83,7 +83,7 @@ int togSW2State;
 int togSW3State;
 int togSW4State;
 
-// joystic inputs
+// joystick inputs
 int joySW1State;
 int joyX1Pos;
 int joyY1Pos;
@@ -96,7 +96,7 @@ int potenM1Pos;
 int potenM2Pos;
 
 // mapped data
-// joystic maps
+// joystick maps
 int joyX1Poss;
 int joyY1Poss;
 int joyX2Poss;
@@ -106,7 +106,10 @@ int joyY2Poss;
 int potenM1Poss;
 int potenM2Poss;
 
-// joystic2 speed ajust
+// joystick1 trottle ajust
+int calcTrottle;
+
+// joystick2 speed ajust
 int calcLow;
 int calcHigh;
 
@@ -162,25 +165,30 @@ receive_message rcvxMsg;
 // processing ----------
 // to map value
 int setMap(int toMap){
-  int subMap=map(toMap,0,4095,0,225); // fix the joystic input because joystic is not centerd to 2048
+  int subMap=map(toMap,0,4095,0,225); // fix the joystick input because joystick is not centerd to 2048
   int mapValue=map(toMap,0,4095,1000,2225-subMap);
 
-  // default mapping if the joystic centerd to 2048
+  // default mapping if the joystick centerd to 2048
   //int mapValue=map(toMap,0,4095,1000,2000);
   return mapValue;
 }
 
+// maptrottle
+void mapTrottle(int toTrottleMap){
+  calcTrottle=map(toTrottleMap,1000,2000,1,10);
+}
+
 // mapspeed
-void mapSpeed(int toSpeed){
-  calcLow=1500-map(toSpeed,1000,2000,0,500);
-  calcHigh=1500+map(toSpeed,1000,2000,0,500);
+void mapSpeed(int toSpeedMap){
+  calcLow=1500-map(toSpeedMap,1000,2000,0,500);
+  calcHigh=1500+map(toSpeedMap,1000,2000,0,500);
 }
 
 // to set official data
 // settrottleinmode
-int setTrottleInMode(int toTrottle){
-  if(toTrottle<=1200)Trottle=Trottle-=5;
-  if(toTrottle>=1800)Trottle=Trottle+=5;
+int setTrottleInMode(int toTrottleInMode){
+  if(toTrottleInMode<=1200)Trottle=Trottle-=calcTrottle;
+  if(toTrottleInMode>=1800)Trottle=Trottle+=calcTrottle;
   if(Trottle<=1000)Trottle=1000;
   if(Trottle>=2000)Trottle=1800;
   return Trottle;
@@ -410,12 +418,12 @@ void Task1code(void*pvParameters){
     togSW3State=digitalRead(togSW3);
     togSW4State=digitalRead(togSW4);
 
-    // read X,Y and SW analog values of joystic no.1
+    // read X,Y and SW analog values of joystick no.1
     joySW1State=digitalRead(joySW1);
     joyX1Pos=analogRead(joyX1);
     joyY1Pos=analogRead(joyY1);
 
-    // read X,Y and SW analog values of joystic no.2
+    // read X,Y and SW analog values of joystick no.2
     joySW2State=digitalRead(joySW2);
     joyX2Pos=analogRead(joyX2);
     joyY2Pos=analogRead(joyY2);
@@ -425,11 +433,11 @@ void Task1code(void*pvParameters){
     potenM2Pos=analogRead(potenMeter2);
 
     // mapped data
-    // mapped joystic values of joystic no.1
+    // mapped joystick values of joystick no.1
     joyX1Poss=setMap(joyX1Pos);
     joyY1Poss=setMap(joyY1Pos);
 
-    // mapped joystic values of joystic no.2
+    // mapped joystick values of joystick no.2
     joyX2Poss=setMap(joyX2Pos);
     joyY2Poss=setMap(joyY2Pos);
 
@@ -437,7 +445,10 @@ void Task1code(void*pvParameters){
     potenM1Poss=setMap(potenM1Pos);
     potenM2Poss=setMap(potenM2Pos);
 
-    // map mode to string
+    // map trottle
+    mapTrottle(potenM1Poss);
+
+    // map speed
     mapSpeed(potenM2Poss);
 
     // prepare for send message
@@ -503,8 +514,8 @@ void Task1code(void*pvParameters){
           if(Trottle<=1100)Yaw=joyY1Poss; // Arming and Disarming
           if(joySW1State==LOW)Trottle=captureTrottle; // return trottle
           if(joySW2State==LOW)captureTrottle=setTrottleInMode(joyX1Poss); // capture trottle
-          currentTrottle=setTrottleInMode(joyX1Poss); // setTrottle only on knob or stab
-          Mode=potenM1Poss; // Fix by knob
+          currentTrottle=setTrottleInMode(joyX1Poss); // set trottle 
+          Mode=1115; // Stabilize
         }
       }
     }
