@@ -66,6 +66,9 @@ uint16_t len;
 // mavlink heartbeattime
 unsigned long lastHeartbeatTime=0;
 
+// mavlink readtime
+unsigned long readTime=0;
+
 // wifi switch state
 int wifiSwitchState;
 
@@ -225,6 +228,7 @@ void initespnow(){
     // register callbacks
     esp_now_register_send_cb(OnDataSent);
     esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));
+
     espnowEnabled=true;
   }
   delay(500);
@@ -548,17 +552,22 @@ void Task2code(void*pvParameters){
       }
 
       // receive and write
-      if(Serial2.availableForWrite()>0&&rcvxMsg.len>0){
-        Serial2.write(rcvxMsg.buf,rcvxMsg.len);
-        rcvxMsg.len=0; // reset to zero
+      if(rcvxMsg.len>0){
+        if(Serial2.availableForWrite()>0){
+          Serial2.write(rcvxMsg.buf,rcvxMsg.len);
+          rcvxMsg.len=0; // reset to zero
+        }
       }
 
       // read and send
-      if((Serial2.available()>0)){
-        while(Serial2.available()>0){
-          c=Serial2.read();
-          if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-            sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+      if(millis()-readTime>=20){
+        readTime=millis();
+        if((Serial2.available()>0)){
+          while(Serial2.available()>0){
+            c=Serial2.read();
+            if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+              sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+            }
           }
         }
       }
