@@ -61,9 +61,6 @@ uint16_t len;
 // mavlink heartbeattime
 unsigned long lastHeartbeatTime=0;
 
-// mavlink readtime
-unsigned long readTime=0;
-
 // counter
 int loop1=0;
 int loop2=0;
@@ -574,11 +571,9 @@ void Task2code(void*pvParameters){
 
     // serial uart ----------
     // receive and write
-    if(rcvxMsg.len>0){
-      if(Serial.availableForWrite()>0){
-        Serial.write(rcvxMsg.buf,rcvxMsg.len);
-        rcvxMsg.len=0; // reset to zero
-      }
+    if(Serial.availableForWrite()>0&&rcvxMsg.len>0){
+      Serial.write(rcvxMsg.buf,rcvxMsg.len);
+      rcvxMsg.len=0; // reset to zero
     }
     
     // heartbeat
@@ -590,14 +585,11 @@ void Task2code(void*pvParameters){
 
     // read and send
     else{
-      if(millis()-readTime>=20){
-        readTime=millis();
-        if(Serial.available()>0){
-          while(Serial.available()>0){
-            c=Serial.read();
-            if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-              sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
-            }
+      if(Serial.available()>0){
+        while(Serial.available()>0){
+          c=Serial.read();
+          if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+            sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
           }
         }
       }
