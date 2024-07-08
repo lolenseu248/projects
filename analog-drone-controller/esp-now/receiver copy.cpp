@@ -585,7 +585,7 @@ void setup(){
   Serial.begin(115200);
   Serial2.begin(115200,SERIAL_8N1,RXD,TXD);
 
-  // int ESP-NOW
+  // init ESP-NOW
   initespnow();
 
   // wifi switch
