@@ -490,7 +490,7 @@ void Task2code(void*pvParameters){
     // uart usb
     else if(uartSwitchState==LOW){
       if(wifiEnabled){
-        //disable wifi
+        // disable wifi
         disablewifi();
       }
 
@@ -539,7 +539,7 @@ void Task2code(void*pvParameters){
     // espnow
     else{
       if(wifiEnabled){
-        //disable wifi
+        // disable wifi
         disablewifi();
       }
 
