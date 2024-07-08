@@ -198,32 +198,32 @@ int setTrottleInMode(int toTrottleInMode){
 // settrottle
 int setTrottle(int toTrottle){
   Trottle=1500;
-  if(toTrottle<=1200)Trottle-calcSpeed;
-  if(toTrottle>=1800)Trottle+calcSpeed;
+  if(toTrottle<=1200)Trottle=Trottle-calcSpeed;
+  if(toTrottle>=1800)Trottle=Trottle+calcSpeed;
   return Trottle;
 }
 
 // setyaw
 int setYaw(int toYaw){
   Yaw=1500;
-  if(toYaw<=1200)Yaw-calcSpeed;
-  if(toYaw>=1800)Yaw+calcSpeed;
+  if(toYaw<=1200)Yaw=Yaw-calcSpeed;
+  if(toYaw>=1800)Yaw=Yaw+calcSpeed;
   return Yaw;
 }
 
 // setpitch
 int setPitch(int toPitch){
   Pitch=1500;
-  if(toPitch<=1200)Pitch-calcSpeed;
-  if(toPitch>=1800)Pitch+calcSpeed;
+  if(toPitch<=1200)Pitch=Pitch-calcSpeed;
+  if(toPitch>=1800)Pitch=Pitch+calcSpeed;
   return Pitch;
 }
 
 // setroll
 int setRoll(int toRoll){
   Roll=1500;
-  if(toRoll<=1200)Roll-calcSpeed;
-  if(toRoll>=1800)Roll+calcSpeed;
+  if(toRoll<=1200)Roll=Roll-calcSpeed;
+  if(toRoll>=1800)Roll=Roll+calcSpeed;
   return Roll;
 }
 
