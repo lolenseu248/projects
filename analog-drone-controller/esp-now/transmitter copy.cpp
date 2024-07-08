@@ -110,8 +110,7 @@ int potenM2Poss;
 int calcTrottle;
 
 // joystick2 speed ajust
-int calcLow;
-int calcHigh;
+int calcSpeed;
 
 // capture trottle
 int captureTrottle=1500;
@@ -180,15 +179,14 @@ void mapTrottle(int toTrottleMap){
 
 // mapspeed
 void mapSpeed(int toSpeedMap){
-  calcLow=1500-map(toSpeedMap,1000,2000,0,500);
-  calcHigh=1500+map(toSpeedMap,1000,2000,0,500);
+  calcSpeed=map(toSpeedMap,1000,2000,0,500);
 }
 
 // to set official data
 // settrottleinmode
 int setTrottleInMode(int toTrottleInMode){
-  if(toTrottleInMode<=1200)Trottle=Trottle-=calcTrottle;
-  if(toTrottleInMode>=1800)Trottle=Trottle+=calcTrottle;
+  if(toTrottleInMode<=1200)Trottle-=calcTrottle;
+  if(toTrottleInMode>=1800)Trottle+=calcTrottle;
   if(Trottle<=1000)Trottle=1000;
   if(Trottle>=2000)Trottle=1800;
   return Trottle;
@@ -197,32 +195,32 @@ int setTrottleInMode(int toTrottleInMode){
 // settrottle
 int setTrottle(int toTrottle){
   Trottle=1500;
-  if(toTrottle<=1200)Trottle=calcLow;
-  if(toTrottle>=1800)Trottle=calcHigh;
+  if(toTrottle<=1200)Trottle-calcSpeed;
+  if(toTrottle>=1800)Trottle+calcSpeed;
   return Trottle;
 }
 
 // setyaw
 int setYaw(int toYaw){
   Yaw=1500;
-  if(toYaw<=1200)Yaw=calcLow;
-  if(toYaw>=1800)Yaw=calcHigh;
+  if(toYaw<=1200)Yaw-calcSpeed;
+  if(toYaw>=1800)Yaw+calcSpeed;
   return Yaw;
 }
 
 // setpitch
 int setPitch(int toPitch){
   Pitch=1500;
-  if(toPitch<=1200)Pitch=calcLow;
-  if(toPitch>=1800)Pitch=calcHigh;
+  if(toPitch<=1200)Pitch-calcSpeed;
+  if(toPitch>=1800)Pitch+calcSpeed;
   return Pitch;
 }
 
 // setroll
 int setRoll(int toRoll){
   Roll=1500;
-  if(toRoll<=1200)Roll=calcLow;
-  if(toRoll>=1800)Roll=calcHigh;
+  if(toRoll<=1200)Roll-calcSpeed;
+  if(toRoll>=1800)Roll+calcSpeed;
   return Roll;
 }
 
@@ -234,13 +232,12 @@ int mapPercent(int toMapPercent){
 
 // mapmode
 void mapMode(int toMode){
-  int mapMode=map(toMode,1000,2000,1000,2000);
-  if(mapMode>1000&&mapMode<1230)Mods="Stab";
-  else if(mapMode>1231&&mapMode<1360)Mods="PosH";
-  else if(mapMode>1361&&mapMode<1490)Mods="AltH";
-  else if(mapMode>1491&&mapMode<1621)Mods="Loit";
-  else if(mapMode>1621&&mapMode<1749)Mods="RTL ";
-  else if(mapMode>1750&&mapMode<2000)Mods="Land";
+  if(toMode>1000)Mods="Stab";
+  if(toMode>1231)Mods="PosH";
+  if(toMode>1361)Mods="AltH";
+  if(toMode>1491)Mods="Loit";
+  if(toMode>1621)Mods="RTL ";
+  if(toMode>1750)Mods="Land";
 }
 
 // esp-now ----------
@@ -296,7 +293,7 @@ void initespnow(){
     
     // register callbacks
     esp_now_register_send_cb(OnDataSent);
-    esp_now_register_recv_cb(reinterpret_cast<esp_now_recv_cb_t>(OnDataRecv));
+    esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));
 
     espnowEnabled=true;
   }
@@ -362,6 +359,8 @@ void serialDebug(){
   Serial.printf("JoyStick no.2 X= %d, Y= %d, Sw= %d\n",joyX2Poss,joyY2Poss,joySW2State);
   Serial.printf("PotentioMeter no.1= %d\n",potenM1Poss);
   Serial.printf("PotentioMeter no.2= %d\n",potenM2Poss);
+  Serial.printf("CalcTrottle = %d\n",calcTrottle);
+  Serial.printf("CalcSpeed   = %d\n",calcSpeed);
   Serial.println("");
   Serial.println("Switch");
   Serial.printf("JoyStick no.1= %d\n",joySW1State);
