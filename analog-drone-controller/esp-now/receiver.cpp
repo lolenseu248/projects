@@ -405,7 +405,13 @@ void Task1code(void*pvParameters){
     percentRoll=mapPercent(Roll);
     mapMode(Mode);
 
-    delay(5); // run delay
+    // sending msg ----------
+    // snd msg via ESP-NOW
+    if(wifiSwitchState==HIGH){
+      esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg));
+    }
+
+    delay(10); // run delay
 
     // core0 load end
     elapsedTime1=millis()-startTime1;
@@ -548,8 +554,17 @@ void Task2code(void*pvParameters){
         initespnow();
       }
 
+      if(millis()-lastHeartbeatTime>=1000){
+        lastHeartbeatTime=millis();
+        mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
+        len=mavlink_msg_to_send_buffer(buf,&msg);
+        if(Serial2.availableForWrite()>0){
+          Serial2.write(buf,len);
+        }
+      }
+
       // receive and write
-      if(Serial2.availableForWrite()>0&&rcvxMsg.len>0){
+      else if(Serial2.availableForWrite()>0&&rcvxMsg.len>0){
         Serial2.write(rcvxMsg.buf,rcvxMsg.len);
         rcvxMsg.len=0; // reset to zero
       }
@@ -565,13 +580,7 @@ void Task2code(void*pvParameters){
       }
     }
 
-    // sending msg ----------
-    // snd msg via ESP-NOW
-    if(wifiSwitchState==HIGH){
-      esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg));
-    }
-
-    delay(5); // run delay
+    delay(10); // run delay
     
     // core1 load end
     elapsedTime2=millis()-startTime2;

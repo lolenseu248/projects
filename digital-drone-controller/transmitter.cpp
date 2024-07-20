@@ -7,6 +7,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <WiFi.h>
+#include <WiFiUdp.h>
 #include <MAVLink.h>
 
 // toggle pinout
@@ -28,9 +29,6 @@
 #define potenMeter1 36
 #define potenMeter2 39
 
-// buffer
-#define BUFFER 4096
-
 // screen initiation
 Adafruit_SSD1306 display(128,64,&Wire,-1);
 
@@ -41,6 +39,20 @@ const char* ssid="apm2.8-hexa";
 const char* password="12345678";
 
 // fixvar ----------
+// udp
+WiFiUDP udp;
+
+// static ip address
+IPAddress localip(192,168,4,2);
+IPAddress gateway(192,168,4,1);
+IPAddress subnet(255,255,255,0);
+
+// target ip
+const char* ip="192.168.4.1";
+
+// udp port
+const int port=8000;
+
 // task
 TaskHandle_t core0;
 TaskHandle_t core1;
@@ -141,7 +153,7 @@ typedef struct send_message{
   uint64_t time1;
   uint64_t time2;
   uint16_t len;
-  uint8_t buf[BUFFER];
+  uint8_t buf[MAVLINK_MAX_PACKET_LEN];
 };
 send_message sndxMsg;
 
@@ -150,7 +162,7 @@ typedef struct receive_message{
   uint64_t time1;
   uint64_t time2;
   uint16_t len;
-  uint8_t buf[BUFFER];
+  uint8_t buf[MAVLINK_MAX_PACKET_LEN];
 };
 receive_message rcvxMsg;
 
@@ -234,6 +246,21 @@ void mapMode(int toMode){
   if(toMode>1750)Mods="Land";
 }
 
+// send handler
+void sendData(){
+  udp.beginPacket(ip,port);
+  udp.write((uint8_t*)&sndxMsg,sizeof(sndxMsg));
+  udp.endPacket();
+}
+
+// receive handler
+void receiveData() {
+  int packetSize=udp.parsePacket();
+  if(packetSize){
+    udp.read((uint8_t*)&rcvxMsg,sizeof(rcvxMsg));
+  }
+}
+
 // startup ----------
 // initboot
 void initBoot(){
@@ -254,11 +281,12 @@ void initBoot(){
 // init wifi
 void initwifi(){
   Serial.println("Connecting to WiFi...");
+  WiFi.config(localip,gateway,subnet);
   WiFi.begin(ssid,password);
 
   while(WiFi.status()!=WL_CONNECTED){
     delay(500);
-    Serial.print(".");
+    Serial.println("Connecting to WiFi...");
   }
 
   Serial.println("");
@@ -509,8 +537,6 @@ void Task1code(void*pvParameters){
     percentRoll=mapPercent(Roll);
     mapMode(Mode);
 
-    delay(5); // run delay
-
     // core0 load end
     elapsedTime1=millis()-startTime1;
 
@@ -543,6 +569,10 @@ void Task2code(void*pvParameters){
       initwifi();
     }
 
+    // receiving msg ----------
+    // rcv msg via udp
+    receiveData();
+
     // serial uart ----------
     // receive and write
     if(Serial.availableForWrite()>0&&rcvxMsg.len>0){
@@ -570,9 +600,8 @@ void Task2code(void*pvParameters){
     }
 
     // sending msg ----------
-    // snd msg via 
-
-    delay(5); // run delay
+    // snd msg via udp
+    sendData();
 
     // core1 load end
     elapsedTime2=millis()-startTime2;
@@ -603,6 +632,9 @@ void setup(){
 
   // init wifi
   initwifi();
+
+  // init udp
+  udp.begin(port);
 
   // boot
   initBoot();

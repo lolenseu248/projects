@@ -5,7 +5,7 @@
 // -------------------- include and define --------------------
 #include <ESP32Servo.h>
 #include <WiFi.h>
-#include <WiFiClient.h>
+#include <WiFiUdp.h>
 #include <MAVLink.h>
 
 // wifi switch pinout
@@ -28,23 +28,26 @@
 #define GPIORoll 21
 #define GPIOMode 23
 
-// buffer
-#define BUFFER 4096
-
 // -------------------- variables --------------------
 // manualvar ----------
-// wifi credentials
 const char* ssid="apm2.8-hexa";
 const char* password="12345678";
+const int channel=11;
 
 // fixvar ----------
-// static ip
-IPAddress local_IP(192,168,4,1);
+// udp
+WiFiUDP udp;
+
+// static ip address
+IPAddress localip(192,168,4,1);
 IPAddress gateway(192,168,4,1);
 IPAddress subnet(255,255,255,0);
 
-// server port
-WiFiServer server(80);
+// target ip
+const char* ip="192.168.4.2";
+
+// udp port
+const int port=8000;
 
 // task
 TaskHandle_t core0;
@@ -117,7 +120,7 @@ typedef struct send_message{
   uint64_t time1;
   uint64_t time2;
   uint16_t len;
-  uint8_t buf[BUFFER];
+  uint8_t buf[MAVLINK_MAX_PACKET_LEN];
 };
 send_message sndxMsg;
 
@@ -131,7 +134,7 @@ typedef struct receive_message{
   uint64_t time1;
   uint64_t time2;
   uint16_t len;
-  uint8_t buf[BUFFER];
+  uint8_t buf[MAVLINK_MAX_PACKET_LEN];
 };
 receive_message rcvxMsg;
 
@@ -165,6 +168,21 @@ void mapMode(int toMode){
   if(toMode>1750)Mods="Land";
 }
 
+// send handler
+void sendData() {
+  udp.beginPacket(ip,port);
+  udp.write((uint8_t*)&sndxMsg,sizeof(sndxMsg));
+  udp.endPacket();
+}
+
+// receive handler
+void receiveData() {
+  int packetSize=udp.parsePacket();
+  if(packetSize){
+    udp.read((uint8_t*)&rcvxMsg,sizeof(rcvxMsg));
+  }
+}
+
 // startup ----------
 // initBoot
 void initBoot(){
@@ -182,8 +200,8 @@ void initBoot(){
 // init wifi
 void initwifi(){
   Serial.println("Initiating WiFi...");
-  WiFi.softAPConfig(local_IP,gateway,subnet);
-  WiFi.softAP(ssid,password);
+  WiFi.softAPConfig(localip,gateway,subnet);
+  WiFi.softAP(ssid,password,channel);
 
   Serial.println("Access Point Started");
   Serial.print("IP Address: ");
@@ -327,8 +345,6 @@ void Task1code(void*pvParameters){
     percentRoll=mapPercent(Roll);
     mapMode(Mode);
 
-    delay(5); // run delay
-
     // core0 load end
     elapsedTime1=millis()-startTime1;
 
@@ -351,6 +367,10 @@ void Task2code(void*pvParameters){
 
     // core1 load start
     startTime2=millis();
+
+    // receiving msg ----------
+    // rcv msg via udp
+    receiveData();
 
     // uart switch read state
     uartSwitchState=digitalRead(UARTSWITCH);
@@ -414,9 +434,8 @@ void Task2code(void*pvParameters){
     }
 
     // sending msg ----------
-    // snd msg via 
-
-    delay(5); // run delay
+    // snd msg via udp
+    sendData();
     
     // core1 load end
     elapsedTime2=millis()-startTime2;
@@ -448,6 +467,9 @@ void setup(){
 
   // init wifi
   initwifi();
+
+  // init udp
+  udp.begin(port);
 
   // boot
   initBoot();

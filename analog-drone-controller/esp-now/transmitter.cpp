@@ -540,8 +540,12 @@ void Task1code(void*pvParameters){
     percentPitch=mapPercent(Pitch);
     percentRoll=mapPercent(Roll);
     mapMode(Mode);
+    
+    // sending msg ----------
+    // snd msg via ESP-NOW
+    esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg));
 
-    delay(5); // run delay
+    delay(10); // run delay
 
     // core0 load end
     elapsedTime1=millis()-startTime1;
@@ -575,31 +579,18 @@ void Task2code(void*pvParameters){
       Serial.write(rcvxMsg.buf,rcvxMsg.len);
       rcvxMsg.len=0; // reset to zero
     }
-    
-    // heartbeat
-    if(millis()-lastHeartbeatTime>=1000){
-      lastHeartbeatTime=millis();
-      mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
-      sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
-    }
 
     // read and send
-    else{
-      if(Serial.available()>0){
-        while(Serial.available()>0){
-          c=Serial.read();
-          if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-            sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
-          }
+    if(Serial.available()>0){
+      while(Serial.available()>0){
+        c=Serial.read();
+        if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+          sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
         }
       }
     }
-
-    // sending msg ----------
-    // snd msg via ESP-NOW
-    esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg));
-
-    delay(5); // run delay
+    
+    delay(10); // run delay
 
     // core1 load end
     elapsedTime2=millis()-startTime2;
