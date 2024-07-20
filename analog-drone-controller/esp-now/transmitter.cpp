@@ -30,7 +30,7 @@
 #define potenMeter2 39
 
 // buffer
-#define BUFFER 128
+#define BUFFER 248
 
 // screen initiation
 Adafruit_SSD1306 display(128,64,&Wire,-1);
@@ -146,8 +146,6 @@ typedef struct send_message{
   uint32_t mode;
   uint64_t time1;
   uint64_t time2;
-  uint16_t len;
-  uint8_t buf[BUFFER];
 };
 send_message sndxMsg;
 
@@ -155,10 +153,22 @@ send_message sndxMsg;
 typedef struct receive_message{
   uint64_t time1;
   uint64_t time2;
+};
+receive_message rcvxMsg;
+
+// send data
+typedef struct send_data{
   uint16_t len;
   uint8_t buf[BUFFER];
 };
-receive_message rcvxMsg;
+send_data sndxData;
+
+// receive data
+typedef struct receive_data{
+  uint16_t len;
+  uint8_t buf[BUFFER];
+};
+receive_data rcvxData;
 
 // -------------------- fuctions --------------------
 // processing ----------
@@ -247,7 +257,8 @@ void OnDataSent(const uint8_t *mac_addr,esp_now_send_status_t status){
 }
 
 void OnDataRecv(const uint8_t *mac_addr,const uint8_t *incomingData,int data_len){
-  memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
+  if(data_len==sizeof(rcvxData))memcpy(&rcvxData,incomingData,sizeof(rcvxData));
+  else memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
 }
 
 // startup ----------
@@ -545,7 +556,7 @@ void Task1code(void*pvParameters){
     // snd msg via ESP-NOW
     esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg));
 
-    delay(10); // run delay
+    delay(2); // run delay
 
     // core0 load end
     elapsedTime1=millis()-startTime1;
@@ -575,9 +586,9 @@ void Task2code(void*pvParameters){
 
     // serial uart ----------
     // receive and write
-    if(Serial.availableForWrite()>0&&rcvxMsg.len>0){
-      Serial.write(rcvxMsg.buf,rcvxMsg.len);
-      rcvxMsg.len=0; // reset to zero
+    if(Serial.availableForWrite()>0&&rcvxData.len>0){
+      Serial.write(rcvxData.buf,rcvxData.len);
+      rcvxData.len=0; // reset to zero
     }
 
     // read and send
@@ -585,12 +596,15 @@ void Task2code(void*pvParameters){
       while(Serial.available()>0){
         c=Serial.read();
         if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-          sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+          sndxData.len=mavlink_msg_to_send_buffer(sndxData.buf,&msg);
+
+          // snd msg via ESP-NOW
+          esp_now_send(targetMac,(uint8_t*)&sndxData,sizeof(sndxData));
         }
       }
     }
     
-    delay(10); // run delay
+    delay(2); // run delay
 
     // core1 load end
     elapsedTime2=millis()-startTime2;

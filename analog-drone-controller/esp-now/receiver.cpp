@@ -29,7 +29,7 @@
 #define GPIOMode 23
 
 // buffer
-#define BUFFER 128
+#define BUFFER 248
 
 // -------------------- variables --------------------
 // manualvar ----------
@@ -125,8 +125,6 @@ int ping;
 typedef struct send_message{
   uint64_t time1;
   uint64_t time2;
-  uint16_t len;
-  uint8_t buf[BUFFER];
 };
 send_message sndxMsg;
 
@@ -139,10 +137,22 @@ typedef struct receive_message{
   uint32_t mode;
   uint64_t time1;
   uint64_t time2;
+};
+receive_message rcvxMsg;
+
+// send data
+typedef struct send_data{
   uint16_t len;
   uint8_t buf[BUFFER];
 };
-receive_message rcvxMsg;
+send_data sndxData;
+
+// receive data
+typedef struct receive_data{
+  uint16_t len;
+  uint8_t buf[BUFFER];
+};
+receive_data rcvxData;
 
 // -------------------- fuctions --------------------
 // processing ----------
@@ -181,7 +191,8 @@ void OnDataSent(const uint8_t *mac_addr,esp_now_send_status_t status){
 }
 
 void OnDataRecv(const uint8_t *mac_addr,const uint8_t *incomingData,int data_len){
-  memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
+  if(data_len==sizeof(rcvxData))memcpy(&rcvxData,incomingData,sizeof(rcvxData));
+  else memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
 }
 
 // startup ----------
@@ -411,7 +422,7 @@ void Task1code(void*pvParameters){
       esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg));
     }
 
-    delay(10); // run delay
+    delay(2); // run delay
 
     // core0 load end
     elapsedTime1=millis()-startTime1;
@@ -445,15 +456,8 @@ void Task2code(void*pvParameters){
     // serial uart ----------
     // uart wifi
     if(wifiSwitchState==LOW){
-      if(espnowEnabled){
-        // disable espnow
-        disableespnow();
-      }
-      
-      if(!wifiEnabled){
-        // init wifi
-        initwifi();
-      }
+      if(espnowEnabled)disableespnow();  // disable espnow
+      if(!wifiEnabled)initwifi(); // init wifi
 
       if(client){
         if(client.connected()){
@@ -492,22 +496,13 @@ void Task2code(void*pvParameters){
           }
         }
       }
-      else{
-        client=server.available();
-      }
+      else client=server.available();
     }
 
     // uart usb
     else if(uartSwitchState==LOW){
-      if(wifiEnabled){
-        // disable wifi
-        disablewifi();
-      }
-
-      if(!espnowEnabled){
-        // init espnow
-        initespnow();
-      }
+      if(wifiEnabled)disablewifi(); // disable wifi
+      if(!espnowEnabled)initespnow();  // init espnow
 
       // heartbeat
       if(millis()-lastHeartbeatTime>=1000){
@@ -548,15 +543,8 @@ void Task2code(void*pvParameters){
 
     // espnow
     else{
-      if(wifiEnabled){
-        // disable wifi
-        disablewifi();
-      }
-
-      if(!espnowEnabled){
-        // init espnow
-        initespnow();
-      }
+      if(wifiEnabled)disablewifi(); // disable wifi
+      if(!espnowEnabled)initespnow();  // init espnow
 
       if(millis()-lastHeartbeatTime>=1000){
         lastHeartbeatTime=millis();
@@ -568,9 +556,9 @@ void Task2code(void*pvParameters){
       }
 
       // receive and write
-      else if(Serial2.availableForWrite()>0&&rcvxMsg.len>0){
-        Serial2.write(rcvxMsg.buf,rcvxMsg.len);
-        rcvxMsg.len=0; // reset to zero
+      else if(Serial2.availableForWrite()>0&&rcvxData.len>0){
+        Serial2.write(rcvxData.buf,rcvxData.len);
+        rcvxData.len=0; // reset to zero
       }
 
       // read and send
@@ -578,13 +566,16 @@ void Task2code(void*pvParameters){
         while(Serial2.available()>0){
           c=Serial2.read();
           if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-            sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+            sndxData.len=mavlink_msg_to_send_buffer(sndxData.buf,&msg);
+
+            // snd msg via ESP-NOW
+            esp_now_send(targetMac,(uint8_t*)&sndxData,sizeof(sndxData));
           }
         }
       }
     }
 
-    delay(10); // run delay
+    delay(2); // run delay
     
     // core1 load end
     elapsedTime2=millis()-startTime2;
