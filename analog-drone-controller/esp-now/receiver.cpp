@@ -455,41 +455,45 @@ void Task2code(void*pvParameters){
         initwifi();
       }
 
-      client=server.available();
-      while(client.connected()){
-        // heartbeat
-        if(millis()-lastHeartbeatTime>=1000){
-          lastHeartbeatTime=millis();
-          mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
-          len=mavlink_msg_to_send_buffer(buf,&msg);
-          if(Serial2.availableForWrite()>0){
-            Serial2.write(buf,len);
+      if(client){
+        if(client.connected()){
+          // heartbeat
+          if(millis()-lastHeartbeatTime>=1000){
+            lastHeartbeatTime=millis();
+            mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
+            len=mavlink_msg_to_send_buffer(buf,&msg);
+            if(Serial2.availableForWrite()>0){
+              Serial2.write(buf,len);
+            }
           }
-        }
 
-        // read and writing to serial2
-        else if(client.available()>0){
-          while(client.available()>0){
-            c=client.read();
-            if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-              len=mavlink_msg_to_send_buffer(buf,&msg);
-              if(Serial2.availableForWrite()>0){
-                Serial2.write(buf,len);
+          // read and writing to serial2
+          else if(client.available()>0){
+            while(client.available()>0){
+              c=client.read();
+              if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+                len=mavlink_msg_to_send_buffer(buf,&msg);
+                if(Serial2.availableForWrite()>0){
+                  Serial2.write(buf,len);
+                }
+              }
+            }
+          }
+
+          // sending to client
+          if(Serial2.available()>0){
+            while(Serial2.available()>0){
+              c=Serial2.read();
+              if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+                len=mavlink_msg_to_send_buffer(buf,&msg);
+                client.write(buf,len);
               }
             }
           }
         }
-
-        // sending to client
-        if(Serial2.available()>0){
-          while(Serial2.available()>0){
-            c=Serial2.read();
-            if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-              len=mavlink_msg_to_send_buffer(buf,&msg);
-              client.write(buf,len);
-            }
-          }
-        }
+      }
+      else{
+        client=server.available();
       }
     }
 
