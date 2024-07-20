@@ -29,7 +29,7 @@
 #define GPIOMode 23
 
 // buffer
-#define BUFFER 128
+#define BUFFER 248
 
 // -------------------- variables --------------------
 // manualvar ----------
@@ -125,8 +125,6 @@ int ping;
 typedef struct send_message{
   uint64_t time1;
   uint64_t time2;
-  uint16_t len;
-  uint8_t buf[BUFFER];
 };
 send_message sndxMsg;
 
@@ -139,10 +137,22 @@ typedef struct receive_message{
   uint32_t mode;
   uint64_t time1;
   uint64_t time2;
+};
+receive_message rcvxMsg;
+
+// send data
+typedef struct send_data{
   uint16_t len;
   uint8_t buf[BUFFER];
 };
-receive_message rcvxMsg;
+send_data sndxData;
+
+// receive data
+typedef struct receive_data{
+  uint16_t len;
+  uint8_t buf[BUFFER];
+};
+receive_data rcvxData;
 
 // -------------------- fuctions --------------------
 // processing ----------
@@ -166,13 +176,12 @@ int mapPercent(int toMapPercent){
 
 // mapmode
 void mapMode(int toMode){
-  int mapMode=map(toMode,1000,2000,1000,2000);
-  if(mapMode>1000&&mapMode<1230)Mods="Stab";
-  else if(mapMode>1231&&mapMode<1360)Mods="PosH";
-  else if(mapMode>1361&&mapMode<1490)Mods="AltH";
-  else if(mapMode>1491&&mapMode<1621)Mods="Loit";
-  else if(mapMode>1621&&mapMode<1749)Mods="RTL ";
-  else if(mapMode>1750&&mapMode<2000)Mods="Land";
+  if(toMode>1000)Mods="Stab";
+  if(toMode>1231)Mods="PosH";
+  if(toMode>1361)Mods="AltH";
+  if(toMode>1491)Mods="Loit";
+  if(toMode>1621)Mods="RTL ";
+  if(toMode>1750)Mods="Land";
 }
 
 // esp-now ----------
@@ -182,7 +191,8 @@ void OnDataSent(const uint8_t *mac_addr,esp_now_send_status_t status){
 }
 
 void OnDataRecv(const uint8_t *mac_addr,const uint8_t *incomingData,int data_len){
-  memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
+  if(data_len==sizeof(rcvxData))memcpy(&rcvxData,incomingData,sizeof(rcvxData));
+  else memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
 }
 
 // startup ----------
@@ -225,7 +235,7 @@ void initespnow(){
     
     // register callbacks
     esp_now_register_send_cb(OnDataSent);
-    esp_now_register_recv_cb(reinterpret_cast<esp_now_recv_cb_t>(OnDataRecv));
+    esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));
 
     espnowEnabled=true;
   }
@@ -406,7 +416,13 @@ void Task1code(void*pvParameters){
     percentRoll=mapPercent(Roll);
     mapMode(Mode);
 
-    delay(5); // run delay
+    // sending msg ----------
+    // snd msg via ESP-NOW
+    if(wifiSwitchState==HIGH){
+      esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg));
+    }
+
+    delay(2); // run delay
 
     // core0 load end
     elapsedTime1=millis()-startTime1;
@@ -440,65 +456,53 @@ void Task2code(void*pvParameters){
     // serial uart ----------
     // uart wifi
     if(wifiSwitchState==LOW){
-      if(espnowEnabled){
-        // disable espnow
-        disableespnow();
-      }
-      
-      if(!wifiEnabled){
-        // init wifi
-        initwifi();
-      }
+      if(espnowEnabled)disableespnow();  // disable espnow
+      if(!wifiEnabled)initwifi(); // init wifi
 
-      client=server.available();
-      while(client.connected()){
-        // heartbeat
-        if(millis()-lastHeartbeatTime>=1000){
-          lastHeartbeatTime=millis();
-          mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
-          len=mavlink_msg_to_send_buffer(buf,&msg);
-          if(Serial2.availableForWrite()>0){
-            Serial2.write(buf,len);
+      if(client){
+        if(client.connected()){
+          // heartbeat
+          if(millis()-lastHeartbeatTime>=1000){
+            lastHeartbeatTime=millis();
+            mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
+            len=mavlink_msg_to_send_buffer(buf,&msg);
+            if(Serial2.availableForWrite()>0){
+              Serial2.write(buf,len);
+            }
           }
-        }
 
-        // read and writing to serial2
-        else if(client.available()>0){
-          while(client.available()>0){
-            c=client.read();
-            if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-              len=mavlink_msg_to_send_buffer(buf,&msg);
-              if(Serial2.availableForWrite()>0){
-                Serial2.write(buf,len);
+          // read and writing to serial2
+          else if(client.available()>0){
+            while(client.available()>0){
+              c=client.read();
+              if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+                len=mavlink_msg_to_send_buffer(buf,&msg);
+                if(Serial2.availableForWrite()>0){
+                  Serial2.write(buf,len);
+                }
+              }
+            }
+          }
+
+          // sending to client
+          if(Serial2.available()>0){
+            while(Serial2.available()>0){
+              c=Serial2.read();
+              if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+                len=mavlink_msg_to_send_buffer(buf,&msg);
+                client.write(buf,len);
               }
             }
           }
         }
-
-        // sending to client
-        if(Serial2.available()>0){
-          while(Serial2.available()>0){
-            c=Serial2.read();
-            if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-              len=mavlink_msg_to_send_buffer(buf,&msg);
-              client.write(buf,len);
-            }
-          }
-        }
       }
+      else client=server.available();
     }
 
     // uart usb
     else if(uartSwitchState==LOW){
-      if(wifiEnabled){
-        //disable wifi
-        disablewifi();
-      }
-
-      if(!espnowEnabled){
-        // init espnow
-        initespnow();
-      }
+      if(wifiEnabled)disablewifi(); // disable wifi
+      if(!espnowEnabled)initespnow();  // init espnow
 
       // heartbeat
       if(millis()-lastHeartbeatTime>=1000){
@@ -539,40 +543,39 @@ void Task2code(void*pvParameters){
 
     // espnow
     else{
-      if(wifiEnabled){
-        //disable wifi
-        disablewifi();
-      }
+      if(wifiEnabled)disablewifi(); // disable wifi
+      if(!espnowEnabled)initespnow();  // init espnow
 
-      if(!espnowEnabled){
-        // init espnow
-        initespnow();
+      if(millis()-lastHeartbeatTime>=1000){
+        lastHeartbeatTime=millis();
+        mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
+        len=mavlink_msg_to_send_buffer(buf,&msg);
+        if(Serial2.availableForWrite()>0){
+          Serial2.write(buf,len);
+        }
       }
 
       // receive and write
-      if(Serial2.availableForWrite()>0&&rcvxMsg.len>0){
-        Serial2.write(rcvxMsg.buf,rcvxMsg.len);
-        rcvxMsg.len=0; // reset to zero
+      else if(Serial2.availableForWrite()>0&&rcvxData.len>0){
+        Serial2.write(rcvxData.buf,rcvxData.len);
+        rcvxData.len=0; // reset to zero
       }
 
       // read and send
-      if((Serial2.available()>0)){
+      if(Serial2.available()>0){
         while(Serial2.available()>0){
           c=Serial2.read();
           if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-            sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+            sndxData.len=mavlink_msg_to_send_buffer(sndxData.buf,&msg);
+
+            // snd msg via ESP-NOW
+            esp_now_send(targetMac,(uint8_t*)&sndxData,sizeof(sndxData));
           }
         }
       }
     }
 
-    // sending msg ----------
-    // snd msg via ESP-NOW
-    if(wifiSwitchState==HIGH){
-      esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg));
-    }
-
-    delay(5); // run delay
+    delay(2); // run delay
     
     // core1 load end
     elapsedTime2=millis()-startTime2;
@@ -586,7 +589,7 @@ void setup(){
   Serial.begin(115200);
   Serial2.begin(115200,SERIAL_8N1,RXD,TXD);
 
-  // int ESP-NOW
+  // init ESP-NOW
   initespnow();
 
   // wifi switch

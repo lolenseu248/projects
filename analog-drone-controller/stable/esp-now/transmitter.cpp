@@ -30,7 +30,7 @@
 #define potenMeter2 39
 
 // buffer
-#define BUFFER 128
+#define BUFFER 248
 
 // screen initiation
 Adafruit_SSD1306 display(128,64,&Wire,-1);
@@ -110,8 +110,7 @@ int potenM2Poss;
 int calcTrottle;
 
 // joystick2 speed ajust
-int calcLow;
-int calcHigh;
+int calcSpeed;
 
 // capture trottle
 int captureTrottle=1500;
@@ -147,8 +146,6 @@ typedef struct send_message{
   uint32_t mode;
   uint64_t time1;
   uint64_t time2;
-  uint16_t len;
-  uint8_t buf[BUFFER];
 };
 send_message sndxMsg;
 
@@ -156,10 +153,22 @@ send_message sndxMsg;
 typedef struct receive_message{
   uint64_t time1;
   uint64_t time2;
+};
+receive_message rcvxMsg;
+
+// send data
+typedef struct send_data{
   uint16_t len;
   uint8_t buf[BUFFER];
 };
-receive_message rcvxMsg;
+send_data sndxData;
+
+// receive data
+typedef struct receive_data{
+  uint16_t len;
+  uint8_t buf[BUFFER];
+};
+receive_data rcvxData;
 
 // -------------------- fuctions --------------------
 // processing ----------
@@ -180,15 +189,14 @@ void mapTrottle(int toTrottleMap){
 
 // mapspeed
 void mapSpeed(int toSpeedMap){
-  calcLow=1500-map(toSpeedMap,1000,2000,0,500);
-  calcHigh=1500+map(toSpeedMap,1000,2000,0,500);
+  calcSpeed=map(toSpeedMap,1000,2000,0,500);
 }
 
 // to set official data
 // settrottleinmode
 int setTrottleInMode(int toTrottleInMode){
-  if(toTrottleInMode<=1200)Trottle=Trottle-=calcTrottle;
-  if(toTrottleInMode>=1800)Trottle=Trottle+=calcTrottle;
+  if(toTrottleInMode<=1200)Trottle-=calcTrottle;
+  if(toTrottleInMode>=1800)Trottle+=calcTrottle;
   if(Trottle<=1000)Trottle=1000;
   if(Trottle>=2000)Trottle=1800;
   return Trottle;
@@ -197,32 +205,32 @@ int setTrottleInMode(int toTrottleInMode){
 // settrottle
 int setTrottle(int toTrottle){
   Trottle=1500;
-  if(toTrottle<=1200)Trottle=calcLow;
-  if(toTrottle>=1800)Trottle=calcHigh;
+  if(toTrottle<=1200)Trottle-=calcSpeed;
+  if(toTrottle>=1800)Trottle+=calcSpeed;
   return Trottle;
 }
 
 // setyaw
 int setYaw(int toYaw){
   Yaw=1500;
-  if(toYaw<=1200)Yaw=calcLow;
-  if(toYaw>=1800)Yaw=calcHigh;
+  if(toYaw<=1200)Yaw-=calcSpeed;
+  if(toYaw>=1800)Yaw+=calcSpeed;
   return Yaw;
 }
 
 // setpitch
 int setPitch(int toPitch){
   Pitch=1500;
-  if(toPitch<=1200)Pitch=calcLow;
-  if(toPitch>=1800)Pitch=calcHigh;
+  if(toPitch<=1200)Pitch-=calcSpeed;
+  if(toPitch>=1800)Pitch+=calcSpeed;
   return Pitch;
 }
 
 // setroll
 int setRoll(int toRoll){
   Roll=1500;
-  if(toRoll<=1200)Roll=calcLow;
-  if(toRoll>=1800)Roll=calcHigh;
+  if(toRoll<=1200)Roll-=calcSpeed;
+  if(toRoll>=1800)Roll+=calcSpeed;
   return Roll;
 }
 
@@ -234,13 +242,12 @@ int mapPercent(int toMapPercent){
 
 // mapmode
 void mapMode(int toMode){
-  int mapMode=map(toMode,1000,2000,1000,2000);
-  if(mapMode>1000&&mapMode<1230)Mods="Stab";
-  else if(mapMode>1231&&mapMode<1360)Mods="PosH";
-  else if(mapMode>1361&&mapMode<1490)Mods="AltH";
-  else if(mapMode>1491&&mapMode<1621)Mods="Loit";
-  else if(mapMode>1621&&mapMode<1749)Mods="RTL ";
-  else if(mapMode>1750&&mapMode<2000)Mods="Land";
+  if(toMode>1000)Mods="Stab";
+  if(toMode>1231)Mods="PosH";
+  if(toMode>1361)Mods="AltH";
+  if(toMode>1491)Mods="Loit";
+  if(toMode>1621)Mods="RTL ";
+  if(toMode>1750)Mods="Land";
 }
 
 // esp-now ----------
@@ -250,7 +257,8 @@ void OnDataSent(const uint8_t *mac_addr,esp_now_send_status_t status){
 }
 
 void OnDataRecv(const uint8_t *mac_addr,const uint8_t *incomingData,int data_len){
-  memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
+  if(data_len==sizeof(rcvxData))memcpy(&rcvxData,incomingData,sizeof(rcvxData));
+  else memcpy(&rcvxMsg,incomingData,sizeof(rcvxMsg));
 }
 
 // startup ----------
@@ -296,7 +304,7 @@ void initespnow(){
     
     // register callbacks
     esp_now_register_send_cb(OnDataSent);
-    esp_now_register_recv_cb(reinterpret_cast<esp_now_recv_cb_t>(OnDataRecv));
+    esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));
 
     espnowEnabled=true;
   }
@@ -362,6 +370,8 @@ void serialDebug(){
   Serial.printf("JoyStick no.2 X= %d, Y= %d, Sw= %d\n",joyX2Poss,joyY2Poss,joySW2State);
   Serial.printf("PotentioMeter no.1= %d\n",potenM1Poss);
   Serial.printf("PotentioMeter no.2= %d\n",potenM2Poss);
+  Serial.printf("CalcTrottle = %d\n",calcTrottle);
+  Serial.printf("CalcSpeed   = %d\n",calcSpeed);
   Serial.println("");
   Serial.println("Switch");
   Serial.printf("JoyStick no.1= %d\n",joySW1State);
@@ -541,8 +551,12 @@ void Task1code(void*pvParameters){
     percentPitch=mapPercent(Pitch);
     percentRoll=mapPercent(Roll);
     mapMode(Mode);
+    
+    // sending msg ----------
+    // snd msg via ESP-NOW
+    esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg));
 
-    delay(5); // run delay
+    delay(2); // run delay
 
     // core0 load end
     elapsedTime1=millis()-startTime1;
@@ -572,33 +586,25 @@ void Task2code(void*pvParameters){
 
     // serial uart ----------
     // receive and write
-    if(Serial.availableForWrite()>0&&rcvxMsg.len>0){
-      Serial.write(rcvxMsg.buf,rcvxMsg.len);
-      rcvxMsg.len=0; // reset to zero
-    }
-    
-    // heartbeat
-    if(millis()-lastHeartbeatTime>=1000){
-      lastHeartbeatTime=millis();
-      mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
-      sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+    if(Serial.availableForWrite()>0&&rcvxData.len>0){
+      Serial.write(rcvxData.buf,rcvxData.len);
+      rcvxData.len=0; // reset to zero
     }
 
     // read and send
-    else if(Serial.available()>0){
+    if(Serial.available()>0){
       while(Serial.available()>0){
         c=Serial.read();
         if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-          sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
+          sndxData.len=mavlink_msg_to_send_buffer(sndxData.buf,&msg);
+
+          // snd msg via ESP-NOW
+          esp_now_send(targetMac,(uint8_t*)&sndxData,sizeof(sndxData));
         }
       }
     }
-
-    // sending msg ----------
-    // snd msg via ESP-NOW
-    esp_now_send(targetMac,(uint8_t*)&sndxMsg,sizeof(sndxMsg));
-
-    delay(5); // run delay
+    
+    delay(2); // run delay
 
     // core1 load end
     elapsedTime2=millis()-startTime2;
