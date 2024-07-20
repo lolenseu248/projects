@@ -29,14 +29,17 @@
 #define potenMeter1 36
 #define potenMeter2 39
 
+// buffer
+#define BUFFER 256
+
 // screen initiation
 Adafruit_SSD1306 display(128,64,&Wire,-1);
 
 // -------------------- variables --------------------
 // manualvar ----------
 // wifi credentials
-const char* ssid="apm2.8-hexa";
-const char* password="12345678";
+const char* ssid="apm2.8-hexa-upHq6Cgsh5";
+const char* pass="";
 
 // fixvar ----------
 // udp
@@ -153,7 +156,7 @@ typedef struct send_message{
   uint64_t time1;
   uint64_t time2;
   uint16_t len;
-  uint8_t buf[MAVLINK_MAX_PACKET_LEN];
+  uint8_t buf[BUFFER];
 };
 send_message sndxMsg;
 
@@ -162,7 +165,7 @@ typedef struct receive_message{
   uint64_t time1;
   uint64_t time2;
   uint16_t len;
-  uint8_t buf[MAVLINK_MAX_PACKET_LEN];
+  uint8_t buf[BUFFER];
 };
 receive_message rcvxMsg;
 
@@ -282,7 +285,7 @@ void initBoot(){
 void initwifi(){
   Serial.println("Connecting to WiFi...");
   WiFi.config(localip,gateway,subnet);
-  WiFi.begin(ssid,password);
+  WiFi.begin(ssid,pass);
 
   while(WiFi.status()!=WL_CONNECTED){
     delay(500);
@@ -579,22 +582,13 @@ void Task2code(void*pvParameters){
       Serial.write(rcvxMsg.buf,rcvxMsg.len);
       rcvxMsg.len=0; // reset to zero
     }
-    
-    // heartbeat
-    if(millis()-lastHeartbeatTime>=1000){
-      lastHeartbeatTime=millis();
-      mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
-      sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
-    }
 
     // read and send
-    else{
-      if(Serial.available()>0){
-        while(Serial.available()>0){
-          c=Serial.read();
-          if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
-            sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
-          }
+    if(Serial.available()>0){
+      while(Serial.available()>0){
+        c=Serial.read();
+        if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status)){
+          sndxMsg.len=mavlink_msg_to_send_buffer(sndxMsg.buf,&msg);
         }
       }
     }

@@ -28,10 +28,13 @@
 #define GPIORoll 21
 #define GPIOMode 23
 
+// buffer
+#define BUFFER 256
+
 // -------------------- variables --------------------
 // manualvar ----------
-const char* ssid="apm2.8-hexa";
-const char* password="12345678";
+const char* ssid="apm2.8-hexa-upHq6Cgsh5";
+const char* pass="";
 const int channel=11;
 
 // fixvar ----------
@@ -120,7 +123,7 @@ typedef struct send_message{
   uint64_t time1;
   uint64_t time2;
   uint16_t len;
-  uint8_t buf[MAVLINK_MAX_PACKET_LEN];
+  uint8_t buf[BUFFER];
 };
 send_message sndxMsg;
 
@@ -134,7 +137,7 @@ typedef struct receive_message{
   uint64_t time1;
   uint64_t time2;
   uint16_t len;
-  uint8_t buf[MAVLINK_MAX_PACKET_LEN];
+  uint8_t buf[BUFFER];
 };
 receive_message rcvxMsg;
 
@@ -201,7 +204,7 @@ void initBoot(){
 void initwifi(){
   Serial.println("Initiating WiFi...");
   WiFi.softAPConfig(localip,gateway,subnet);
-  WiFi.softAP(ssid,password,channel);
+  WiFi.softAP(ssid,NULL,channel,1);
 
   Serial.println("Access Point Started");
   Serial.print("IP Address: ");
@@ -416,8 +419,17 @@ void Task2code(void*pvParameters){
     }
 
     else{
+      if(millis()-lastHeartbeatTime>=1000){
+        lastHeartbeatTime=millis();
+        mavlink_msg_heartbeat_pack(1,MAV_COMP_ID_AUTOPILOT1,&msg,MAV_TYPE_QUADROTOR,MAV_AUTOPILOT_GENERIC,MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,0,MAV_STATE_STANDBY);
+        len=mavlink_msg_to_send_buffer(buf,&msg);
+        if(Serial2.availableForWrite()>0){
+          Serial2.write(buf,len);
+        }
+      }
+
       // receive and write
-      if(Serial2.availableForWrite()>0&&rcvxMsg.len>0){
+      else if(Serial2.availableForWrite()>0&&rcvxMsg.len>0){
         Serial2.write(rcvxMsg.buf,rcvxMsg.len);
         rcvxMsg.len=0; // reset to zero
       }
