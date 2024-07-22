@@ -587,7 +587,7 @@ void setup(){
   // put your setup code here, to run once:
   // Initialize Serial Monitor
   Serial.begin(115200);
-  Serial2.begin(115200,SERIAL_8N1,RXD,TXD);
+  Serial2.begin(57600,SERIAL_8N1,RXD,TXD);
 
   // init ESP-NOW
   initespnow();
