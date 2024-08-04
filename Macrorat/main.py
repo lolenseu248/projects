@@ -9,19 +9,19 @@ from pynput.keyboard import KeyCode,Key,Controller as KeyboardController,Listene
 
 
 #func
-def clicker(x,y,i,o):
-    global previous_x,previous_y,click_counter
-    mouse.position=(x+24+random.randint(1,24),y+24+random.randint(1,24))
-    mouse_x,mouse_y=mouse.position
+def clicker(x, y, i, o):
+    global previous_x, previous_y, click_counter
+    mouse.position = (x + 24 + random.randint(1, 24), y + 24 + random.randint(1, 24))
+    mouse_x,mouse_y = mouse.position
 
-    if mouse_x<monitor2['left'] or mouse_x>=monitor2['left']+i or mouse_y<monitor2['top'] or mouse_y>=monitor2['top']+o:
+    if mouse_x < monitor2['left'] or mouse_x >= monitor2['left'] + i or mouse_y < monitor2['top'] or mouse_y >= monitor2['top'] + o:
        pass
 
     else:
-        if previous_x==x and previous_y==y:
-            delay=.1
+        if previous_x == x and previous_y == y:
+            delay = .1
         else:
-            delay=.05
+            delay = .05
 		    
         time.sleep(.05)
         mouse.press(Button.left)
@@ -29,119 +29,124 @@ def clicker(x,y,i,o):
         mouse.release(Button.left)
         time.sleep(.1)
         
-        click_counter+=1
-        previous_x=x
-        previous_y=y
+        click_counter += 1
+        previous_x = x
+        previous_y = y
 
 def on_press(key):
     global stop_loot
-    if key==KeyCode.from_char('x') or key==Key.esc:
-        stop_loot=True
+    if key == Key.esc:
+        stop_loot = True
 
 def on_release(key):
     global stop_loot
-    if key==KeyCode.from_char('x') or key==Key.esc:
-        stop_loot=False
+    if key == KeyCode.from_char('c'):
+        stop_loot = False
 
 def on_mouse(x,y):
-    global mouse_x,mouse_y
-    mouse_x,mouse_y=x,y
+    global mouse_x, mouse_y
+    mouse_x, mouse_y = x, y
 
 def lootof():
-    lootof_screen=np.asarray(sct.grab(monitor1))
-    lootof_gray=cv.matchTemplate(lootof_screen,lootof_img,cv.TM_CCOEFF_NORMED)
+    lootof_screen = np.asarray(sct.grab(monitor1))
+    _lootof = cv.matchTemplate(lootof_screen, lootof_img, cv.TM_CCOEFF_NORMED)
 
     # debug
-    #cv.imshow('lootofscreen',lootof_screen)
-    #cv.imshow('lootofgray',lootof_gray)
+    #cv.imshow('lootofscreen', lootof_screen)
+    #cv.imshow('lootof', _lootof)
 
-    _,max_val,_,max_loc=cv.minMaxLoc(lootof_gray)
-    return max_val>=match_threshold
+    _, max_val, _, max_loc = cv.minMaxLoc(_lootof)
+    return max_val >= match_threshold
 
 def lootbox():
     global click_counter
-    lootbox_screen=np.asarray(sct.grab(monitor2))
-    lootbox_gray=cv.cvtColor(lootbox_screen,cv.COLOR_BGR2GRAY)
+    lootbox_screen = np.asarray(sct.grab(monitor2))
+    _lootbox = cv.cvtColor(lootbox_screen,cv.COLOR_BGRA2BGR)
 
     # debug
-    #cv.imshow('lootboxscreen',lootbox_screen)
-    #cv.imshow('lootboxgray',lootbox_gray)
+    #cv.imshow('lootboxscreen', lootbox_screen)
+    #cv.imshow('lootbox', _lootbox)
 
-    for gray_item in gray_item_template:
-        template_result=cv.matchTemplate(lootbox_gray,gray_item,cv.TM_CCOEFF_NORMED)
-        min_val,max_val,min_loc,max_loc=cv.minMaxLoc(template_result)
+    for item in _item_template:
+        template_result = cv.matchTemplate(_lootbox, item, cv.TM_CCOEFF_NORMED)
+        min_val, max_val, min_loc, max_loc = cv.minMaxLoc(template_result)
 
         if stop_loot:
+            keyboard.release(Key.shift)
             break
 
-        if max_val>=match_threshold:
-            item_x,item_y=max_loc[0],max_loc[1]
-            item_left,item_top=item_x,item_y
-            item_right=min(item_x+64,lootbox_gray.shape[1])
-            item_bottom=min(item_y+64,lootbox_gray.shape[0])
+        if max_val >= match_threshold:
+            item_x, item_y = max_loc[0], max_loc[1]
+            item_left, item_top = item_x, item_y
+            item_right = min(item_x + 64, _lootbox.shape[1])
+            item_bottom = min(item_y + 64, _lootbox.shape[0])
 
-            if item_right>=lootbox_gray.shape[1] or item_bottom>=lootbox_gray.shape[0]:
+            if item_right >= _lootbox.shape[1] or item_bottom >= _lootbox.shape[0]:
                 break
 
             else:
-                exclude_match_found=False
-                item_region=lootbox_gray[item_top:item_bottom,item_left:item_right]
+                exclude_match_found = False
+                item_region = _lootbox[item_top:item_bottom, item_left:item_right]
+                
+                if stop_loot:
+                    keyboard.release(Key.shift)
+                    break
 
-                for gray_exclude in gray_exclude_template:
-                    exclude_result=cv.matchTemplate(item_region,gray_exclude,cv.TM_CCOEFF_NORMED)
-                    exclude_min_val,exclude_max_val,_,_=cv.minMaxLoc(exclude_result)
+                for exclude in _exclude_template:
+                    exclude_result = cv.matchTemplate(item_region, exclude, cv.TM_CCOEFF_NORMED)
+                    exclude_min_val, exclude_max_val, _, _ = cv.minMaxLoc(exclude_result)
 
-                    if exclude_max_val>=match_threshold:
-                        exclude_match_found=True
+                    if exclude_max_val >= match_threshold:
+                        exclude_match_found = True
                         break
 
                 if not exclude_match_found:
-                    x,y=monitor2['left']+item_x,monitor2['top']+item_y
-                    clicker(x,y,lootbox_gray.shape[1],lootbox_gray.shape[0])
+                    x, y = monitor2['left'] + item_x, monitor2['top'] + item_y
+                    clicker(x, y, _lootbox.shape[1], _lootbox.shape[0])
                     break
 
 
 #var
-mouse_x,mouse_y=0,0
-click_counter=0
-previous_x=0
-previous_y=0
-loop_counter=0
+mouse_x,mouse_y = 0, 0
+click_counter = 0
+previous_x = 0
+previous_y = 0
+loop_counter = 0
 
-match_threshold=0.8
+match_threshold = 0.8
 
-stop_loot=False
+stop_loot = False
 
-monitor1={'top':320,'left':900,'width':70,'height':20}
-monitor2={'top':420,'left':828,'width':249,'height':285}
+monitor1 = {'top':320, 'left':900, 'width':70, 'height':20}
+monitor2 = {'top':440, 'left':828, 'width':249, 'height':285}
 
-lootof_img=cv.imread('img/trigger/lootof.png',cv.IMREAD_UNCHANGED)
+lootof_img = cv.imread('img/trigger/lootof.png', cv.IMREAD_UNCHANGED)
 
-item_templates=['img/dump/t4/t4_1.png','img/dump/t4/t4_2.png','img/dump/t4/t4_3.png','img/dump/t4/t4_4.png','img/dump/t4/t4_5.png',
-                'img/dump/t5/t5_1.png','img/dump/t5/t5_2.png','img/dump/t5/t5_3.png','img/dump/t5/t5_4.png','img/dump/t5/t5_5.png',
-                'img/dump/t6/t6_1.png','img/dump/t6/t6_2.png','img/dump/t6/t6_3.png','img/dump/t6/t6_4.png','img/dump/t6/t6_5.png',
-                'img/dump/t7/t7_1.png','img/dump/t7/t7_2.png','img/dump/t7/t7_3.png','img/dump/t7/t7_4.png','img/dump/t7/t7_5.png',
-                'img/dump/t8/t8_1.png','img/dump/t8/t8_2.png','img/dump/t8/t8_3.png','img/dump/t8/t8_4.png','img/dump/t8/t8_5.png']
+item_templates = ['img/dump/t4/t4_1.png', 'img/dump/t4/t4_2.png', 'img/dump/t4/t4_3.png', 'img/dump/t4/t4_4.png', 'img/dump/t4/t4_5.png',
+                'img/dump/t5/t5_1.png', 'img/dump/t5/t5_2.png', 'img/dump/t5/t5_3.png', 'img/dump/t5/t5_4.png', 'img/dump/t5/t5_5.png',
+                'img/dump/t6/t6_1.png', 'img/dump/t6/t6_2.png', 'img/dump/t6/t6_3.png', 'img/dump/t6/t6_4.png', 'img/dump/t6/t6_5.png',
+                'img/dump/t7/t7_1.png', 'img/dump/t7/t7_2.png', 'img/dump/t7/t7_3.png', 'img/dump/t7/t7_4.png', 'img/dump/t7/t7_5.png',
+                'img/dump/t8/t8_1.png', 'img/dump/t8/t8_2.png', 'img/dump/t8/t8_3.png', 'img/dump/t8/t8_4.png', 'img/dump/t8/t8_5.png']
 
-exclude_templates=['img/exclude/t3_horse.png','img/exclude/t4_stag.png','img/exclude/t5_armored_horse.png','img/exclude/t5_graywolf.png','img/exclude/t5_swiftclaw.png','img/exclude/t6_wolf.png']
-trash_templates=['img/trash/empty.png','img/trash/t1_trash.png','img/trash/t2_trash.png','img/trash/t3_trash.png','img/trash/t4_trash.png','img/trash/t5_trash.png','img/trash/t6_trash.png','img/trash/t7_trash.png','img/trash/t8_trash.png']
+exclude_templates = ['img/exclude/t3_horse.png', 'img/exclude/t4_stag.png', 'img/exclude/t5_armored_horse.png', 'img/exclude/t5_graywolf.png', 'img/exclude/t5_swiftclaw.png', 'img/exclude/t6_wolf.png']
+trash_templates = ['img/trash/empty.png', 'img/trash/t1_trash.png', 'img/trash/t2_trash.png', 'img/trash/t3_trash.png', 'img/trash/t4_trash.png', 'img/trash/t5_trash.png', 'img/trash/t6_trash.png', 'img/trash/t7_trash.png', 'img/trash/t8_trash.png']
 
 
 exclude_templates.extend(trash_templates)
 
-item_template=[cv.imread(path) for path in item_templates]
-gray_item_template=[cv.cvtColor(template,cv.COLOR_BGR2GRAY) for template in item_template]
+item_template = [cv.imread(path) for path in item_templates]
+_item_template = [cv.cvtColor(template,cv.COLOR_BGRA2BGR) for template in item_template]
 
-exclude_template=[cv.imread(path) for path in exclude_templates]
-gray_exclude_template=[cv.cvtColor(template,cv.COLOR_BGR2GRAY) for template in exclude_template]
+exclude_template = [cv.imread(path) for path in exclude_templates]
+_exclude_template = [cv.cvtColor(template,cv.COLOR_BGRA2BGR) for template in exclude_template]
 
-sct=mss()
+sct = mss()
 
-mouse=MouseController()
-keyboard=KeyboardController()
+mouse = MouseController()
+keyboard = KeyboardController()
 
-keyboard_listener=KeyboardListener(on_press=on_press,on_release=on_release)
-mouse_listener=MouseListener(on_mouse=on_mouse)
+keyboard_listener = KeyboardListener(on_press=on_press, on_release = on_release)
+mouse_listener = MouseListener(on_mouse = on_mouse)
 keyboard_listener.start()
 mouse_listener.start()
 
@@ -149,26 +154,32 @@ mouse_listener.start()
 #loop
 while True:
     try:
-        lootpixelresult=lootof()
+        lootpixelresult = lootof()
 
-        if lootpixelresult:
+        if lootpixelresult == True:
             keyboard.press(Key.shift)
 
             while lootpixelresult and not stop_loot:
-                lootbox()
-                lootpixelresult=lootof()
+                
+                if stop_loot:
+                    keyboard.release(Key.shift)
+                    break
+                
+                else:
+                    lootbox()
+                    lootpixelresult = lootof()
 
             keyboard.release(Key.shift)
 
-        print(f'loop: {loop_counter}, items clicked: {click_counter}',end='\r')
-        if loop_counter==9:
-            loop_counter=0
+        print(f'loop: {loop_counter}, items clicked: {click_counter}', end = '\r')
+        if loop_counter == 9:
+            loop_counter = 0
 
         else:
-            loop_counter+=1
+            loop_counter += 1
 
         time.sleep(.1)
-        if cv.waitKey(1)&0xFF==ord("q"):
+        if cv.waitKey(1) & 0xFF == ord("q"):
             cv.destroyAllWindows()
             keyboard_listener.stop()
             mouse_listener.stop()
