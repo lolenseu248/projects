@@ -43,10 +43,6 @@ ___For detailed python and pip installation watch youtube contents on how to ins
 -bugs
 * party loot -dont try to open chest with this tool "ON" because its going to try and loot the party loots or others loot on chest -try rapidly press esc button to solve the problem
 
--mail
---report bugs
-lolenseu.koleutejeu248@gmail.com
-
 -sites
 --git repo
 https://github.com/lolenseu
