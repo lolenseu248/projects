@@ -33,8 +33,8 @@ ___For detailed python and pip installation watch youtube contents on how to ins
 * -go to the macrorat folder
 * -open shell or terminal
 * -type "python3 main.py"
-'if you see loop and couting numbers and item clicked 0 means its running'
-'to stop the tool Ctrl+C on shell or terminal or jut close the shell or terminal
+'if you see loop and counting numbers and item clicked 0 means its running'
+'to stop the tool Ctrl+C on shell or terminal or just close the shell or terminal
 
 -recommendation
 * don't use ultra wide screen 'not yet supported
