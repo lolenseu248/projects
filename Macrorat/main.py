@@ -13,37 +13,26 @@ from pynput.keyboard import KeyCode, Key, Controller as KeyboardController, List
 
 #func
 def clicker(x, y, i, o):
-    global previous_x, previous_y, click_counter
     mouse.position = (x + 24 + random.randint(1, 24), y + 24 + random.randint(1, 24))
-    mouse_x,mouse_y = mouse.position
+    mouse_x, mouse_y = mouse.position
 
     if mouse_x < monitor2['left'] or mouse_x >= monitor2['left'] + i or mouse_y < monitor2['top'] or mouse_y >= monitor2['top'] + o:
        pass
 
     else:
-        if previous_x == x and previous_y == y:
-            delay = .1
-        else:
-            delay = .05
-		    
-        time.sleep(.05)
         mouse.press(Button.left)
-        time.sleep(delay)
+        time.sleep(.05)
         mouse.release(Button.left)
-        time.sleep(.1)
-        
-        click_counter += 1
-        previous_x = x
-        previous_y = y
+        time.sleep(.05)
 
 def on_press(key):
     global stop_loot
-    if key == Key.esc:
+    if key == KeyCode.from_char('x') or key == Key.esc:
         stop_loot = True
 
 def on_release(key):
     global stop_loot
-    if key == Key.esc:
+    if key == KeyCode.from_char('x') or key == Key.esc:
         stop_loot = False
 
 def on_mouse(x,y):
@@ -62,9 +51,8 @@ def lootof():
     return max_val >= match_threshold
 
 def lootbox():
-    global click_counter
     lootbox_screen = np.asarray(sct.grab(monitor2))
-    _lootbox = cv.cvtColor(lootbox_screen,cv.COLOR_BGR2HSV)
+    _lootbox = cv.cvtColor(lootbox_screen, cv.COLOR_BGR2GRAY)
 
     # debug
     #cv.imshow('lootboxscreen', lootbox_screen)
@@ -101,17 +89,13 @@ def lootbox():
                 if not exclude_match_found:
                     x, y = monitor2['left'] + item_x, monitor2['top'] + item_y
                     clicker(x, y, _lootbox.shape[1], _lootbox.shape[0])
-                    break
 
 
 #var
 mouse_x,mouse_y = 0, 0
-click_counter = 0
-previous_x = 0
-previous_y = 0
 loop_counter = 0
 
-match_threshold = 0.75
+match_threshold = 0.8
 
 stop_loot = False
 
@@ -133,10 +117,10 @@ trash_templates = ['img/trash/empty.png', 'img/trash/t1_trash.png', 'img/trash/t
 exclude_templates.extend(trash_templates)
 
 item_template = [cv.imread(path) for path in item_templates]
-_item_template = [cv.cvtColor(template,cv.COLOR_BGR2HSV) for template in item_template]
+_item_template = [cv.cvtColor(template, cv.COLOR_BGR2GRAY) for template in item_template]
 
 exclude_template = [cv.imread(path) for path in exclude_templates]
-_exclude_template = [cv.cvtColor(template,cv.COLOR_BGR2HSV) for template in exclude_template]
+_exclude_template = [cv.cvtColor(template, cv.COLOR_BGR2GRAY) for template in exclude_template]
 
 sct = mss()
 
@@ -168,7 +152,7 @@ while True:
 
             keyboard.release(Key.shift)
 
-        print(f'loop: {loop_counter}, items clicked: {click_counter}', end = '\r')
+        print(f'loop: {loop_counter}, running!', end = '\r')
         if loop_counter == 9:
             loop_counter = 0
 
