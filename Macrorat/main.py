@@ -2,6 +2,7 @@
 # lolen's dev
 # MacroRat 1.4
 
+import os
 import time
 import random
 import cv2 as cv
@@ -12,7 +13,16 @@ from pynput.mouse import Button, Controller as MouseController, Listener as Mous
 from pynput.keyboard import KeyCode, Key, Controller as KeyboardController, Listener as KeyboardListener
 
 
-#func
+# Functions
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
 def clicker(x, y, i, o):
     mouse.position = (x + 24 + random.randint(1, 24), y + 24 + random.randint(1, 24))
     mouse_x, mouse_y = mouse.position
@@ -93,7 +103,7 @@ def lootbox():
                     break
 
 
-#var
+# Variables
 mouse_x,mouse_y = 0, 0
 loop_counter = 0
 
@@ -104,23 +114,32 @@ stop_loot = False
 monitor1 = {'top':320, 'left':900, 'width':70, 'height':20}
 monitor2 = {'top':405, 'left':825, 'width':260, 'height':310}
 
-lootof_img = cv.imread('img/trigger/lootof.png', cv.IMREAD_UNCHANGED)
+# Load images
+lootof_img = cv.imread(resource_path('img/trigger/lootof.png'), cv.IMREAD_UNCHANGED)
 
-item_templates = ['img/dump/t4/t4_1.png', 'img/dump/t4/t4_2.png', 'img/dump/t4/t4_3.png', 'img/dump/t4/t4_4.png', 'img/dump/t4/t4_5.png',
-                'img/dump/t5/t5_1.png', 'img/dump/t5/t5_2.png', 'img/dump/t5/t5_3.png', 'img/dump/t5/t5_4.png', 'img/dump/t5/t5_5.png',
-                'img/dump/t6/t6_1.png', 'img/dump/t6/t6_2.png', 'img/dump/t6/t6_3.png', 'img/dump/t6/t6_4.png', 'img/dump/t6/t6_5.png',
-                'img/dump/t7/t7_1.png', 'img/dump/t7/t7_2.png', 'img/dump/t7/t7_3.png', 'img/dump/t7/t7_4.png', 'img/dump/t7/t7_5.png',
-                'img/dump/t8/t8_1.png', 'img/dump/t8/t8_2.png', 'img/dump/t8/t8_3.png', 'img/dump/t8/t8_4.png', 'img/dump/t8/t8_5.png']
+item_templates = [
+    'img/dump/t4/t4_1.png', 'img/dump/t4/t4_2.png', 'img/dump/t4/t4_3.png', 'img/dump/t4/t4_4.png', 'img/dump/t4/t4_5.png',
+    'img/dump/t5/t5_1.png', 'img/dump/t5/t5_2.png', 'img/dump/t5/t5_3.png', 'img/dump/t5/t5_4.png', 'img/dump/t5/t5_5.png',
+    'img/dump/t6/t6_1.png', 'img/dump/t6/t6_2.png', 'img/dump/t6/t6_3.png', 'img/dump/t6/t6_4.png', 'img/dump/t6/t6_5.png',
+    'img/dump/t7/t7_1.png', 'img/dump/t7/t7_2.png', 'img/dump/t7/t7_3.png', 'img/dump/t7/t7_4.png', 'img/dump/t7/t7_5.png',
+    'img/dump/t8/t8_1.png', 'img/dump/t8/t8_2.png', 'img/dump/t8/t8_3.png', 'img/dump/t8/t8_4.png', 'img/dump/t8/t8_5.png'
+]
 
-exclude_templates = ['img/exclude/t3_horse.png', 'img/exclude/t4_stag.png', 'img/exclude/t5_armored_horse.png', 'img/exclude/t5_graywolf.png', 'img/exclude/t5_swiftclaw.png', 'img/exclude/t6_wolf.png']
-trash_templates = ['img/trash/empty.png', 'img/trash/t1_trash.png', 'img/trash/t2_trash.png', 'img/trash/t3_trash.png', 'img/trash/t4_trash.png', 'img/trash/t5_trash.png', 'img/trash/t6_trash.png', 'img/trash/t7_trash.png', 'img/trash/t8_trash.png']
+exclude_templates = [
+    'img/exclude/t3_horse.png', 'img/exclude/t4_stag.png', 'img/exclude/t5_armored_horse.png', 'img/exclude/t5_graywolf.png', 
+    'img/exclude/t5_swiftclaw.png', 'img/exclude/t6_wolf.png'
+]
 
+trash_templates = [
+    'img/trash/empty.png', 'img/trash/t1_trash.png', 'img/trash/t2_trash.png', 'img/trash/t3_trash.png', 'img/trash/t4_trash.png',
+    'img/trash/t5_trash.png', 'img/trash/t6_trash.png', 'img/trash/t7_trash.png', 'img/trash/t8_trash.png'
+]
 
 exclude_templates.extend(trash_templates)
 
-item_template = [cv.imread(path, cv.IMREAD_GRAYSCALE) for path in item_templates]
+item_template = [cv.imread(resource_path(path), cv.IMREAD_GRAYSCALE) for path in item_templates]
 
-exclude_template = [cv.imread(path, cv.IMREAD_GRAYSCALE) for path in exclude_templates]
+exclude_template = [cv.imread(resource_path(path), cv.IMREAD_GRAYSCALE) for path in exclude_templates]
 
 sct = mss()
 
@@ -133,7 +152,7 @@ keyboard_listener.start()
 mouse_listener.start()
 
 
-#loop
+# Loop
 while True:
     try:
         lootpixelresult = lootof()
