@@ -1,5 +1,6 @@
 # https://github.com/lolenseu
 # lolen's dev
+# MacroRat 1.4
 
 import time
 import random
@@ -21,18 +22,18 @@ def clicker(x, y, i, o):
 
     else:
         mouse.press(Button.left)
-        time.sleep(.05)
+        time.sleep(.08)
         mouse.release(Button.left)
         time.sleep(.05)
 
 def on_press(key):
     global stop_loot
-    if key == KeyCode.from_char('x') or key == Key.esc:
+    if key == Key.esc:
         stop_loot = True
 
 def on_release(key):
     global stop_loot
-    if key == KeyCode.from_char('x') or key == Key.esc:
+    if key == Key.esc:
         stop_loot = False
 
 def on_mouse(x,y):
@@ -58,10 +59,10 @@ def lootbox():
     #cv.imshow('lootboxscreen', lootbox_screen)
     #cv.imshow('lootbox', _lootbox)
 
-    for item in _item_template:
+    for item in item_template:
         template_result = cv.matchTemplate(_lootbox, item, cv.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(template_result)
-
+        
         if stop_loot:
             break
 
@@ -70,15 +71,15 @@ def lootbox():
             item_left, item_top = item_x, item_y
             item_right = min(item_x + 64, _lootbox.shape[1])
             item_bottom = min(item_y + 64, _lootbox.shape[0])
-
+            
             if item_right >= _lootbox.shape[1] or item_bottom >= _lootbox.shape[0]:
                 break
-
+            
             else:
                 exclude_match_found = False
                 item_region = _lootbox[item_top:item_bottom, item_left:item_right]
 
-                for exclude in _exclude_template:
+                for exclude in exclude_template:
                     exclude_result = cv.matchTemplate(item_region, exclude, cv.TM_CCOEFF_NORMED)
                     exclude_min_val, exclude_max_val, _, _ = cv.minMaxLoc(exclude_result)
 
@@ -89,6 +90,7 @@ def lootbox():
                 if not exclude_match_found:
                     x, y = monitor2['left'] + item_x, monitor2['top'] + item_y
                     clicker(x, y, _lootbox.shape[1], _lootbox.shape[0])
+                    break
 
 
 #var
@@ -100,7 +102,7 @@ match_threshold = 0.8
 stop_loot = False
 
 monitor1 = {'top':320, 'left':900, 'width':70, 'height':20}
-monitor2 = {'top':440, 'left':828, 'width':249, 'height':280}
+monitor2 = {'top':405, 'left':825, 'width':260, 'height':310}
 
 lootof_img = cv.imread('img/trigger/lootof.png', cv.IMREAD_UNCHANGED)
 
@@ -116,11 +118,9 @@ trash_templates = ['img/trash/empty.png', 'img/trash/t1_trash.png', 'img/trash/t
 
 exclude_templates.extend(trash_templates)
 
-item_template = [cv.imread(path) for path in item_templates]
-_item_template = [cv.cvtColor(template, cv.COLOR_BGR2GRAY) for template in item_template]
+item_template = [cv.imread(path, cv.IMREAD_GRAYSCALE) for path in item_templates]
 
-exclude_template = [cv.imread(path) for path in exclude_templates]
-_exclude_template = [cv.cvtColor(template, cv.COLOR_BGR2GRAY) for template in exclude_template]
+exclude_template = [cv.imread(path, cv.IMREAD_GRAYSCALE) for path in exclude_templates]
 
 sct = mss()
 
@@ -140,26 +140,23 @@ while True:
 
         if lootpixelresult == True:
             keyboard.press(Key.shift)
-
+            
             while lootpixelresult:
-                
                 if stop_loot:
                     break
-                
                 else:
                     lootbox()
                     lootpixelresult = lootof()
-
+        
             keyboard.release(Key.shift)
 
         print(f'loop: {loop_counter}, running!', end = '\r')
         if loop_counter == 9:
             loop_counter = 0
-
         else:
             loop_counter += 1
 
-        time.sleep(.05)
+        time.sleep(.1)
         if cv.waitKey(1) & 0xFF == ord("q"):
             cv.destroyAllWindows()
             keyboard_listener.stop()

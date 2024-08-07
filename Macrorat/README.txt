@@ -1,4 +1,4 @@
-MacroRat v1.3
+MacroRat v1.4
 
 -This tool used for Speed Looting and Ratting in ZvZ
 -Using OpenCV it will automatically track and click the item upon opening the chest or dead bodies 
@@ -6,6 +6,7 @@ MacroRat v1.3
 -setup
 * linux or windows system
 * python3.12
+* albion online 'Vulkan API
 * albion linux -fullscreen or albion windows -borderless
 * 1920x1080 or 1280x720 'screen resolution
 
@@ -41,7 +42,7 @@ ___For detailed python and pip installation watch youtube contents on how to ins
 * don't open party loot chest
 
 -bugs
-* party loot -dont try to open chest with this tool "ON" because its going to try and loot the party loots or others loot on chest -try rapidly press esc button to solve the problem
+* party loot -dont try to open chest with this tool "ON" because its going to try and loot the party loots or others loot on chest -try hold press esc button to solve the problem
 
 -sites
 --git repo
