@@ -34,7 +34,7 @@ def clicker(x, y, i, o):
         mouse.press(Button.left)
         time.sleep(.08)
         mouse.release(Button.left)
-        time.sleep(.04)
+        time.sleep(.04) # .04 stable / .3 trial
 
 def on_press(key):
     global stop_loot
@@ -170,7 +170,7 @@ while True:
         
             keyboard.release(Key.shift)
 
-        print(f'Press Hold ESC to Pause Lootting - Loop: {loop_counter}, Running!', end = '\r')
+        print(f'Press Hold ESC to Pause Looting - Loop: {loop_counter}, Running!', end = '\r')
         if loop_counter == 9:
             loop_counter = 0
         else:
