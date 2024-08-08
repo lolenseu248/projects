@@ -170,7 +170,7 @@ while True:
         
             keyboard.release(Key.shift)
 
-        print(f'loop: {loop_counter}, running!', end = '\r')
+        print(f'Press Hold ESC to Pause Lootting - Loop: {loop_counter}, Running!', end = '\r')
         if loop_counter == 9:
             loop_counter = 0
         else:

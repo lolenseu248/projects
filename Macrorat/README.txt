@@ -34,7 +34,7 @@ ___For detailed python and pip installation watch youtube contents on how to ins
 * -go to the macrorat folder
 * -open shell or terminal
 * -type "python3 main.py"
-'if you see loop and counting numbers and item clicked 0 means its running'
+'if you see loop and counting numbers means running'
 'to stop the tool Ctrl+C on terminal or just close the terminal
 
 -recommendation
