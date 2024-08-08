@@ -42,7 +42,7 @@ ___For detailed python and pip installation watch youtube contents on how to ins
 * don't open party loot chest
 
 -bugs
-* party loot -dont try to open chest with this tool "ON" because its going to try and loot the party loots or others loot on chest -try hold press esc button to solve the problem
+* party loot -dont try to open chest with this tool "ON" because its going to try and loot the party loots or others loot on chest -try press hold esc button to solve the problem
 
 -sites
 --git repo

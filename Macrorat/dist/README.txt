@@ -13,3 +13,7 @@ MacroRat v1.5
 
 -usage
 * press hold esc to stop looting
+
+
+-bugs
+* party loot -dont try to open chest with this tool "ON" because its going to try and loot the party loots or others loot on chest -try press hold esc button to solve the problem
