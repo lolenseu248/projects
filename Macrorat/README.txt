@@ -1,4 +1,4 @@
-MacroRat v1.4
+MacroRat v1.5
 
 -This tool used for Speed Looting and Ratting in ZvZ
 -Using OpenCV it will automatically track and click the item upon opening the chest or dead bodies 

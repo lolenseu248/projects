@@ -1,6 +1,6 @@
 # https://github.com/lolenseu
 # lolen's dev
-# MacroRat 1.4
+# MacroRat 1.5
 
 import os
 import time
@@ -159,6 +159,7 @@ while True:
 
         if lootpixelresult == True:
             keyboard.press(Key.shift)
+            time.sleep(.1)
             
             while lootpixelresult:
                 if stop_loot:
