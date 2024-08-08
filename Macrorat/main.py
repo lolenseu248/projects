@@ -95,8 +95,6 @@ def lootbox():
 
                     if exclude_max_val >= match_threshold:
                         exclude_match_found = True
-                        
-                    else:
                         break
 
                 if not exclude_match_found:
