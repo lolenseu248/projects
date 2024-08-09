@@ -34,7 +34,7 @@ def clicker(x, y, i, o):
         mouse.press(Button.left)
         time.sleep(.08)
         mouse.release(Button.left)
-        time.sleep(.04) # .04 stable / .3 trial
+        time.sleep(.04) # .04 stable / .2 trial
 
 def on_press(key):
     global stop_loot
