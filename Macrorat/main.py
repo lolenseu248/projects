@@ -135,10 +135,14 @@ trash_templates = [
     'img/trash/t5_trash.png', 'img/trash/t6_trash.png', 'img/trash/t7_trash.png', 'img/trash/t8_trash.png'
 ]
 
+bug_templates = [
+    'img/bug/bug1.png', 'img/bug/bug2.png'
+]
+
 exclude_templates.extend(trash_templates)
+exclude_templates.extend(bug_templates)
 
 item_template = [cv.imread(resource_path(path), cv.IMREAD_GRAYSCALE) for path in item_templates]
-
 exclude_template = [cv.imread(resource_path(path), cv.IMREAD_GRAYSCALE) for path in exclude_templates]
 
 sct = mss()
