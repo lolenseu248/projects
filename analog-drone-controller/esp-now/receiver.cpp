@@ -398,7 +398,7 @@ void Task1code(void*pvParameters){
       losscount3=millis();
     }
 
-    // arm buzzer buzzer if mode is stable
+    // arm buzzer if mode is stable
     if(Mode<=1231){
       if(Trottle==1000){
         if(Yaw==2000){
