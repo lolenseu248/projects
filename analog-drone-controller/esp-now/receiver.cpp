@@ -398,6 +398,24 @@ void Task1code(void*pvParameters){
       losscount3=millis();
     }
 
+    // arm buzzer buzzer if mode is stable
+    if(Mode<=1231){
+      if(Trottle==1000){
+        if(Yaw==2000){
+          buzzerState=HIGH;
+          digitalWrite(BUZZER,HIGH);
+        }
+        else{
+          buzzerState=LOW;
+          digitalWrite(BUZZER,LOW);
+        }
+      }
+      else{
+        buzzerState=LOW;
+        digitalWrite(BUZZER,LOW);
+      }
+    }
+
     // write servo
     servo1.write(Trottle);
     servo2.write(Yaw);
