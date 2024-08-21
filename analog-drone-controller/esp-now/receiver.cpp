@@ -105,9 +105,6 @@ Servo servo3;
 Servo servo4;
 Servo servo5;
 
-// prev mode
-int prevMode;
-
 // buzzer
 bool buzz=LOW;
 bool buzzerState=LOW;
@@ -405,7 +402,7 @@ void Task1code(void*pvParameters){
     }
 
     // arm buzzer if mode is stable
-    if(Mode<1231){
+    if(Mode<=1231){
       if(Trottle==1000){
         if(Yaw==1000){
           if(loop1==75&&buzzerState==LOW){
@@ -440,7 +437,7 @@ void Task1code(void*pvParameters){
         digitalWrite(BUZZER,LOW);
       }
     }
-    else if(Mode>1231){
+    else if(Mode>1231&&ping<=3000){
       buzz=LOW;
       buzzerState=LOW;
       digitalWrite(BUZZER,LOW);
