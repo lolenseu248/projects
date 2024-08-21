@@ -105,8 +105,14 @@ Servo servo3;
 Servo servo4;
 Servo servo5;
 
-// counter incase of lost signal
+// prev mode
+int prevMode;
+
+// buzzer
+bool buzz=LOW;
 bool buzzerState=LOW;
+
+// counter incase of lost signal
 unsigned long losscount1=0;
 unsigned long losscount2=0;
 unsigned long losscount3=0;
@@ -399,21 +405,45 @@ void Task1code(void*pvParameters){
     }
 
     // arm buzzer if mode is stable
-    if(Mode<=1231){
+    if(Mode<1231){
       if(Trottle==1000){
-        if(Yaw==2000){
-          buzzerState=HIGH;
-          digitalWrite(BUZZER,HIGH);
+        if(Yaw==1000){
+          if(loop1==75&&buzzerState==LOW){
+            buzzerState=HIGH;
+            digitalWrite(BUZZER,HIGH);
+          }
         }
+
+        else if(Yaw==2000){
+          if(loop1==95&&buzzerState==LOW){
+            buzzerState=HIGH;
+            digitalWrite(BUZZER,HIGH);
+          }
+        }
+
         else{
+          if(buzz==LOW&&buzzerState==LOW){
+            buzz=HIGH;
+            buzzerState=HIGH;
+            digitalWrite(BUZZER,HIGH);
+          }
+        }
+
+        if(loop1==90&&buzzerState==HIGH){
           buzzerState=LOW;
           digitalWrite(BUZZER,LOW);
         }
       }
       else{
+        buzz=LOW;
         buzzerState=LOW;
         digitalWrite(BUZZER,LOW);
       }
+    }
+    else if(Mode>1231){
+      buzz=LOW;
+      buzzerState=LOW;
+      digitalWrite(BUZZER,LOW);
     }
 
     // write servo
