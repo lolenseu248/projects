@@ -1,38 +1,45 @@
 import cv2
 import numpy as np
 import mss
-import mss.tools
 
+# Screen capture size and location
+x, y, width, height = 180, 150, 1600, 780  # Adjust these values according to your screen capture area
 
-while True:
+# Load reference images and convert them to grayscale
+reference_images = ['t4-ore-1.png', 't4-ore-2.png', 't4-ore-3.png', 't3-ore-1.png', 't3-ore-2.png', 't3-ore-3.png']  # Updated reference images
+templates = [cv2.imread(img, cv2.IMREAD_GRAYSCALE) for img in reference_images]  # Convert images to grayscale
 
-    # Capture the screen using MSS
-    with mss.mss() as sct:
-        # Get information of monitor 1
-        monitor = sct.monitors[1]
+# Create an instance of mss
+with mss.mss() as sct:
+    # Define the monitor region to capture
+    monitor = {"top": y, "left": x, "width": width, "height": height}
+
+    while True:
         # Capture the screen
         screenshot = sct.grab(monitor)
-        # Convert to a numpy array
-        img = np.array(screenshot)
+        frame = np.array(screenshot)
 
-    # Load the picture you want to detect
-    template = cv2.imread('fiber5.png', cv2.IMREAD_COLOR)
-    template_gray = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
-    w, h = template_gray.shape[::-1]
+        # Convert frame to grayscale for matching (skip color conversion)
+        frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGRA2GRAY)
 
-    # Convert the captured screen to grayscale
-    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        # Track object using template matching
+        for template in templates:
+            result = cv2.matchTemplate(frame_gray, template, cv2.TM_CCOEFF_NORMED)
+            min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+            
+            # Threshold for detection (adjust according to your needs)
+            if max_val > 0.8:
+                w, h = template.shape[::-1]
+                top_left = max_loc
+                bottom_right = (top_left[0] + w, top_left[1] + h)
+                cv2.rectangle(frame, top_left, bottom_right, (0, 255, 0), 2)
 
-    # Perform template matching
-    res = cv2.matchTemplate(img_gray, template_gray, cv2.TM_CCOEFF_NORMED)
-    threshold = 0.8
-    loc = np.where(res >= threshold)
+        # Display the result
+        cv2.imshow('Screen Capture', frame)
 
-    # Draw a green box around the detected area
-    for pt in zip(*loc[::-1]):
-        cv2.rectangle(img, pt, (pt[0] + w, pt[1] + h), (0, 255, 0), 2)
+        # Break the loop on 'q' key press
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
-    # Display the result
-    cv2.imshow('Detected', img)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+# Clean up
+cv2.destroyAllWindows()
