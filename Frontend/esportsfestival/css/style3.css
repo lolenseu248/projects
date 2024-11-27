@@ -1,0 +1,178 @@
+
+
+/* Content */
+/* ikabil ditoy jay design jay pangcomputer */
+.content {
+  padding-top: 5%;
+}
+
+.content-box {
+  background-color:rgba(18, 18, 18, 0.6);
+  backdrop-filter: blur(10px);
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  width: auto;
+  height: auto;
+  margin: 200px 400px;
+  padding: 10px 200px;
+  padding-top: 5%;
+  padding-bottom: 8%;
+  border-radius: 20px;
+  border: 2px solid #ff007f;
+  box-shadow: 0 0 25px #ff00ff;
+}
+
+.content-box h2 {
+  color: white;
+  margin-bottom: 5%;
+  font-size: 32px;
+  text-shadow: 0 0 25px #ffffff;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+.content-box p {
+  font-size: 25px;
+  color: white;
+  text-shadow: 0 0 10px #ffffff;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+
+}
+
+.content label {
+  display: block;
+  margin-bottom: 5px;
+  color: white;
+  font-family: "Lucida Console", "Courier New", monospace;
+}
+
+.content input {
+  border: none;
+  outline: none;
+  color: black;
+  margin: 16px;
+  padding: 15px 20px;
+  width: 40%;
+  background-color: white;
+  border-radius: 25px;
+  border: 1px solid black;
+  font-size: 16px;
+  font-family: "Lucida Console", "Courier New", monospace;
+  transition: .3s;
+}
+
+.content input:hover {  
+  width: 50%;
+  transition: .8s;
+  border: 1px solid #ff007f;
+  box-shadow: 0 0 25px #ff00ff;
+}
+
+.content select {
+  border: none;
+  outline: none;
+  color: black;
+  margin: 16px;
+  padding: 15px 20px;
+  width: 18%;
+  background-color: white;
+  border-radius: 25px;
+  border: 1px solid black;
+  font-family: "Lucida Console", "Courier New", monospace;
+  font-size: 18px;
+  transition: .3s;
+}
+
+.content select:hover {
+  width: 25%;
+  transition: .8s;
+  border: 1px solid #ff007f;
+  box-shadow: 0 0 25px #ff00ff;
+}
+
+.content button {
+  margin-top: 5%;
+  padding: 15px 30px;
+  width: 24%;
+  font-size: 20px;
+  cursor: pointer;
+  border: none;
+  border-radius: 10px;
+  color: white;
+  background-color: #ff00ff;
+  font-family: "Lucida Console", "Courier New", monospace;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.content button:hover {
+  transform: scale(1.1);
+  background-color: #ff00ff;
+  box-shadow: 0 0 25px #ff00ff; 
+}
+
+
+/* Mobile Phone Screen */
+@media screen and (max-width: 1080px) {
+/* Header Style */
+.header {
+  background-color:rgba(18, 18, 18, 1);
+  position: fixed;
+  overflow: hidden;
+  width: 100%;
+  padding: 24px px;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.header a {
+  flex-grow: 1;
+  flex-basis: 200;
+  width: 250px;
+  float: none;
+  display: block;
+  text-align: left;
+}
+
+.header-right {
+  float: none;
+}
+
+.searchbox {
+  display: flex;
+  position: bottom;
+}
+
+.content-box {
+  background-color:rgba(18, 18, 18, 0.8);
+  margin: 0;
+  padding-top: 400px;
+  display: flex;
+  flex-wrap: wrap;
+  border-radius: 0px;
+}
+
+.content-box div {
+  flex-grow: 1;
+  flex-basis: 200;
+}
+
+
+/* Content */
+/* ikabil ditoy day design jay content pang cellphone */
+.content {
+  background-color:rgba(18, 18, 18, 0.8);
+  margin: 0;
+  display: flexbox;
+  border-radius: 0px;
+}
+
+/* Footer */
+footer {
+  background-color:rgba(18, 18, 18, 0.8);
+  text-align: center;
+  padding: 10px 0;
+  margin: 0;
+  width: 100%;
+}
+}

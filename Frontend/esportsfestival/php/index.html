@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Profile</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="stylesheet" href="../css/header.css">
+  <link rel="stylesheet" href="../css/profile_handler.css">
+  <link rel="stylesheet" href="../css/footer.css">
+  <link rel="icon" href="../img/icon.png">
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <a href="#" class="logo"><img src="../img/2024.png">ESports<br>Festival</a>
+    <div class="header-right">
+      <a href="../index.html">Home</a>
+      <a href="../index2.html">About</a>
+      <a href="../index3.html">Register</a>
+      <a href="../index4.html">ContactUs</a>
+    </div><br>
+    <div class="searchbox">
+      <form action="search_handler.php" method="GET">
+        <input type="text" name="search" placeholder="Enter a keyword..." value="<?php echo htmlspecialchars($searchQuery); ?>" required>
+        <button type="submit">Search</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <div class="content-box">
+      <h2>PROFILE</h2>
+      <div class="profile-container">
+        <img src="<?php echo $profile_image; ?>" alt="Profile Image">
+        <h2><?php echo $username; ?></h2>
+        <div class="profile-button">
+          <button popovertarget="profile-edit" class="edit-button">Edit</button>
+          <button popovertarget="profile-delete" class="delete-button">Delete</button>
+        </div>
+        <div popover id="profile-edit" class="popover-edit">
+          <form action="" method="post">
+            <div class="form-group">
+              <label for="username">Username:</label>
+              <input type="text" id="username" name="username" placeholder="">
+            </div>
+            <div class="form-group">
+              <label for="username">Email:</label>
+              <input type="email" id="email" name="email" placeholder="">
+            </div>
+            <div class="form-group">
+              <label for="username">Contact:</label>
+              <input type="tel" id="contact" name="contact" placeholder="">
+            </div>
+            <div class="form-group">
+              <label for="username">Address:</label>
+              <input type="address" id="address" name="address" placeholder="">
+            </div>
+            <div class="form-group">
+              <label for="age">Age:</label>
+              <input type="number" id="age" name="age" placeholder="" min="10">
+            </div>
+            <div class="form-group">
+              <label for="username">B-day:</label>
+              <input type="date" id="birthday" name="birthday" placeholder=""">
+            </div>
+            <div class="form-group">
+              <label for="options">Select a Role:</label>
+              <select id="options" name="role">
+                <option value="User">User</option>
+                <option value="Player">Player</option>
+                <option value="Sponsor">Sponsor</option>
+                <option value="Speaker">Speaker</option>
+              </select>
+              <br><br>
+            </div>
+            <div class="form-group">
+              <label for="username">Please Enter your Password to Confirm:</label>
+              <input type="password" id="password" name="password" placeholder="Password*">
+            </div>
+          <button class="submit">Save</button>
+          <button popovertarget="profile-edit" popovertargetaction="hide" class="edit-close">Close</button>
+        </div>
+        <div popover id="profile-delete" class="popover-delete">
+
+        </div>
+      </div>
+      <div class="profile-info">
+        <p><strong>Role:</strong> <?php echo $role; ?></p>
+        <p><strong>Email:</strong> <?php echo $email; ?></p>
+        <p><strong>Contact:</strong> <?php echo $contact; ?></p>
+        <p><strong>B-day:</strong> <?php echo $birthday; ?></p>
+        <p><strong>Age:</strong> <?php echo $age; ?></p>
+        <p><strong>Address:</strong> <?php echo $address; ?></p>
+        <p><strong>Created:</strong> <?php echo $created_at; ?></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <h4>© Copyright 2024 | ESports Festival</h4>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,85 @@
+/* Content */
+.content {
+  padding-top: 5%;
+}
+  
+.content-box {
+  background-color:rgba(18, 18, 18, 0.6);
+  backdrop-filter: blur(10px);
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  width: auto;
+  height: auto;
+  margin: 200px 400px;
+  padding: 10px 200px;
+  padding-top: 5%;
+  padding-bottom: 8%;
+  border-radius: 20px;
+  border: 2px solid #ff007f;
+  box-shadow: 0 0 25px #ff00ff;
+}
+
+.content-box h2 {
+  font-size: 32px;
+  margin: 25px 0;
+  color: white;
+  text-transform: uppercase;
+  text-shadow: 0 0 25px #ffffff;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  }
+
+.content-box table {
+  width: 100%;
+  margin-top: 20px;
+  background-color: rgba(24, 24, 24, 0.6);
+  border-radius: 24px;
+}
+
+.content-box th {
+  font-size: 24px;
+  margin-bottom: 30px;
+  color: white;
+  line-height: 1.6;
+  text-shadow: 0 0 2px #ffffff;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+.content-box th, .content-box td {
+  padding: 10px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.content-box a {
+  font-size: 25px;
+  margin-bottom: 30px;
+  color: white;
+  cursor: pointer;
+  text-decoration: none;
+  line-height: 1.6;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+.content-box a:hover {
+  text-shadow: 0 0 5px white;
+}
+
+.content-box td {
+  font-size: 25px;
+  margin-bottom: 30px;
+  color: white;
+  cursor: pointer;
+  text-decoration: none;
+  line-height: 1.6;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+.no-results { 
+  font-size: 25px;
+  margin-bottom: 30px;
+  color: white;
+  line-height: 1.6;
+  text-shadow: 0 0 2px #ffffff;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
