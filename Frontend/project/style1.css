@@ -1,0 +1,110 @@
+body { 
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: url(img/background.jpg);
+  background-size: cover; 
+  background-position: center; 
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  
+}
+
+
+/* Header Style */
+.header {
+  background-color:rgba(18, 18, 18, 0.8);
+  position: fixed;
+  width: 95%;
+  padding: 24px 80px;
+  z-index: 1;
+}
+
+.header a.logo {
+  font-size: 30px;
+  font-weight: bold;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+.header a {
+  color: rgb(255, 255, 255);
+  float: left;
+  text-align: center;
+  margin: 0px 20px;
+  padding: 8px 50px;
+  text-decoration: none;
+  font-size: 18px; 
+  line-height: 25px;
+  border-radius: 10px;
+  font-family: "Lucida Console", "Courier New", monospace;
+}
+
+.header a.active {
+  background-color: rgb(28, 129, 230);
+  color: white;
+}
+
+.header-right {
+  margin-top: 10px;
+  float: right;
+}
+
+.header-right a:hover {
+  background-color: rgb(75, 75, 75);
+}
+
+
+/* Content */
+/* ikabil ditoy jay design jay pangcomputer */
+
+
+/* Footer */
+footer {
+  background-color:rgba(18, 18, 18, 0.8);
+  text-align: center;
+  padding: 10px 0;
+  margin-top: 50px;
+  width: 100%;
+}
+
+footer h4 {
+  color: white;
+  font-family: "Lucida Console", "Courier New", monospace;
+}
+
+
+/* Mobile Phone Screen */
+@media screen and (max-width: 600px) {
+/* Header Style */
+.header {
+  background-color:rgba(18, 18, 18, 1);
+  position: fixed;
+  overflow: hidden;
+  width: 100%;
+  padding: 24px px;
+  z-index: 1;
+}
+
+.header a {
+  width: 250px;
+  float: none;
+  display: block;
+  text-align: left;
+}
+
+.header-right {
+  float: none;
+}
+
+
+/* Content */
+/* ikabil ditoy day design jay content pang cellphone */
+
+/* Footer */
+footer {
+  background-color:rgba(18, 18, 18, 0.8);
+  text-align: center;
+  padding: 10px 0;
+  margin: 0;
+  width: 100%;
+}
+}
