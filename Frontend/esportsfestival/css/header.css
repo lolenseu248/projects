@@ -1,3 +1,20 @@
+
+/* Text animation */
+:is(.ani) {
+  opacity: 0;
+  transform: translateY(24px); 
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+:is(.ani).visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body { 
   margin: 0;
   font-family: Arial, Helvetica, sans-serif;
@@ -31,7 +48,9 @@ body {
 .header a.logo img {
   height: 60px;
   width: 60px;
-  padding: 0 20px;
+  border-radius: 28%;
+  box-shadow: 0 0 10px #ff00ff; 
+  margin: 0 10px;
 }
 
 .header a {

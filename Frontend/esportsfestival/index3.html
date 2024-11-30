@@ -31,30 +31,30 @@
   <!-- Content -->
   <div class="content">
     <div class="content-box">
-      <h2>REGISTER TO BE A PART OF THE 2024 ESPORTS FESTIVAL EXPERIENCE</h2>
-      <p>Please fill out this registration form, becoming a player, an sponsor or a guest speaker at the ESports Festival</p>
+      <h2 class="ani">REGISTER TO BE A PART OF THE 2024 ESPORTS FESTIVAL EXPERIENCE</h2>
+      <p class="ani">Please fill out this registration form, becoming a player, an sponsor or a guest speaker at the ESports Festival</p>
       <form action="php/registration_handler.php" method="post">
-        <div class="form-group">
+        <div class="form-group ani">
           <label for="username">Username:</label>
           <input type="text" id="username" name="username" placeholder="Username*" required>
         </div>
-        <div class="form-group">
+        <div class="form-group ani">
           <label for="email">Email:</label>
           <input type="email" id="email" name="email" placeholder="Email*" required>
         </div>
-        <div class="form-group">
+        <div class="form-group ani">
           <label for="password">Password:</label>
           <input type="password" id="password" name="password" placeholder="Password*" required>
         </div>
-        <div class="form-group">
+        <div class="form-group ani">
           <label for="age">Age:</label>
           <input type="number" id="age" name="age" placeholder="Age*" required min="10">
         </div>
-        <div class="form-group">
+        <div class="form-group ani">
           <label for="address">Address:</label>
           <input type="text" id="address" name="address" placeholder="Address*" required>
         </div>
-        <div class="form-group">
+        <div class="form-group ani">
           <label for="options">Select a Role:</label>
           <select id="options" name="role" required>
             <option value="User">User</option>
@@ -64,7 +64,7 @@
           </select>
           <br><br>
         </div>
-        <button type="submit">Register</button>
+        <button class="ani" type="submit">Register</button>
       </form>
     </div>
   </div> 
@@ -73,5 +73,8 @@
   <footer>
     <h4>© Copyright 2024 | ESports Festival</h4>
   </footer>
+
+  <!-- Animation Script -->
+  <script src="javascript/script.js"></script>
 </body>
 </html>
