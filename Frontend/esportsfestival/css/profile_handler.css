@@ -28,7 +28,7 @@
   font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
 }
 
-/*Profile Container*/
+/* Profile Container */
 .profile-container {
   margin: 0;
   padding: 0;
@@ -61,7 +61,7 @@
 }
 
 
-/*Profile Edit and Delete Button*/
+/* Profile Edit and Delete Button */
 .profile-button {
   margin-top: 8%;
 }
@@ -94,13 +94,15 @@
   transition: .8s;
 }
 
-/*Popover Edit*/
+/* Popover Edit */
 .popover-edit {
   padding: 50px 40px;
+  width: 24%;
   height: 54%;
   overflow-y: auto;
   border-radius: 25px;
-  background-color: rgba(15, 15, 15, 0.9);
+  background-color: rgba(15, 15, 15, 0.6);
+  backdrop-filter: blur(10px);
   border: 2px solid #ff007f;
   box-shadow: 0 0 25px #ff00ff;
 }
@@ -150,7 +152,7 @@
 }
 
 .popover-edit input:hover {  
-  width: 70%;
+  width: 64%;
   border: 1px solid #ff007f;
   box-shadow: 0 0 25px #ff00ff;
   transition: .8s;
@@ -170,20 +172,91 @@
   transition: .3s;
 }
 
-.submit:hover {
+.popover-edit .submit:hover {
   background-color: rgba(20, 235, 0, 0.9);
   border: 1px solid #ffffff;
   box-shadow: 0 0 18px #ffffff;
   transition: .8s;
 }
 
-.edit-close:hover {
+.popover-edit .edit-close:hover {
   background-color: rgba(0, 55, 235, 0.9);
   border: 1px solid #ffffff;
   box-shadow: 0 0 18px #ffffff;
   transition: .8s;
 }
 
+/* Popover Delete */
+.popover-delete {
+  padding: 50px 40px;
+  width: 24%;
+  height: 22%;
+  overflow-y: auto;
+  border-radius: 25px;
+  background-color: rgba(15, 15, 15, 0.6);
+  backdrop-filter: blur(10px);
+  border: 2px solid #ff007f;
+  box-shadow: 0 0 25px #ff00ff;
+}
+
+.popover-delete label{
+  display: block;
+  margin-bottom: 5px;
+  color: white;
+  font-family: "Lucida Console", "Courier New", monospace;
+}
+
+.popover-delete input {
+  border: none;
+  outline: none;
+  color: black;
+  margin: 16px;
+  padding: 15px 20px;
+  width: 55%;
+  background-color: white;
+  border-radius: 25px;
+  border: 1px solid black;
+  font-size: 16px;
+  font-family: "Lucida Console", "Courier New", monospace;
+  transition: .3s;
+}
+
+.popover-delete button {
+  margin: 20px 5px;
+  padding: 10px 20px;
+  font-size: 20px;
+  cursor: pointer;
+  border: 1px solid black;
+  border-radius: 20px;
+  background-color: rgba(15, 15, 15, 0.9);
+  color: white;
+  text-shadow: 0 0 25px #ffffff;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  transition: .3s;
+}
+
+.popover-delete input:hover {  
+  width: 64%;
+  border: 1px solid #ff007f;
+  box-shadow: 0 0 25px #ff00ff;
+  transition: .8s;
+}
+
+.popover-delete .submit:hover {
+  background-color: rgba(235, 0, 0, 0.9);
+  border: 1px solid #ffffff;
+  box-shadow: 0 0 18px #ffffff;
+  transition: .8s;
+}
+
+.popover-delete .delete-close:hover {
+  background-color: rgba(0, 55, 235, 0.9);
+  border: 1px solid #ffffff;
+  box-shadow: 0 0 18px #ffffff;
+  transition: .8s;
+}
+
+/* Profile Info */
 .profile-info {
   margin: 0 2%;
   margin-top: 3%;
