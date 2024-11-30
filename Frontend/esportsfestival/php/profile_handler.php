@@ -67,8 +67,8 @@ if (isset($_GET['id'])) {
     </div><br>
     <div class="searchbox">
       <form action="search_handler.php" method="GET">
-        <input type="text" name="search" placeholder="Enter a keyword..." value="<?php echo htmlspecialchars($searchQuery); ?>" required>
         <button type="submit">Search</button>
+        <input type="text" name="search" placeholder="Enter a keyword..." required>
       </form>
     </div>
   </div>
@@ -80,6 +80,77 @@ if (isset($_GET['id'])) {
       <div class="profile-container">
         <img src="<?php echo $profile_image; ?>" alt="Profile Image">
         <h2><?php echo $username; ?></h2>
+        <div class="profile-button">
+          <button popovertarget="profile-edit" class="edit-button">Edit</button>
+          <button popovertarget="profile-delete" class="delete-button">Delete</button>
+        </div>
+
+        <!-- Profile Edit -->
+        <div popover id="profile-edit" class="popover-edit">
+          <form action="" method="POST">
+            <div class="form-group">
+              <label for="image">Profile Image:</label>
+              <input type="file" id="image" name="image" accept=".jpg, .jpeg, .png">
+            </div>
+            <div class="form-group">
+              <label for="username">Username:</label>
+              <input type="username" id="username" name="username" value="<?php echo $username; ?>">
+            </div>
+            <div class="form-group">
+              <label for="email">Email:</label>
+              <input type="email" id="email" name="email" value="<?php echo $email; ?>">
+            </div>
+            <div class="form-group">
+              <label for="password">Password:</label>
+              <input type="password" id="password" name="password" placeholder="New Password">
+            </div>
+            <div class="form-group">
+              <label for="contact">Contact:</label>
+              <input type="tel" id="contact" name="contact" value="<?php echo $contact; ?>">
+            </div>
+            <div class="form-group">
+              <label for="address">Address:</label>
+              <input type="address" id="address" name="address" value="<?php echo $address; ?>">
+            </div>
+            <div class="form-group">
+              <label for="age">Age:</label>
+              <input type="number" id="age" name="age" value="<?php echo $age; ?>" min="10" max="60" maxlength="2">
+            </div>
+            <div class="form-group">
+              <label for="birthday">B-day:</label>
+              <input type="date" id="birthday" name="birthday" value="<?php echo $birthday; ?>">
+            </div>
+            <div class="form-group">
+              <label for="role">Select a Role:</label>
+              <select id="role" name="role">
+                <option value="User" <?php echo ($role === 'User') ? 'selected' : ''; ?>>User</option>
+                <option value="Player" <?php echo ($role === 'Player') ? 'selected' : ''; ?>>Player</option>
+                <option value="Sponsor" <?php echo ($role === 'Sponsor') ? 'selected' : ''; ?>>Sponsor</option>
+                <option value="Speaker" <?php echo ($role === 'Speaker') ? 'selected' : ''; ?>>Speaker</option>
+              </select>
+              <br><br>
+            </div>
+            <br><br>
+            <div class="form-group">
+              <label for="currentpassword">Please enter your current password to confirm.</label>
+              <input type="password" id="currentpassword" name="currentpassword" placeholder="Current Password*">
+            </div>
+            <button type="submit" class="submit">Save</button>
+            <button type="button" popovertarget="profile-edit" popovertargetaction="hide" class="edit-close">Close</button>
+          </form>
+        </div>
+
+        <!-- Profile Delete -->
+        <div popover id="profile-delete" class="popover-delete">
+          <form action="" method="POST">
+            <div class="form-group">
+              <label for="currentpassword">In order to delete your account, please enter your current password!</label>
+              <input type="password" id="currentpassword" name="currentpassword" placeholder="Current Password*">
+            </div>
+            <button type="submit" class="submit">Confirm</button>
+            <button type="button" popovertarget="profile-delete" popovertargetaction="hide" class="delete-close">Close</button>
+          </form>
+        </div>
       </div>
       <div class="profile-info">
         <p><strong>Role:</strong> <?php echo $role; ?></p>

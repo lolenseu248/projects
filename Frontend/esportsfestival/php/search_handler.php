@@ -54,7 +54,7 @@ if (isset($_GET['search'])) {
       <a href="../index4.html">ContactUs</a>
     </div><br>
     <div class="searchbox">
-      <form action="php/search_handler.php" method="GET">
+      <form action="search_handler.php" method="GET">
         <button type="submit">Search</button>
         <input type="text" name="search" placeholder="Enter a keyword..." required>
       </form>

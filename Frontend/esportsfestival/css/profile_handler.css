@@ -40,7 +40,7 @@
   border-radius: 100%;
   border: 5px solid black;
   background-color: black;
-  transition: .3s;
+  transition: .8s;
 }
 
 .profile-container img:hover{
@@ -48,11 +48,11 @@
   width: 420px;
   border: 0;
   border-radius: 10%;
-  transition: .8s;
+  transition: .3s;
 }
 
 .profile-container h2 {
-  font-size: 32px;
+  font-size: 28px;
   margin: 25px 0;
   color: white;
   text-transform: uppercase;
@@ -129,6 +129,13 @@
   transition: .3s;
 }
 
+.popover-edit input:hover {  
+  width: 64%;
+  border: 1px solid #ff007f;
+  box-shadow: 0 0 25px #ff00ff;
+  transition: .8s;
+}
+
 .popover-edit select {
   border: none;
   outline: none;
@@ -149,13 +156,6 @@
   transition: .8s;
   border: 1px solid #ff007f;
   box-shadow: 0 0 25px #ff00ff;
-}
-
-.popover-edit input:hover {  
-  width: 64%;
-  border: 1px solid #ff007f;
-  box-shadow: 0 0 25px #ff00ff;
-  transition: .8s;
 }
 
 .popover-edit button {
@@ -221,6 +221,13 @@
   transition: .3s;
 }
 
+.popover-delete input:hover {  
+  width: 64%;
+  border: 1px solid #ff007f;
+  box-shadow: 0 0 25px #ff00ff;
+  transition: .8s;
+}
+
 .popover-delete button {
   margin: 20px 5px;
   padding: 10px 20px;
@@ -233,13 +240,6 @@
   text-shadow: 0 0 25px #ffffff;
   font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
   transition: .3s;
-}
-
-.popover-delete input:hover {  
-  width: 64%;
-  border: 1px solid #ff007f;
-  box-shadow: 0 0 25px #ff00ff;
-  transition: .8s;
 }
 
 .popover-delete .submit:hover {
